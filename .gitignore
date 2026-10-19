@@ -1,0 +1,36 @@
+# Dependencias y build del frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.firebase/
+
+# Reportes de tests E2E
+frontend/test-results/
+frontend/playwright-report/
+
+# Build artifacts del backend
+backend/workoutbot
+backend/workoutbot.exe
+
+# Archivos de entorno (nunca versionar)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+firebase-debug.log
+
+# OS
+.DS_Store
+Thumbs.DB
+
+# IDE
+.vscode/
+.idea/
+
+# Temporales
+/tmp/
+.firebaserc.bak
