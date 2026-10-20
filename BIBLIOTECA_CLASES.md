@@ -7,7 +7,14 @@
 
 ## 1. Respuesta corta
 
-> **Estado actual:** Fases 1, 2, 2.1, 2.2 y esquema v2 implementados. El motor
+> **Estado actual:** Fases 1, 2, 2.1, 2.2 y esquema v2 implementados. La prueba de
+> concepto de clase completa china (`INFORME_CLASE_CHINA.md`) ya tiene su P0 en
+> código: detalle por secciones antes de empezar, progreso segmentado, siguiente
+> ejercicio visible y tutorial accesible. La capa de clase grupal real
+> (`CLASE_GRUPAL_REAL.md`) también tiene su P0: briefing, música por sección,
+> cues de anticipación, modificaciones y cierre. La auditoría de diseño
+> (`AUDITIA_UX.md`) ya corrigió jerarquía, nomenclatura, feedback y targets
+> táctiles contra los sistemas de diseño chinos. El motor
 > interpreta clases como datos (`engine/clases.js`), hay **13 clases** y **21
 > ejercicios** en el catálogo (`engine/ejercicios.js`), con **11 detectores** y
 > demos stick figure. La plancha, la plancha lateral, el superman, la marcha, el

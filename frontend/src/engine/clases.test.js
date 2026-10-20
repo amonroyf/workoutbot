@@ -5,6 +5,7 @@ import {
   obtenerClase,
   duracionClase,
   formatearDuracion,
+  resumenSecciones,
 } from './clases';
 import { obtenerEjercicio, nombreEjercicio, esDeTiempo } from './ejercicios';
 
@@ -87,6 +88,26 @@ describe('formatearDuracion', () => {
     expect(formatearDuracion(45)).toBe('45s');
     expect(formatearDuracion(120)).toBe('2 min');
     expect(formatearDuracion(160)).toBe('2 min 40s');
+  });
+});
+
+describe('resumenSecciones', () => {
+  it('resume la clase completa con duración y ejercicios por sección', () => {
+    const resumen = resumenSecciones(obtenerClase('funcional-45'));
+
+    expect(resumen).toHaveLength(5);
+    expect(resumen[0]).toMatchObject({
+      id: 'calentamiento',
+      duracion: 480,
+      rondas: 1,
+    });
+    expect(resumen[0].ejercicios).toContain('MARCHA');
+    expect(resumen[1]).toMatchObject({ id: 'fuerza', rondas: 3, duracion: 840 });
+    expect(resumen.reduce((total, seccion) => total + seccion.duracion, 0)).toBe(2700);
+  });
+
+  it('devuelve null para clases exprés', () => {
+    expect(resumenSecciones(obtenerClase('clasico'))).toBeNull();
   });
 });
 

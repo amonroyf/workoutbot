@@ -203,6 +203,25 @@ export function compilarClase(clase) {
   });
 }
 
+export function resumenSecciones(clase) {
+  if (!clase || !Array.isArray(clase.secciones)) return null;
+
+  return clase.secciones.map((seccion, i) => {
+    const bloques = clase.bloques.filter((bloque) => bloque.seccionIndex === i);
+    return {
+      id: seccion.id,
+      nombre: seccion.nombre,
+      tipo: seccion.tipo,
+      rondas: seccion.rondas || 1,
+      duracion: bloques.reduce(
+        (total, bloque) => total + bloque.trabajo + (bloque.descanso || 0),
+        0
+      ),
+      ejercicios: [...new Set(bloques.map((bloque) => bloque.ejercicio))],
+    };
+  });
+}
+
 const FUNCIONAL_45_BASE = {
   id: 'funcional-45',
   nombre: 'Funcional 45',

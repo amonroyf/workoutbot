@@ -1,4 +1,5 @@
 import { CLASE_POR_DEFECTO, duracionClase } from './clases';
+import { esDeTiempo } from './ejercicios';
 
 export const EJERCICIOS = CLASE_POR_DEFECTO.bloques.map((bloque) => bloque.ejercicio);
 export const TIEMPO_TRABAJO = CLASE_POR_DEFECTO.bloques[0].trabajo;
@@ -25,8 +26,8 @@ function descansoDe(bloque) {
   return bloque.descanso || 0;
 }
 
-export function progresoCircuito(estado, clase = CLASE_POR_DEFECTO) {
-  if (estado.faseActual === 'FIN') return 1;
+export function transcurridoCircuito(estado, clase = CLASE_POR_DEFECTO) {
+  if (estado.faseActual === 'FIN') return duracionClase(clase);
   if (estado.faseActual === 'CALIBRACION') return 0;
 
   const indice = indiceBloque(estado, clase);
@@ -43,8 +44,41 @@ export function progresoCircuito(estado, clase = CLASE_POR_DEFECTO) {
       ? previos + (bloque.trabajo - estado.tiempoRestante)
       : previos + bloque.trabajo + (descansoDe(bloque) - estado.tiempoRestante);
 
-  const total = duracionClase(clase);
-  return Math.min(1, Math.max(0, transcurrido / total));
+  return Math.min(duracionClase(clase), Math.max(0, transcurrido));
+}
+
+export function progresoCircuito(estado, clase = CLASE_POR_DEFECTO) {
+  return transcurridoCircuito(estado, clase) / duracionClase(clase);
+}
+
+export function progresoSecciones(estado, clase = CLASE_POR_DEFECTO) {
+  if (!Array.isArray(clase.secciones)) return null;
+
+  const total = transcurridoCircuito(estado, clase);
+  let inicio = 0;
+
+  return clase.secciones.map((seccion, i) => {
+    const duracion = clase.bloques
+      .filter((bloque) => bloque.seccionIndex === i)
+      .reduce((suma, bloque) => suma + bloque.trabajo + descansoDe(bloque), 0);
+    const fin = inicio + duracion;
+    const transcurrido = Math.max(0, Math.min(total, fin) - inicio);
+    const estadoSeccion =
+      total >= fin || estado.faseActual === 'FIN'
+        ? 'completado'
+        : total >= inicio
+          ? 'actual'
+          : 'pendiente';
+
+    inicio = fin;
+    return {
+      id: seccion.id,
+      nombre: seccion.nombre,
+      duracion,
+      transcurrido,
+      estado: estadoSeccion,
+    };
+  });
 }
 
 export function estacionesCircuito(estado, clase = CLASE_POR_DEFECTO) {
@@ -132,7 +166,8 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
     ? {
         ...estado.totales,
         [estado.ejercicioActual]:
-          (estado.totales[estado.ejercicioActual] || 0) + estado.repeticiones,
+          (estado.totales[estado.ejercicioActual] || 0) +
+          (esDeTiempo(estado.ejercicioActual) ? bloque.trabajo : estado.repeticiones),
       }
     : estado.totales;
 

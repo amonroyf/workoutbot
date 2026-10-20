@@ -15,7 +15,7 @@ o falsas) y **3 altos** comprometían confiabilidad del timer, la cámara y la
 detección.
 
 Todos los hallazgos fueron corregidos y cubiertos con tests unitarios. La suite
-actual tiene **150 tests de frontend (13 archivos, 100% en verde)** y **5 tests
+actual tiene **166 tests de frontend (13 archivos, 100% en verde)** y **5 tests
 de backend (Go)**. El build de producción compila correctamente.
 
 ---
@@ -165,7 +165,7 @@ cd frontend
 npm test
 ```
 
-Resultado: **13 archivos, 150 tests, todos en verde.**
+Resultado: **13 archivos, 166 tests, todos en verde.**
 
 Backend:
 ```bash
@@ -264,7 +264,7 @@ Cuándo **no** es fiable (limitación conocida):
 
 ## 8. Verificación final
 
-- `npm test` → 150/150 OK
+- `npm test` → 166/166 OK
 - `go test ./...` → OK
 - `npm run build` → OK
 - Despliegue a Firebase Hosting tras las correcciones y mejoras.

@@ -24,7 +24,7 @@ describe('obtenerFrase', () => {
     const c = obtenerFrase('ANIMO', 2);
     expect(a).not.toBe(b);
     expect(b).not.toBe(c);
-    expect(obtenerFrase('ANIMO', 4)).toBe(a);
+    expect(obtenerFrase('ANIMO', 6)).toBe(a);
   });
 
   it('usa un banco general si el ejercicio es desconocido', () => {

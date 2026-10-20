@@ -38,15 +38,16 @@ export default function MapaCircuito() {
                 {seccion.estado === 'completado' ? 'OK' : i + 1}
               </div>
               <span
-                className={`w-full truncate text-center text-[9px] font-bold uppercase ${
+                title={seccion.nombre}
+                className={`w-full truncate text-center text-[10px] font-semibold ${
                   seccion.estado === 'pendiente' ? 'text-white/40' : 'text-white/90'
                 }`}
               >
                 {seccion.nombre}
               </span>
               {seccion.estado === 'actual' && seccion.totalRondas > 1 && (
-                <span className="text-[8px] font-bold uppercase tracking-wide text-green-300">
-                  Ronda {seccion.ronda}/{seccion.totalRondas}
+                <span className="text-[9px] font-semibold text-green-300">
+                  Ronda {seccion.ronda} de {seccion.totalRondas}
                 </span>
               )}
             </div>
@@ -78,7 +79,8 @@ export default function MapaCircuito() {
               {estacion.estado === 'completado' ? 'OK' : i + 1}
             </div>
             <span
-              className={`w-full truncate text-center text-[9px] font-bold uppercase ${
+              title={nombreEjercicio(estacion.ejercicio)}
+              className={`w-full truncate text-center text-[10px] font-semibold ${
                 estacion.estado === 'pendiente' ? 'text-white/40' : 'text-white/90'
               }`}
             >

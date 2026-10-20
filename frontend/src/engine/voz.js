@@ -97,7 +97,7 @@ const DESCANSO = [
 const FIN = [
   '¡Rutina cumplida! Quedó berraco, ahora sí a celebrar.',
   '¡Lo lograste! Rutina completa. Mañana volvemos.',
-  '¡Eso es! Terminaste la clase. Orgullo total.',
+  '¡Eso es! Terminaste la clase. Nos vemos mañana.',
 ];
 
 const PAUSA = [
@@ -126,6 +126,8 @@ const ANIMO = [
   '¡Tú puedes, no aflojes!',
   '¡Eso, así, con fuerza!',
   '¡Respira y sigue, vas muy bien!',
+  '¡Vamos todos, una más!',
+  '¡A mi señal, todos juntos!',
 ];
 
 const ATASCADO = [
@@ -155,6 +157,17 @@ const RONDA = [
   'Otra ronda. No aflojes.',
 ];
 
+const ULTIMA_RONDA = [
+  'Última ronda. Vamos todos con todo.',
+  'Ronda final. A mi señal, juntos.',
+];
+
+const GRUPO = [
+  'Vamos todos, al mismo ritmo.',
+  'Juntos llegamos, no aflojamos.',
+  'Una más conmigo, que falta poco.',
+];
+
 const MITAD = [
   'Mitad del ejercicio. Mantén la forma.',
   'Vas por la mitad. Respira y sigue.',
@@ -180,6 +193,8 @@ const BANCOS = {
   CALENTAMIENTO,
   SECCION,
   RONDA,
+  ULTIMA_RONDA,
+  GRUPO,
   MITAD,
   SIGUIENTE,
   ENFRIAMIENTO,
@@ -216,6 +231,8 @@ export const EVENTOS_VOZ = Object.freeze([
   'CALENTAMIENTO',
   'SECCION',
   'RONDA',
+  'ULTIMA_RONDA',
+  'GRUPO',
   'MITAD',
   'SIGUIENTE',
   'ENFRIAMIENTO',

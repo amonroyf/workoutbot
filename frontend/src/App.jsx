@@ -3,7 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import { useWorkoutStore } from './store/workoutStore';
 import { calcularTotal } from './engine/score';
-import { CLASES, duracionClase, formatearDuracion } from './engine/clases';
+import { CLASES, duracionClase, formatearDuracion, resumenSecciones } from './engine/clases';
 import { nombreEjercicio } from './engine/ejercicios';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
 import CameraFeed from './components/CameraFeed';
@@ -18,11 +18,13 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [resumen, setResumen] = useState(null);
   const [resumenActual, setResumenActual] = useState(null);
+  const [verDetalle, setVerDetalle] = useState(false);
   const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
   const claseActual = useWorkoutStore((state) => state.claseActual);
   const claseSeleccionadaId = useWorkoutStore((state) => state.claseSeleccionadaId);
+  const resumenClase = resumenSecciones(claseActual);
   const seleccionarClase = useWorkoutStore((state) => state.seleccionarClase);
   const enviadoRef = useRef(false);
 
@@ -195,45 +197,97 @@ export default function App() {
                       : 'border-white/20 bg-white/5 hover:bg-white/10'
                   }`}
                 >
-                  <span className="block text-xs font-black uppercase leading-tight">
+                  <span className="block text-sm font-black leading-tight">
                     {clase.nombre}
                   </span>
-                  <span className="mt-1 block text-[10px] text-white/70">
+                  <span className="mt-1 block text-[11px] text-white/70">
                     {formatearDuracion(duracionClase(clase))}
                   </span>
-                  <span className="block text-[10px] uppercase tracking-wide text-white/50">
+                  <span className="block text-[11px] text-white/50">
                     {clase.formato === 'completa' ? 'Completa' : 'Exprés'} · {clase.nivel}
+                    {clase.equipamiento
+                      ? ` · ${clase.equipamiento === 'ninguno' ? 'Sin equipo' : clase.equipamiento}`
+                      : ''}
                   </span>
                 </button>
               );
             })}
           </div>
 
-          <div className="mt-3 max-w-md text-sm text-white/70">
-            <p>{claseActual.descripcion}</p>
-            {claseActual.secciones ? (
-              <>
-                <p className="mt-1">
-                  {claseActual.secciones.length} secciones:{' '}
-                  {claseActual.secciones.map((seccion) => seccion.nombre).join(' · ')}
-                </p>
-                <p className="mt-1">
-                  {claseActual.bloques.length} bloques · {formatearDuracion(duracionClase(claseActual))}
-                </p>
-              </>
-            ) : (
-              <p className="mt-1">
-                {claseActual.bloques.length} ejercicios:{' '}
-                {claseActual.bloques.map((bloque) => nombreEjercicio(bloque.ejercicio)).join(' · ')}
+          <div className="mt-3 w-full max-w-md rounded-xl border border-white/10 bg-white/5 p-3 text-left">
+            <p className="text-xs font-bold text-green-400">Antes de empezar</p>
+            <p className="mt-1 text-base font-black text-white">{claseActual.nombre}</p>
+            <p className="text-sm text-white/70">{claseActual.descripcion}</p>
+            <p className="mt-1 text-xs text-white/60">
+              {claseActual.formato === 'completa' ? 'Clase completa' : 'Exprés'} ·{' '}
+              {claseActual.nivel} · {formatearDuracion(duracionClase(claseActual))} ·{' '}
+              {claseActual.equipamiento
+                ? claseActual.equipamiento === 'ninguno'
+                  ? 'Sin equipo'
+                  : claseActual.equipamiento
+                : 'No requiere equipo'}
+            </p>
+            {resumenClase && (
+              <p className="mt-1 text-xs text-white/60">
+                Movimientos clave:{' '}
+                {[...new Set(resumenClase.flatMap((seccion) => seccion.ejercicios))]
+                  .slice(0, 6)
+                  .map(nombreEjercicio)
+                  .join(' · ')}
               </p>
             )}
-            <p className="mt-1">El entrenador te guía por voz y corrige tu postura.</p>
-            <p>La demo va en la esquina; tócala para verla en grande.</p>
+            <p className="mt-1 text-xs text-white/60">
+              Si te cuesta: apóyate en una silla o una pared, o haz menos repeticiones.
+            </p>
+            <button
+              type="button"
+              onClick={() => setVerDetalle(!verDetalle)}
+              aria-expanded={verDetalle}
+              className="mt-1 min-h-11 text-sm font-bold text-green-300 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              {verDetalle ? 'Ocultar el detalle de la clase' : 'Ver el detalle de la clase'}
+            </button>
+
+            {verDetalle && (
+              <div className="mt-1 space-y-2 border-t border-white/10 pt-2">
+                {resumenClase ? (
+                  <>
+                    {resumenClase.map((seccion, i) => (
+                      <div key={seccion.id}>
+                        <p className="text-sm font-bold text-white">
+                          {i + 1}. {seccion.nombre} · {formatearDuracion(seccion.duracion)}
+                          {seccion.rondas > 1 ? ` · ${seccion.rondas} rondas` : ''}
+                        </p>
+                        <p className="text-xs text-white/60">
+                          {seccion.ejercicios.map(nombreEjercicio).join(' · ')}
+                        </p>
+                      </div>
+                    ))}
+                    <p className="text-xs text-white/50">
+                      {claseActual.bloques.length} ejercicios en {claseActual.secciones.length}{' '}
+                      secciones
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-white/60">
+                    {claseActual.bloques.length} ejercicios:{' '}
+                    {claseActual.bloques
+                      .map((bloque) => nombreEjercicio(bloque.ejercicio))
+                      .join(' · ')}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+
+          <p className="mt-2 max-w-md text-xs text-white/50">
+            El entrenador te guía por voz y te corrige la postura. Toca la demo para verla en
+            grande.
+          </p>
 
           <button
             onClick={() => iniciarRutina(claseSeleccionadaId)}
-            className="mt-5 px-8 py-4 bg-green-500 text-2xl font-bold rounded hover:bg-green-600 transition"
+            className="mt-4 min-h-14 w-full max-w-md rounded-2xl bg-green-500 px-8 text-2xl font-black text-black transition hover:bg-green-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             Empezar clase
           </button>

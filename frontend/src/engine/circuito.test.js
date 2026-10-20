@@ -3,7 +3,9 @@ import {
   estadoInicialCircuito,
   avanzarCircuito,
   totalesVacios,
+  transcurridoCircuito,
   progresoCircuito,
+  progresoSecciones,
   estacionesCircuito,
   estacionesSeccion,
   DURACION_TOTAL,
@@ -63,6 +65,51 @@ describe('progresoCircuito', () => {
         CLASICO
       )
     ).toBeCloseTo(20 / 160, 5);
+  });
+});
+
+describe('transcurridoCircuito y progresoSecciones', () => {
+  it('calcula el transcurrido en segundos', () => {
+    expect(transcurridoCircuito({ faseActual: 'CALIBRACION' })).toBe(0);
+    expect(
+      transcurridoCircuito({
+        faseActual: 'TRABAJO',
+        ejercicioActual: 'MARCHA',
+        tiempoRestante: 60,
+      })
+    ).toBe(60);
+    expect(transcurridoCircuito({ faseActual: 'FIN' })).toBe(DURACION_TOTAL);
+  });
+
+  it('muestra el avance de cada sección de la clase completa', () => {
+    const secciones = progresoSecciones(
+      { faseActual: 'TRABAJO', ejercicioActual: 'MARCHA', tiempoRestante: 60 },
+      FUNCIONAL
+    );
+
+    expect(secciones).toHaveLength(5);
+    expect(secciones[0]).toMatchObject({
+      id: 'calentamiento',
+      duracion: 480,
+      transcurrido: 60,
+      estado: 'actual',
+    });
+    expect(secciones[1]).toMatchObject({ estado: 'pendiente', transcurrido: 0 });
+  });
+
+  it('completa secciones al terminar la clase', () => {
+    const secciones = progresoSecciones({ faseActual: 'FIN' }, FUNCIONAL);
+    expect(secciones.map((seccion) => seccion.estado)).toEqual([
+      'completado',
+      'completado',
+      'completado',
+      'completado',
+      'completado',
+    ]);
+  });
+
+  it('devuelve null para clases exprés', () => {
+    expect(progresoSecciones({ faseActual: 'TRABAJO' }, CLASICO)).toBeNull();
   });
 });
 
@@ -198,6 +245,21 @@ describe('avanzarCircuito', () => {
     };
     const r = avanzarCircuito(e, 0, FUNCIONAL);
     expect(r.estado.totales.SENTADILLAS).toBe(13);
+  });
+
+  it('acumula los segundos sostenidos en ejercicios de tiempo', () => {
+    const base = estadoInicialCircuito(0, FUNCIONAL);
+    const indicePlancha = FUNCIONAL.bloques.findIndex(
+      (bloque) => bloque.ejercicio === 'PLANCHA'
+    );
+    const e = {
+      ...base,
+      bloqueActual: indicePlancha,
+      ejercicioActual: 'PLANCHA',
+      finFaseEn: 0,
+    };
+    const r = avanzarCircuito(e, 0, FUNCIONAL);
+    expect(r.estado.totales.PLANCHA).toBe(FUNCIONAL.bloques[indicePlancha].trabajo);
   });
 
   it('recorre el circuito completo y termina en FIN', () => {

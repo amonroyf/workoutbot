@@ -31,6 +31,8 @@ export const useWorkoutStore = create((set, get) => ({
   scoreForma: null,
   subtitulo: null,
   vozActiva: true,
+  musicaActiva: false,
+  avisoMusica: null,
   pausado: false,
   pausadoPor: null,
   pausadoEn: null,
@@ -150,6 +152,10 @@ export const useWorkoutStore = create((set, get) => ({
   setSubtitulo: (subtitulo) => set({ subtitulo }),
 
   setVozActiva: (vozActiva) => set({ vozActiva }),
+
+  setMusicaActiva: (musicaActiva) => set({ musicaActiva }),
+
+  setAvisoMusica: (avisoMusica) => set({ avisoMusica }),
 
   pausar: (por = 'manual') => {
     const { pausado, faseActual } = get();

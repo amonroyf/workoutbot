@@ -246,8 +246,36 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
   }),
 });
 
+export const MODIFICACIONES = Object.freeze({
+  SENTADILLAS: Object.freeze({ facil: 'Apóyate en una silla y baja menos', fuerte: 'Añade pausa abajo o prueba a una pierna' }),
+  FLEXIONES: Object.freeze({ facil: 'Apoya las rodillas o hazla en la pared', fuerte: 'Pausa abajo o eleva los pies' }),
+  JUMPING_JACKS: Object.freeze({ facil: 'Sin salto, paso lateral y brazos bajos', fuerte: 'Más alto y más rápido' }),
+  ZANCADAS: Object.freeze({ facil: 'Zancada corta o a silla', fuerte: 'Zancada larga con pausa' }),
+  PLANCHA: Object.freeze({ facil: 'Rodillas al piso o en la pared', fuerte: 'Pierna o brazo elevado' }),
+  RODILLAS_ALTAS: Object.freeze({ facil: 'Marcha en el lugar', fuerte: 'Más velocidad y más alto' }),
+  PUENTE_GLUTEO: Object.freeze({ facil: 'Subida corta y controlada', fuerte: 'Pausa arriba o a una pierna' }),
+  ABDOMINALES: Object.freeze({ facil: 'Manos en el pecho y rango menor', fuerte: 'Más lento y pausa arriba' }),
+  SENTADILLA_SUMO: Object.freeze({ facil: 'Baja menos y apóyate', fuerte: 'Pausa abajo o tempo mayor' }),
+  FLEXION_DIAMANTE: Object.freeze({ facil: 'Rodillas al piso o en la pared', fuerte: 'Pausa abajo y manos más juntas' }),
+  PUENTE_UNA_PIERNA: Object.freeze({ facil: 'Apoya ambas piernas y sube menos', fuerte: 'Pausa arriba y más rango' }),
+  MOUNTAIN_CLIMBER: Object.freeze({ facil: 'Ritmo lento y sin impacto', fuerte: 'Más velocidad manteniendo cadera baja' }),
+  PLANCHA_LATERAL: Object.freeze({ facil: 'Rodilla de abajo apoyada', fuerte: 'Cadera más alta y pierna elevada' }),
+  SUPERMAN: Object.freeze({ facil: 'Levanta solo brazos o solo piernas', fuerte: 'Pausa arriba y más control' }),
+  DEAD_BUG: Object.freeze({ facil: 'Rango menor y más lento', fuerte: 'Pausa en cada extensión' }),
+  HOLLOW_HOLD: Object.freeze({ facil: 'Rodillas flexionadas y brazos al costado', fuerte: 'Brazos y piernas más extendidos' }),
+  WALL_SIT: Object.freeze({ facil: 'Menos inclinación y apoyo', fuerte: 'Baja más y añade pausa' }),
+  MARCHA: Object.freeze({ facil: 'Paso suave y brazos relajados', fuerte: 'Brazos activos y paso más rápido' }),
+  MARCHA_SUAVE: Object.freeze({ facil: 'Respira y camina lento', fuerte: 'Añade respiración profunda' }),
+  ESTIRAMIENTO_GENERAL: Object.freeze({ facil: 'Estira sin llegar al límite', fuerte: 'Sostén más tiempo sin rebotar' }),
+  BIRD_DOG: Object.freeze({ facil: 'Rango menor y apoyo firme', fuerte: 'Pausa en cada extensión' }),
+});
+
 export function obtenerEjercicio(id) {
   return EJERCICIOS_CATALOGO[id] || null;
+}
+
+export function modificacionesEjercicio(id) {
+  return MODIFICACIONES[id] || { facil: 'Reduce el rango o el ritmo', fuerte: 'Aumenta el rango o el ritmo' };
 }
 
 export function nombreEjercicio(id) {

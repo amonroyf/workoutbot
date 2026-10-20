@@ -121,8 +121,9 @@ export function useEntrenadorVoz(resumen = null) {
       }
 
       if (bloque?.totalRondas > 1 && bloque.ronda !== antes.ronda) {
+        const evento = bloque.ronda === bloque.totalRondas ? 'ULTIMA_RONDA' : 'RONDA';
         hablar(
-          `${obtenerFrase('RONDA', rotacion.current++)} ${bloque.pistaVoz || ''}`.trim()
+          `${obtenerFrase(evento, rotacion.current++)} ${bloque.pistaVoz || ''}`.trim()
         );
         return;
       }
