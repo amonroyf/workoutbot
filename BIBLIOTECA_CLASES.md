@@ -11,8 +11,9 @@
 > datos (`engine/clases.js`), hay **9 clases** y **8 ejercicios** en el catálogo
 > (`engine/ejercicios.js`), con **5 detectores nuevos** (zancada, plancha,
 > rodillas altas, puente de glúteo y abdominal) y demos stick figure. La plancha
-> se sigue por tiempo. Falta ampliar movilidad, mountain climber/burpee y el
-> catálogo remoto.
+> se sigue por tiempo. **Plan semanal local** implementado (días, objetivo y
+> rotación de clases). Falta ampliar movilidad, mountain climber/burpee, el
+> catálogo remoto y la asignación por entrenador.
 
 Sí existen librerías: hay datasets de **800 a 1,324 ejercicios** con JSON,
 instrucciones en español y animaciones/GIFs. Las apps chinas no programan cada
@@ -173,7 +174,8 @@ Así se puede lanzar una biblioteca grande sin tener 300 detectores.
 | `zhiboniu/pose_demo_android` | Demo Android de pose con Paddle |
 | `zhaoolee/sport` | Contador de sentadillas web con acelerómetro |
 | `2331k/fitness_mini_programe` | Mini programa WeChat: plan, análisis de movimiento, reporte |
-| `KiShao-cn/FitTrack` | Registro de entrenos, recordatorios, posters |
+| `Kaiji-Z/workout-timer` | Flutter MIT: 870+ acciones (free-exercise-db CC0), calendario, stats y AI por prompt |
+| `KiShao-cn/FitTrack` | Registro de entrenos, recordatorios 20:00, posters |
 | `vivalaci/xun-ji` | Entreno local-first, cola de reintentos, PRs |
 | `Mocha-L/Fitness_wxApp` | Mini programa de reserva de clases (Apache-2.0) |
 | `evangui/multi-fitness-console` | SaaS de gimnasios multi-sede (Java) |
@@ -249,7 +251,7 @@ mountain climber, burpee, dead bug, movilidad y variantes con silla/pared.
 
 ### Fase 3 — Para clientes
 - Generador de clase por objetivo, tiempo, nivel y equipamiento.
-- Plan semanal asignable.
+- Plan semanal por días y objetivo (implementado en inicio; hoy es local, no asignable por entrenador).
 - Progreso por clase: terminadas, abandonadas, reps, perfectas, racha.
 - Catálogo remoto (Firestore o JSON en Hosting) para actualizar sin recompilar.
 - Backend: `GET /exercises`, `GET /classes`, `GET /plan`, `POST /session`.

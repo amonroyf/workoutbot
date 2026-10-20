@@ -5,10 +5,12 @@ import { useWorkoutStore } from './store/workoutStore';
 import { calcularTotal } from './engine/score';
 import { CLASES, duracionClase, formatearDuracion } from './engine/clases';
 import { nombreEjercicio } from './engine/ejercicios';
+import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
 import CameraFeed from './components/CameraFeed';
 import WorkoutUI from './components/WorkoutUI';
 import SummaryScreen from './components/SummaryScreen';
 import LoginScreen from './components/LoginScreen';
+import PlanSemanal from './components/PlanSemanal';
 import { useEntrenadorVoz } from './hooks/useEntrenadorVoz';
 
 export default function App() {
@@ -16,6 +18,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [resumen, setResumen] = useState(null);
   const [resumenActual, setResumenActual] = useState(null);
+  const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
   const claseActual = useWorkoutStore((state) => state.claseActual);
@@ -50,6 +53,24 @@ export default function App() {
       setResumenActual(null);
     }
   }, [faseActual]);
+
+  useEffect(() => {
+    if (faseActual !== 'CALIBRACION') return;
+    const clase = claseParaFecha(plan);
+    if (clase) seleccionarClase(clase.id);
+  }, [plan, faseActual, seleccionarClase]);
+
+  useEffect(() => {
+    if (!user) return;
+    setPlan(cargarPlan(undefined, user.uid));
+  }, [user]);
+
+  const guardarPlanSemanal = useCallback(
+    (nuevo) => {
+      setPlan(persistirPlan(nuevo, undefined, user?.uid));
+    },
+    [user]
+  );
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -157,7 +178,9 @@ export default function App() {
               </div>
             </div>
           )}
-          <p className="mt-2 text-lg font-semibold">Elige tu clase</p>
+          <PlanSemanal plan={plan} resumen={resumen} onGuardar={guardarPlanSemanal} />
+
+          <p className="mt-3 text-lg font-semibold">Elige tu clase</p>
 
           <div className="mt-3 flex w-full max-w-md snap-x gap-2 overflow-x-auto pb-1">
             {CLASES.map((clase) => {

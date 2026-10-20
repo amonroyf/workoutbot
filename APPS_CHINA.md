@@ -90,9 +90,30 @@
   los 7 días.
 - **H1an1/health-coach**: coach de salud open source con base de comida china.
 
+### Repos nuevos revisados (oct 2026)
+
+| Repo | Licencia | Qué aporta | Fit para WorkoutBot |
+|---|---|---|---|
+| `Kaiji-Z/workout-timer` | MIT | Flutter, **870+ ejercicios** (free-exercise-db CC0), SQLite local, **calendario de plan**, AI por prompt externo → JSON, estadísticas de recuperación/dosis/e1RM/heatmap, notificaciones | **Alta**: es la mejor referencia para plan semanal + stats sin backend |
+| `KiShao-cn/FitTrack` | MIT | Uni-app/Vue 3/TS, peso + entreno + dieta, meta semanal, **recordatorio 20:00**, **póster de check-in**, AI | **Alta**: recordatorio y póster son mecánicas fáciles de adaptar |
+| `vivalaci/xun-ji` | Sin licencia | WeChat, bitácora avanzada, 5 plantillas, calendario + curvas, PR, **local-first con cola de reintento**, compartir sin datos personales | **Alta** como referencia de offline y calendario |
+| `MrKedow/Fitness-Tracker` | MIT | Flutter, local-first + **WebDAV**, exportación Excel, análisis AI, temas | Media: sync/export útil, pero no es el siguiente paso |
+| `redhat123456/upPhysicalExercise` | Sin licencia | WeChat 2021, calendario, videos, plan; incompleto | Baja: referencia histórica, no producción |
+| `hhhxwhhh/FitVision` | Sin licencia | README genérico de tracking, metas, social y recordatorios | Baja: no hay implementación clara que copiar |
+| `zhihuliukanshan/PowerSport` | Sin licencia | Reserva de clases de gimnasio con QR | Nula para el bot individual |
+| `xugy0926/daily-check-in` | Sin licencia | Check-in genérico con LeanCloud | Baja: solo valida el patrón de racha |
+
+**Conclusión de los nuevos repos:** los proyectos chinos maduros convergen en
+**calendario/plan + estadísticas + recordatorio + compartir**. WorkoutBot ya
+tiene catálogo, ejecución, check-in, racha, meta semanal y resumen narrado. Lo
+que falta para cerrar el ciclo es **decidir qué toca hoy** y **volver mañana**.
+
 ---
 
 ## 4. Qué podemos implementar en WorkoutBot (priorizado)
+
+> Actualización oct 2026: **plan semanal + “Hoy toca”** ya está implementado.
+> El siguiente paso es el póster de check-in; después, el recordatorio 20:00.
 
 ### Prioridad alta (impacto alto / esfuerzo bajo-medio)
 
@@ -173,16 +194,25 @@
 
 ---
 
-## 6. Propuesta de siguiente iteración (si se implementa)
+## 6. Propuesta de siguiente iteración
 
 Orden sugerido para WorkoutBot:
 
-1. Check-in + racha + meta semanal (base de retención).
-2. Resumen post-entreno narrado (aprovecha lo que ya tenemos).
-3. Póster para WhatsApp (crecimiento orgánico).
-4. Grupo/parche asíncrono (adherencia social).
-5. Control por gestos + fallback por sensores (UX manos libres).
-6. Moneda/medallas y reto mensual (juego a largo plazo).
+1. ~~Check-in + racha + meta semanal~~ — implementado.
+2. ~~Resumen post-entreno narrado~~ — implementado.
+3. **Plan semanal + “Hoy toca”** — implementado: días configurables, objetivo
+   (equilibrio/fuerza/cardio/suave), rotación de clases, tarjeta de inicio y
+   descanso con próximo entreno. Persistido en `localStorage`; inspirado en el
+   calendario de `Kaiji-Z/workout-timer`, las plantillas de `vivalaci/xun-ji` y
+   la meta semanal de `KiShao-cn/FitTrack`.
+4. **Póster de check-in para WhatsApp** — imagen con racha, reps, combo y frase
+   del bot; `KiShao-cn/FitTrack` ya lo resuelve con Canvas. Crecimiento orgánico.
+5. **Recordatorio 20:00 en días de plan** — notificación local/PWA; solo si el
+   usuario la activa. De `KiShao-cn/FitTrack`.
+6. **Grupo/parche asíncrono** — código de parche, meta compartida y ranking
+   entre pares; no salas en vivo.
+7. **Control por gestos + fallback por sensores** — UX manos libres.
+8. **Moneda/medallas y reto mensual** — juego a largo plazo.
 
 ---
 
