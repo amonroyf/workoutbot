@@ -131,7 +131,8 @@ firebase deploy --only hosting --project <tu-proyecto-id>
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
 | `/health` | GET | Health check |
-| `POST /api/v1/workout/finish` | POST | Guarda resultado del workout (requiere Bearer token) |
+| `POST /api/v1/workout/finish` | POST | Guarda resultado y check-in (requiere Bearer token) |
+| `GET /api/v1/stats` | GET | Racha, semana y últimas sesiones (requiere Bearer token) |
 
 ## 6. Monitoreo
 

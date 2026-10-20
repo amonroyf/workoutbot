@@ -15,6 +15,7 @@ import (
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
+	"google.golang.org/api/iterator"
 )
 
 var (
@@ -28,15 +29,25 @@ const (
 )
 
 type WorkoutLog struct {
-	UID       string    `firestore:"uid" json:"-"`
-	Date      time.Time `firestore:"date" json:"-"`
-	Score     int       `firestore:"score" json:"score"`
-	TotalReps int       `firestore:"total_reps" json:"total_reps"`
+	UID         string    `firestore:"uid" json:"-"`
+	Date        time.Time `firestore:"date" json:"-"`
+	Score       int       `firestore:"score" json:"score"`
+	TotalReps   int       `firestore:"total_reps" json:"total_reps"`
+	Perfectas   int       `firestore:"perfectas" json:"perfectas"`
+	MejorCombo  int       `firestore:"mejor_combo" json:"mejor_combo"`
+	DuracionSec int       `firestore:"duracion_sec" json:"duracion_sec"`
+	ClaseID     string    `firestore:"clase_id" json:"clase_id"`
+	ClaseNombre string    `firestore:"clase_nombre" json:"clase_nombre"`
 }
 
 type finishWorkoutRequest struct {
-	Score     int `json:"score"`
-	TotalReps int `json:"total_reps"`
+	Score       int    `json:"score"`
+	TotalReps   int    `json:"total_reps"`
+	Perfectas   int    `json:"perfectas"`
+	MejorCombo  int    `json:"mejor_combo"`
+	DuracionSec int    `json:"duracion_sec"`
+	ClaseID     string `json:"clase_id"`
+	ClaseNombre string `json:"clase_nombre"`
 }
 
 func main() {
@@ -59,6 +70,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/workout/finish", chainMiddleware(finishWorkoutHandler, apiLimiter))
+	mux.HandleFunc("/api/v1/stats", chainMiddleware(statsHandler, apiLimiter))
 	mux.HandleFunc("/health", healthHandler)
 
 	port := os.Getenv("PORT")
@@ -117,35 +129,139 @@ func finishWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Score < 0 || req.TotalReps < 0 {
+	if req.Score < 0 || req.TotalReps < 0 || req.Perfectas < 0 || req.MejorCombo < 0 || req.DuracionSec < 0 {
 		responderError(w, "invalid_payload", "Valores negativos no permitidos", http.StatusBadRequest)
 		return
 	}
+	if req.DuracionSec > 3600 {
+		req.DuracionSec = 3600
+	}
+	if req.Perfectas > req.TotalReps {
+		req.Perfectas = req.TotalReps
+	}
+	if req.MejorCombo > req.TotalReps {
+		req.MejorCombo = req.TotalReps
+	}
 
+	req.ClaseID = limitarTexto(strings.TrimSpace(req.ClaseID), 60)
+	req.ClaseNombre = limitarTexto(strings.TrimSpace(req.ClaseNombre), 80)
+	if req.ClaseID == "" {
+		req.ClaseID = "clasico"
+	}
+	if req.ClaseNombre == "" {
+		req.ClaseNombre = "Entrenamiento"
+	}
+
+	ahora := time.Now().In(zonaCOT)
 	logData := WorkoutLog{
-		UID:       uid,
-		Date:      time.Now(),
-		Score:     req.Score,
-		TotalReps: req.TotalReps,
+		UID:         uid,
+		Date:        ahora,
+		Score:       req.Score,
+		TotalReps:   req.TotalReps,
+		Perfectas:   req.Perfectas,
+		MejorCombo:  req.MejorCombo,
+		DuracionSec: req.DuracionSec,
+		ClaseID:     req.ClaseID,
+		ClaseNombre: req.ClaseNombre,
+	}
+	checkinData := Checkin{
+		UID:         uid,
+		Fecha:       fechaCOT(ahora),
+		CreadoEn:    ahora,
+		ClaseID:     req.ClaseID,
+		ClaseNombre: req.ClaseNombre,
+		TotalReps:   req.TotalReps,
+		Perfectas:   req.Perfectas,
+		MejorCombo:  req.MejorCombo,
+		DuracionSec: req.DuracionSec,
+		Score:       req.Score,
 	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	_, _, err = firestoreClient.Collection("workout_logs").Add(ctx, logData)
-	if err != nil {
-		log.Printf("Error guardando log: %v", err)
-		responderError(w, "internal_error", "Error guardando el log", http.StatusInternalServerError)
+	batch := firestoreClient.Batch()
+	batch.Set(firestoreClient.Collection("workout_logs").NewDoc(), logData)
+	batch.Set(firestoreClient.Collection("checkins").NewDoc(), checkinData)
+	if _, err := batch.Commit(ctx); err != nil {
+		log.Printf("Error guardando entrenamiento: %v", err)
+		responderError(w, "internal_error", "Error guardando el entrenamiento", http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("Workout guardado: uid=%s score=%d reps=%d", uid, req.Score, req.TotalReps)
+	resumen, err := obtenerResumen(ctx, uid)
+	if err != nil {
+		log.Printf("Error calculando resumen: %v", err)
+	}
+
+	log.Printf("Workout guardado: uid=%s clase=%s score=%d reps=%d", uid, req.ClaseID, req.Score, req.TotalReps)
+
+	w.Header().Set("Content-Type", "application/json")
+	respuesta := map[string]interface{}{
+		"success": true,
+		"message": "Entrenamiento guardado",
+	}
+	if err == nil {
+		respuesta["resumen"] = resumen
+	}
+	json.NewEncoder(w).Encode(respuesta)
+}
+
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	uid, err := verificarToken(r)
+	if err != nil {
+		responderError(w, "unauthorized", "Token inválido o expirado", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	defer cancel()
+
+	resumen, err := obtenerResumen(ctx, uid)
+	if err != nil {
+		log.Printf("Error leyendo resumen: %v", err)
+		responderError(w, "internal_error", "Error leyendo el progreso", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
-		"message": "Entrenamiento guardado",
+		"resumen": resumen,
 	})
+}
+
+func obtenerResumen(ctx context.Context, uid string) (Resumen, error) {
+	iter := firestoreClient.Collection("checkins").Where("uid", "==", uid).Limit(400).Documents(ctx)
+	checkins := make([]Checkin, 0, 32)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return Resumen{}, err
+		}
+		var checkin Checkin
+		if err := doc.DataTo(&checkin); err != nil {
+			return Resumen{}, err
+		}
+		checkins = append(checkins, checkin)
+	}
+	return construirResumen(checkins, time.Now()), nil
+}
+
+func limitarTexto(texto string, max int) string {
+	runas := []rune(texto)
+	if len(runas) <= max {
+		return texto
+	}
+	return string(runas[:max])
 }
 
 func verificarToken(r *http.Request) (string, error) {

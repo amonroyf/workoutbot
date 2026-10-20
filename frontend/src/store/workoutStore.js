@@ -23,6 +23,7 @@ export const useWorkoutStore = create((set, get) => ({
   tiempoRestante: 0,
   repeticiones: 0,
   combo: 0,
+  mejorCombo: 0,
   totales: totalesVacios(CLASE_POR_DEFECTO),
   finFaseEn: null,
   timerRef: null,
@@ -70,6 +71,7 @@ export const useWorkoutStore = create((set, get) => ({
       pausadoEn: null,
       faseRepeticion: 'ARRIBA',
       perfectas: 0,
+      mejorCombo: 0,
       flashPerfecta: 0,
       demoAbierta: false,
       demoEjercicio: null,
@@ -98,12 +100,16 @@ export const useWorkoutStore = create((set, get) => ({
 
   registrarRepeticion: (perfecta = false) => {
     playCoin();
-    set((estado) => ({
-      repeticiones: estado.repeticiones + 1,
-      combo: estado.combo + 1,
-      perfectas: estado.perfectas + (perfecta ? 1 : 0),
-      flashPerfecta: estado.flashPerfecta + (perfecta ? 1 : 0),
-    }));
+    set((estado) => {
+      const combo = estado.combo + 1;
+      return {
+        repeticiones: estado.repeticiones + 1,
+        combo,
+        mejorCombo: Math.max(estado.mejorCombo, combo),
+        perfectas: estado.perfectas + (perfecta ? 1 : 0),
+        flashPerfecta: estado.flashPerfecta + (perfecta ? 1 : 0),
+      };
+    });
   },
 
   setFaseRepeticion: (faseRepeticion) => set({ faseRepeticion }),
@@ -174,6 +180,7 @@ export const useWorkoutStore = create((set, get) => ({
       tiempoRestante: 0,
       repeticiones: 0,
       combo: 0,
+      mejorCombo: 0,
       totales: totalesVacios(clase),
       finFaseEn: null,
       timerRef: null,

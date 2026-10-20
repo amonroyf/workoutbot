@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { obtenerFrase } from '../engine/voz';
 import { guionDemo } from '../engine/demos';
+import { textoNarrado } from '../engine/progreso';
 
 const MS_ENTRE_ANIMO = 9000;
 const MS_ENTRE_CORRECCION = 3500;
@@ -21,7 +22,7 @@ function elegirVoz() {
   );
 }
 
-export function useEntrenadorVoz() {
+export function useEntrenadorVoz(resumen = null) {
   const faseActual = useWorkoutStore((s) => s.faseActual);
   const ejercicioActual = useWorkoutStore((s) => s.ejercicioActual);
   const repeticiones = useWorkoutStore((s) => s.repeticiones);
@@ -37,6 +38,7 @@ export function useEntrenadorVoz() {
   const ultimaVoz = useRef(Date.now());
   const ultimaRep = useRef(Date.now());
   const avisoAtasco = useRef(false);
+  const narradoRef = useRef(false);
   const prev = useRef({
     fase: faseActual,
     ejercicio: ejercicioActual,
@@ -183,6 +185,24 @@ export function useEntrenadorVoz() {
 
     return () => clearInterval(id);
   }, [vozActiva, hablar]);
+
+  useEffect(() => {
+    if (faseActual !== 'FIN') {
+      narradoRef.current = false;
+      return undefined;
+    }
+    if (!vozActiva || !resumen?.ultima || narradoRef.current) return undefined;
+
+    narradoRef.current = true;
+    const texto = textoNarrado(resumen);
+    const id = setTimeout(() => {
+      if (useWorkoutStore.getState().faseActual === 'FIN') {
+        hablar(texto, { rate: 0.98 });
+      }
+    }, 3800);
+
+    return () => clearTimeout(id);
+  }, [faseActual, resumen, vozActiva, hablar]);
 
   useEffect(() => {
     if (!vozActiva && puedeHablar()) {

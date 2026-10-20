@@ -96,16 +96,15 @@
 
 ### Prioridad alta (impacto alto / esfuerzo bajo-medio)
 
-1. **Check-in + racha + calendario**
-   - Botón "Hoy entrené" al terminar, racha de días, meta semanal (3/semana).
-   - Días de descanso programados no rompen la racha (de Keep/Gudong).
-   - Ya tenemos Firestore: guardar `checkins` por usuario.
+1. **Check-in + racha + calendario** — implementado
+   - Al terminar la clase se guarda un check-in en Firestore.
+   - Racha de días y meta semanal (3/semana) visibles en inicio y resumen.
+   - La meta cuenta días distintos, no sesiones; repetir clase no infla la racha.
 
-2. **Resumen post-entreno con análisis**
-   - Además de reps: errores de forma más frecuentes, ritmo (reps/min), mejor
-     combo y comparación con la última sesión.
-   - El bot lo **narra por voz** ("mejoraste 4 reps en sentadilla").
-   - Inspirado en Keep Kaka / FITURE.
+2. **Resumen post-entreno con análisis** — implementado (primera versión)
+   - Muestra reps, perfectas, mejor combo, racha y semana.
+   - Compara reps contra la sesión anterior y el bot lo narra por voz.
+   - Pendiente: errores de forma frecuentes y ritmo (reps/min).
 
 3. **Grupo/parche asíncrono**
    - Crear un "parche" con código, meta semanal compartida y ranking entre pares.
