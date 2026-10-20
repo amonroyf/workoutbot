@@ -1,6 +1,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { PoseLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { DETECTORES, crearEstadoDetector } from '../engine/detectors';
+import {
+  crearFiltrosLandmarks,
+  filtrarLandmarks,
+  reiniciarFiltros,
+} from '../engine/filters';
+import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
+import {
+  MODELOS_POSE,
+  elegirModeloPose,
+  modelosParaIntentar,
+} from '../engine/modeloPose';
 import { useWorkoutStore } from '../store/workoutStore';
 
 const POSE_CONNECTIONS = [
@@ -17,7 +28,10 @@ export const COOLDOWN_REP_MS = 300;
 
 export function useMediaPipe(videoRef, canvasRef) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [modeloPose] = useState(() => elegirModeloPose());
+  const [modeloActivo, setModeloActivo] = useState(null);
   const poseLandmarker = useRef(null);
+  const filtrosLandmarks = useRef(crearFiltrosLandmarks());
   const estadoDetector = useRef(crearEstadoDetector());
   const ejercicioEnCurso = useRef(null);
   const ultimaRepMs = useRef(0);
@@ -27,25 +41,56 @@ export function useMediaPipe(videoRef, canvasRef) {
   const animFrameRef = useRef(null);
   const registrarRepeticion = useWorkoutStore((state) => state.registrarRepeticion);
   const setMensajeForma = useWorkoutStore((state) => state.setMensajeForma);
+  const setScoreForma = useWorkoutStore((state) => state.setScoreForma);
 
   useEffect(() => {
+    let cancelado = false;
+
     const initModel = async () => {
-      const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
-      );
-      poseLandmarker.current = await PoseLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath:
-            'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO',
-        numPoses: 1,
-      });
-      setIsLoaded(true);
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+        );
+
+        for (const id of modelosParaIntentar(modeloPose)) {
+          for (const delegate of ['GPU', 'CPU']) {
+            try {
+              const landmarker = await PoseLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                  modelAssetPath: MODELOS_POSE[id].url,
+                  delegate,
+                },
+                runningMode: 'VIDEO',
+                numPoses: 1,
+              });
+
+              if (cancelado) {
+                landmarker.close();
+                return;
+              }
+
+              poseLandmarker.current = landmarker;
+              setModeloActivo(id);
+              setIsLoaded(true);
+              return;
+            } catch (err) {
+              console.warn(`No se pudo cargar pose ${id}/${delegate}:`, err);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('No se pudo inicializar MediaPipe:', err);
+      }
     };
+
     initModel();
-  }, []);
+
+    return () => {
+      cancelado = true;
+      poseLandmarker.current?.close();
+      poseLandmarker.current = null;
+    };
+  }, [modeloPose]);
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height) => {
     ctx.clearRect(0, 0, width, height);
@@ -82,6 +127,8 @@ export function useMediaPipe(videoRef, canvasRef) {
       if (ejercicioEnCurso.current !== ejercicio) {
         ejercicioEnCurso.current = ejercicio;
         estadoDetector.current = crearEstadoDetector();
+        reiniciarFiltros(filtrosLandmarks.current);
+        setScoreForma(null);
       }
 
       const resultado = detector(landmarks, estadoDetector.current, ahoraMs);
@@ -89,13 +136,18 @@ export function useMediaPipe(videoRef, canvasRef) {
 
       useWorkoutStore.getState().setFaseRepeticion(resultado.estado.fase);
       actualizarMensaje(resultado.estado.mensaje);
+      setScoreForma(resultado.estado.scoreForma ?? null);
 
       if (resultado.repeticion && ahoraMs - ultimaRepMs.current >= COOLDOWN_REP_MS) {
         ultimaRepMs.current = ahoraMs;
-        registrarRepeticion(!resultado.estado.mensaje);
+        const score = resultado.estado.scoreForma;
+        const perfecta =
+          !resultado.estado.mensaje &&
+          (score == null || score >= UMBRAL_SCORE_PERFECTO);
+        registrarRepeticion(perfecta);
       }
     },
-    [registrarRepeticion, actualizarMensaje]
+    [registrarRepeticion, actualizarMensaje, setScoreForma]
   );
 
   const detectFrame = useCallback(() => {
@@ -132,17 +184,23 @@ export function useMediaPipe(videoRef, canvasRef) {
     const sinPoseMs = ahora - ultimaPoseMs.current;
 
     if (hayPose) {
-      const landmarks = results.landmarks[0];
+      const landmarks = filtrarLandmarks(
+        results.landmarks[0],
+        filtrosLandmarks.current,
+        ahora
+      );
       const ctx = canvasRef.current.getContext('2d');
       drawSkeleton(ctx, landmarks, canvasRef.current.width, canvasRef.current.height);
 
       const actual = useWorkoutStore.getState();
       if (actual.faseActual === 'TRABAJO' && !actual.pausado) {
-        procesarEjercicio(landmarks, actual.ejercicioActual, startTimeMs);
+        procesarEjercicio(landmarks, actual.ejercicioActual, ahora);
       } else if (actual.faseActual !== 'TRABAJO' && ejercicioEnCurso.current !== null) {
         ejercicioEnCurso.current = null;
         estadoDetector.current = crearEstadoDetector();
+        reiniciarFiltros(filtrosLandmarks.current);
         actualizarMensaje(null);
+        setScoreForma(null);
         actual.setFaseRepeticion('ARRIBA');
       }
     }
@@ -152,7 +210,7 @@ export function useMediaPipe(videoRef, canvasRef) {
     }
 
     animFrameRef.current = requestAnimationFrame(detectFrame);
-  }, [videoRef, canvasRef, drawSkeleton, procesarEjercicio, actualizarMensaje]);
+  }, [videoRef, canvasRef, drawSkeleton, procesarEjercicio, actualizarMensaje, setScoreForma]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -163,5 +221,5 @@ export function useMediaPipe(videoRef, canvasRef) {
     };
   }, [isLoaded, detectFrame]);
 
-  return { isLoaded };
+  return { isLoaded, modeloActivo };
 }

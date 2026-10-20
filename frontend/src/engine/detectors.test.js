@@ -12,7 +12,6 @@ import {
   detectarPlanchaLateral,
   detectarSuperman,
   crearEstadoDetector,
-  suavizar,
   DETECTORES,
 } from './detectors';
 
@@ -39,17 +38,9 @@ function alimentar(detector, lms, estado, veces, ahora = 0) {
   return { estado: actual, repeticiones };
 }
 
-describe('suavizar (EMA)', () => {
-  it('devuelve el valor nuevo si no hay previo', () => {
-    expect(suavizar(null, 100)).toBe(100);
-  });
-
-  it('se acerca al nuevo valor sin saltar de golpe', () => {
-    expect(suavizar(0, 100, 0.5)).toBe(50);
-  });
-});
-
 const SENTADILLA_ARRIBA = {
+  11: { x: 0.5, y: 0.2 },
+  12: { x: 0.5, y: 0.2 },
   23: { x: 0.5, y: 0.4 },
   24: { x: 0.5, y: 0.4 },
   25: { x: 0.5, y: 0.6 },
@@ -58,6 +49,8 @@ const SENTADILLA_ARRIBA = {
   28: { x: 0.5, y: 0.8 },
 };
 const SENTADILLA_ABAJO = {
+  11: { x: 0.5, y: 0.2 },
+  12: { x: 0.5, y: 0.2 },
   23: { x: 0.5, y: 0.5 },
   24: { x: 0.5, y: 0.5 },
   25: { x: 0.5, y: 0.65 },
@@ -75,6 +68,7 @@ describe('detectarSentadilla', () => {
     const r = alimentar(detectarSentadilla, conPuntos(SENTADILLA_ABAJO), e, 4);
     expect(r.estado.fase).toBe('ABAJO');
     expect(r.repeticiones).toBe(0);
+    expect(r.estado.scoreForma).toBeGreaterThan(0);
   });
 
   it('cuenta una repeticion al subir tras bajar la cadera', () => {
@@ -258,6 +252,7 @@ describe('detectarPlancha', () => {
     const r = alimentar(detectarPlancha, conPuntos(PLANCHA_FIRME), crearEstadoDetector(), 4);
     expect(r.repeticiones).toBe(0);
     expect(r.estado.mensaje).toBe(null);
+    expect(r.estado.scoreForma).toBeGreaterThanOrEqual(85);
   });
 
   it('avisa si la cadera se cae', () => {
@@ -474,6 +469,7 @@ describe('detectarPlanchaLateral', () => {
     const r = alimentar(detectarPlanchaLateral, conPuntos(LATERAL_FIRME), crearEstadoDetector(), 2);
     expect(r.repeticiones).toBe(0);
     expect(r.estado.mensaje).toBe(null);
+    expect(r.estado.scoreForma).toBeGreaterThanOrEqual(85);
   });
 
   it('avisa si la cadera se cae', () => {

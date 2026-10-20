@@ -28,6 +28,7 @@ export const useWorkoutStore = create((set, get) => ({
   finFaseEn: null,
   timerRef: null,
   mensajeForma: null,
+  scoreForma: null,
   subtitulo: null,
   vozActiva: true,
   pausado: false,
@@ -65,6 +66,7 @@ export const useWorkoutStore = create((set, get) => ({
       claseActual: clase,
       claseSeleccionadaId: clase.id,
       mensajeForma: null,
+      scoreForma: null,
       subtitulo: null,
       pausado: false,
       pausadoPor: null,
@@ -143,6 +145,8 @@ export const useWorkoutStore = create((set, get) => ({
 
   setMensajeForma: (mensaje) => set({ mensajeForma: mensaje }),
 
+  setScoreForma: (scoreForma) => set({ scoreForma }),
+
   setSubtitulo: (subtitulo) => set({ subtitulo }),
 
   setVozActiva: (vozActiva) => set({ vozActiva }),
@@ -185,6 +189,7 @@ export const useWorkoutStore = create((set, get) => ({
       finFaseEn: null,
       timerRef: null,
       mensajeForma: null,
+      scoreForma: null,
       subtitulo: null,
       pausado: false,
       pausadoPor: null,

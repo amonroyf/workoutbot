@@ -16,3 +16,27 @@ export function esVisible(landmarks, indices, umbral = 0.5) {
     (i) => landmarks[i] && (landmarks[i].visibility ?? 1) > umbral
   );
 }
+
+export function normalizarLandmarks(landmarks) {
+  if (!Array.isArray(landmarks) || landmarks.length < 25) return null;
+
+  const hombro = {
+    x: (landmarks[11].x + landmarks[12].x) / 2,
+    y: (landmarks[11].y + landmarks[12].y) / 2,
+    z: ((landmarks[11].z ?? 0) + (landmarks[12].z ?? 0)) / 2,
+  };
+  const cadera = {
+    x: (landmarks[23].x + landmarks[24].x) / 2,
+    y: (landmarks[23].y + landmarks[24].y) / 2,
+    z: ((landmarks[23].z ?? 0) + (landmarks[24].z ?? 0)) / 2,
+  };
+  const largo = distancia(hombro, cadera);
+  if (!Number.isFinite(largo) || largo < 1e-6) return null;
+
+  return landmarks.map((punto) => ({
+    ...punto,
+    x: (punto.x - cadera.x) / largo,
+    y: (punto.y - cadera.y) / largo,
+    z: ((punto.z ?? 0) - cadera.z) / largo,
+  }));
+}

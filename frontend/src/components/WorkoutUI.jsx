@@ -3,6 +3,7 @@ import { useWorkoutStore } from '../store/workoutStore';
 import { progresoCircuito } from '../engine/circuito';
 import { obtenerDemo } from '../engine/demos';
 import { esDeTiempo, nombreEjercicio } from '../engine/ejercicios';
+import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
 
@@ -52,6 +53,7 @@ export default function WorkoutUI() {
     bloqueActual,
     ejercicioActual,
     mensajeForma,
+    scoreForma,
     subtitulo,
     pausado,
     pausadoPor,
@@ -76,6 +78,12 @@ export default function WorkoutUI() {
   const ejercicioDemo = demoEjercicio || (faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   const demoVisible = obtenerDemo(ejercicioDemo);
   const esTiempo = esDeTiempo(ejercicioActual);
+  const colorScore =
+    scoreForma >= UMBRAL_SCORE_PERFECTO
+      ? 'bg-green-400 text-black'
+      : scoreForma >= 65
+        ? 'bg-yellow-400 text-black'
+        : 'bg-red-400 text-white';
 
   const abrirDemoActual = () => {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
@@ -135,15 +143,25 @@ export default function WorkoutUI() {
 
         {faseActual === 'TRABAJO' ? (
           esTiempo ? (
-            <div className="mt-3 flex flex-col items-center">
+            <div className="mt-3 flex flex-col items-center gap-2">
               <p className="text-3xl font-black text-green-300">Sostén</p>
               <p className="text-sm text-white/70">Mantén la posición</p>
+              {scoreForma != null && (
+                <span className={`rounded-full px-4 py-1 text-sm font-black ${colorScore}`}>
+                  Forma {scoreForma}%
+                </span>
+              )}
             </div>
           ) : (
             <div className="mt-3 flex items-center gap-4">
               <div className="text-left">
                 <p className="text-3xl">Reps: {repeticiones}</p>
-                <div className="mt-1 flex items-center gap-2">
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  {scoreForma != null && (
+                    <span className={`rounded-full px-3 py-1 text-sm font-black ${colorScore}`}>
+                      Forma {scoreForma}%
+                    </span>
+                  )}
                   {combo >= 3 && (
                     <span className="rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
                       Combo x{combo}

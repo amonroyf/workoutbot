@@ -284,6 +284,16 @@ sube; plancha lateral y superman validan la forma sin contar repeticiones.
 - **Superman**: valida posición boca abajo, brazos adelante, piernas atrás y
   elevación de ambos; avisa qué parte falta subir.
 
+### Fase 2.3 — Precisión de pose (implementada)
+- **OneEuroFilter** en landmarks para reducir jitter sin perder respuesta al
+  movimiento rápido.
+- **Normalización por torso** (centro en cadera, escala por hombro-cadera) para
+  que el score no dependa de la distancia a la cámara.
+- **Score de forma coseno** para sentadilla, sentadilla sumo, flexión, flexión
+  diamante, plancha y plancha lateral; badge en vivo y umbral de "perfecta" 85.
+- **Modelo adaptativo** `lite`/`full`/`heavy` según dispositivo, con override
+  `?pose=` y respaldo automático.
+
 ### Fase 3 — Para clientes
 - Generador de clase por objetivo, tiempo, nivel y equipamiento.
 - Plan semanal por días y objetivo (implementado en inicio; hoy es local, no asignable por entrenador).
@@ -317,8 +327,8 @@ sube; plancha lateral y superman validan la forma sin contar repeticiones.
 ## 10. Recomendación
 
 Las fases 1, 2, 2.1 y 2.2 ya están implementadas: motor genérico, catálogo,
-selector de 12 clases, 18 ejercicios, 11 detectores y demo stick figure en la
-esquina. El siguiente paso es medir uso real y luego agregar movilidad, burpee y
+selector de 12 clases, 18 ejercicios, 11 detectores, score de forma en vivo y
+demo stick figure en la esquina. El siguiente paso es medir uso real y luego agregar movilidad, burpee y
 catálogo remoto.
 
 La biblioteca de datos recomendada para el MVP es `free-exercise-db` por

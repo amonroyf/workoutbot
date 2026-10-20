@@ -1,4 +1,6 @@
-import { calculateAngle, distancia, esVisible } from './angles';
+import { calculateAngle, distancia, esVisible, normalizarLandmarks } from './angles';
+import { OneEuroFilter } from './filters';
+import { calcularScoreForma } from './forma';
 
 export const UMBRAL_VISIBILIDAD = 0.5;
 export const UMBRAL_ANGULO_ARRIBA = 160;
@@ -7,8 +9,6 @@ export const UMBRAL_ZONA_BAJA = 115;
 export const UMBRAL_DESCENSO_CADERA = 0.03;
 export const UMBRAL_VERTICALIDAD_PLANCHA = 0.55;
 export const TIEMPO_SENTADO_MS = 2000;
-export const ALPHA_ANGULO = 0.45;
-export const ALPHA_BASE = 0.1;
 
 const LADOS_SENTADILLA = [
   [23, 25, 27],
@@ -38,7 +38,6 @@ export const UMBRAL_SUPERMAN = 0.03;
 export function crearEstadoDetector() {
   return {
     fase: 'ARRIBA',
-    suavizado: null,
     baseY: null,
     tiempoZonaBajaMs: null,
     sentado: false,
@@ -46,12 +45,9 @@ export function crearEstadoDetector() {
     anguloI: null,
     anguloD: null,
     ladoActivo: null,
+    scoreForma: null,
+    filtroBase: new OneEuroFilter({ minCutoff: 0.5, beta: 0.01 }),
   };
-}
-
-export function suavizar(previo, nuevo, alpha = ALPHA_ANGULO) {
-  if (previo == null) return nuevo;
-  return previo + alpha * (nuevo - previo);
 }
 
 function visibilidad(landmarks, indices) {
@@ -96,16 +92,17 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
   const lado = mejorLado(landmarks, LADOS_SENTADILLA);
   if (!lado) return resultado(estado, {}, false);
 
-  const [cadera, rodilla, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const angulo = suavizar(estado.suavizado, calculateAngle(cadera, rodilla, tobillo));
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [cadera, rodilla, tobillo] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(cadera, rodilla, tobillo);
   const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
 
-  let { fase, baseY, sentado, tiempoZonaBajaMs } = estado;
+  let { fase, baseY, sentado, tiempoZonaBajaMs, scoreForma } = estado;
   let repeticion = false;
   let mensaje = null;
 
   if (angulo > UMBRAL_ANGULO_ARRIBA) {
-    baseY = baseY == null ? caderaY : suavizar(baseY, caderaY, ALPHA_BASE);
+    baseY = baseY == null ? caderaY : estado.filtroBase.filter(caderaY, ahoraMs);
 
     if (fase === 'ABAJO' && !sentado) repeticion = true;
     fase = 'ARRIBA';
@@ -116,6 +113,7 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
     if (descendioCadera) {
       fase = 'ABAJO';
       tiempoZonaBajaMs = ahoraMs;
+      scoreForma = calcularScoreForma('SENTADILLAS', landmarks);
     } else {
       mensaje = 'Baja más la cadera';
     }
@@ -133,7 +131,7 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
 
   return resultado(
     estado,
-    { fase, suavizado: angulo, baseY, sentado, tiempoZonaBajaMs, mensaje },
+    { fase, baseY, sentado, tiempoZonaBajaMs, mensaje, scoreForma },
     repeticion
   );
 }
@@ -142,8 +140,9 @@ export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
   const ladoBrazo = mejorLado(landmarks, LADOS_FLEXION);
   if (!ladoBrazo) return resultado(estado, {}, false);
 
-  const [hombro, codo, muneca] = ladoBrazo.indices.map((i) => landmarks[i]);
-  const angulo = suavizar(estado.suavizado, calculateAngle(hombro, codo, muneca));
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [hombro, codo, muneca] = ladoBrazo.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(hombro, codo, muneca);
 
   let esPlancha = true;
   const ladoPlancha = mejorLado(landmarks, LADOS_PLANCHA);
@@ -153,21 +152,23 @@ export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
     esPlancha = Math.abs(h.y - c.y) / largo < UMBRAL_VERTICALIDAD_PLANCHA;
   }
 
-  let { fase } = estado;
+  let { fase, scoreForma } = estado;
   let repeticion = false;
   let mensaje = null;
 
   if (!esPlancha) {
     fase = 'ARRIBA';
+    scoreForma = null;
     mensaje = 'Colócate en plancha de perfil';
   } else if (angulo > UMBRAL_ANGULO_ARRIBA) {
     if (fase === 'ABAJO') repeticion = true;
     fase = 'ARRIBA';
   } else if (angulo < UMBRAL_ANGULO_ABAJO && fase === 'ARRIBA') {
     fase = 'ABAJO';
+    scoreForma = calcularScoreForma('FLEXIONES', landmarks);
   }
 
-  return resultado(estado, { fase, suavizado: angulo, mensaje }, repeticion);
+  return resultado(estado, { fase, mensaje, scoreForma }, repeticion);
 }
 
 export function detectarJumpingJack(landmarks, estado, ahoraMs = Date.now()) {
@@ -212,12 +213,13 @@ export function detectarJumpingJack(landmarks, estado, ahoraMs = Date.now()) {
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
-export function detectarZancada(landmarks, estado) {
+export function detectarZancada(landmarks, estado, ahoraMs = Date.now()) {
   const lado = ladoMasFlexionado(landmarks, LADOS_SENTADILLA);
   if (!lado) return resultado(estado, {}, false);
 
-  const [cadera, rodilla, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const angulo = suavizar(estado.suavizado, calculateAngle(cadera, rodilla, tobillo));
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [cadera, rodilla, tobillo] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(cadera, rodilla, tobillo);
   const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
 
   let { fase, baseY } = estado;
@@ -225,7 +227,7 @@ export function detectarZancada(landmarks, estado) {
   let mensaje = null;
 
   if (angulo > UMBRAL_ANGULO_ARRIBA) {
-    baseY = baseY == null ? caderaY : suavizar(baseY, caderaY, ALPHA_BASE);
+    baseY = baseY == null ? caderaY : estado.filtroBase.filter(caderaY, ahoraMs);
     if (fase === 'ABAJO') repeticion = true;
     fase = 'ARRIBA';
   } else if (fase === 'ARRIBA' && angulo < UMBRAL_ANGULO_ABAJO) {
@@ -237,7 +239,7 @@ export function detectarZancada(landmarks, estado) {
     }
   }
 
-  return resultado(estado, { fase, suavizado: angulo, baseY, mensaje }, repeticion);
+  return resultado(estado, { fase, baseY, mensaje }, repeticion);
 }
 
 export function detectarPlancha(landmarks, estado) {
@@ -245,9 +247,14 @@ export function detectarPlancha(landmarks, estado) {
   if (!lado) return resultado(estado, { mensaje: 'Colócate de perfil' }, false);
 
   const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const angulo = suavizar(estado.suavizado, calculateAngle(hombro, cadera, tobillo));
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [hombroN, caderaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(hombroN, caderaN, tobilloN);
   const horizontal =
     Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
+  const scoreForma = horizontal && angulo >= UMBRAL_ALINEACION_PLANCHA
+    ? calcularScoreForma('PLANCHA', landmarks)
+    : null;
 
   let mensaje = null;
   if (!horizontal) {
@@ -256,7 +263,7 @@ export function detectarPlancha(landmarks, estado) {
     mensaje = 'Alinea el cuerpo: no dejes caer la cadera';
   }
 
-  return resultado(estado, { suavizado: angulo, mensaje }, false);
+  return resultado(estado, { mensaje, scoreForma }, false);
 }
 
 export function detectarRodillasAltas(landmarks, estado) {
@@ -372,14 +379,9 @@ export function detectarMountainClimber(landmarks, estado) {
     );
   }
 
-  const anguloI = suavizar(
-    estado.anguloI,
-    calculateAngle(landmarks[23], landmarks[25], landmarks[27])
-  );
-  const anguloD = suavizar(
-    estado.anguloD,
-    calculateAngle(landmarks[24], landmarks[26], landmarks[28])
-  );
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const anguloI = calculateAngle(normalizados[23], normalizados[25], normalizados[27]);
+  const anguloD = calculateAngle(normalizados[24], normalizados[26], normalizados[28]);
 
   const izquierdaActiva =
     anguloI < UMBRAL_RODILLA_ESCALADOR && anguloD > UMBRAL_PIERNA_EXTENDIDA;
@@ -420,9 +422,14 @@ export function detectarPlanchaLateral(landmarks, estado) {
   }
 
   const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const angulo = suavizar(estado.suavizado, calculateAngle(hombro, cadera, tobillo));
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [hombroN, caderaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(hombroN, caderaN, tobilloN);
   const horizontal =
     Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
+  const scoreForma = horizontal && angulo >= UMBRAL_ALINEACION_PLANCHA
+    ? calcularScoreForma('PLANCHA_LATERAL', landmarks)
+    : null;
 
   let mensaje = null;
   if (!horizontal) {
@@ -431,7 +438,7 @@ export function detectarPlanchaLateral(landmarks, estado) {
     mensaje = 'Sube la cadera y alinea el cuerpo';
   }
 
-  return resultado(estado, { suavizado: angulo, mensaje }, false);
+  return resultado(estado, { mensaje, scoreForma }, false);
 }
 
 export function detectarSuperman(landmarks, estado) {

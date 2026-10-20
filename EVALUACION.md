@@ -15,9 +15,8 @@ o falsas) y **3 altos** comprometían confiabilidad del timer, la cámara y la
 detección.
 
 Todos los hallazgos fueron corregidos y cubiertos con tests unitarios. La suite
-actual tiene **108 tests de frontend (10 archivos, 100% en verde)** y **5 tests
-de backend (Go)**. El build de producción
-compila correctamente.
+actual tiene **142 tests de frontend (13 archivos, 100% en verde)** y **5 tests
+de backend (Go)**. El build de producción compila correctamente.
 
 ---
 
@@ -166,7 +165,7 @@ cd frontend
 npm test
 ```
 
-Resultado: **10 archivos, 108 tests, todos en verde.**
+Resultado: **13 archivos, 142 tests, todos en verde.**
 
 Backend:
 ```bash
@@ -176,11 +175,16 @@ go test ./...
 Resultado: **5 tests, todos en verde.**
 
 Cobertura de lógica:
-- `angles.test.js`: ángulos 0/90/180, visibilidad, distancia.
+- `angles.test.js`: ángulos 0/90/180, visibilidad, distancia y normalización
+  por largo de torso.
+- `filters.test.js`: OneEuroFilter, suavizado de landmarks y reinicio de filtros.
+- `forma.test.js`: similitud coseno y score de forma para sentadilla, sumo,
+  flexión, plancha y variantes; rechazo por baja visibilidad o torso nulo.
+- `modeloPose.test.js`: selección lite/full/heavy, override y cadena de respaldo.
 - `detectors.test.js`: calibración de cadera, conteo único por ejercicio, gate
-  de visibilidad, rechazo de silla, plancha en flexiones, piernas en JJ, EMA,
+  de visibilidad, rechazo de silla, plancha en flexiones, piernas en JJ,
   zancada, plancha isométrica, rodillas altas, puente de glúteo, abdominal,
-  mountain climber, plancha lateral y superman.
+  mountain climber, plancha lateral, superman y score de forma.
 - `circuito.test.js`: estado inicial, descuento por tiempo real, transición a
   descanso, cambio de ejercicio, recorrido completo hasta `FIN`, acumulado y
   estaciones del mapa.
@@ -215,12 +219,13 @@ Conclusión de la investigación: el conteo es fiable **de perfil**, pero "hacer
 una sentadilla real" requiere más que el ángulo de rodilla. Se implementó:
 
 1. **Calibración de línea base**: mientras el usuario está de pie se registra la
-   altura de la cadera (`baseY`) con EMA.
+   altura de la cadera (`baseY`) con OneEuroFilter.
 2. **Verificación de descenso de cadera**: la repetición solo inicia si la cadera
    baja respecto a la base → evita contar flexiones de rodilla estando de pie.
 3. **Rechazo de "silla"**: si se mantiene flexionado por más de 2 s se marca
    `sentado` y no se cuenta (levantarse de una silla no suma).
-4. **Suavizado EMA** del ángulo para eliminar jitter de MediaPipe.
+4. **OneEuroFilter** sobre landmarks (x/y/z) para eliminar jitter de MediaPipe,
+   con más respuesta cuando hay movimiento rápido.
 5. **Selección del lado más visible**: se usa la pierna/brazo con mayor
    visibilidad en vez de solo el lado derecho.
 6. **Flexiones**: se exige postura de **plancha** (cuerpo horizontal, ángulo
@@ -229,6 +234,13 @@ una sentadilla real" requiere más que el ángulo de rodilla. Se implementó:
    separación normalizada por ancho de hombros/caderas.
 8. **Feedback de forma**: mensajes en pantalla ("Baja más la cadera",
    "Colócate en plancha de perfil", "Posición sentado: no cuenta").
+9. **Normalización por torso**: los ángulos y vectores se calculan sobre
+   landmarks centrados en la cadera y escalados por el largo hombro-cadera.
+10. **Score de forma coseno**: compara alineación de torso, piernas y brazos
+    contra una referencia ideal; se muestra en vivo y define "perfecta" con
+    umbral 85.
+11. **Modelo adaptativo**: `lite` en móviles, `full` en gama alta y `heavy` en
+    escritorio potente, con override `?pose=` y respaldo `heavy → full → lite`.
 
 Cuándo **no** es fiable (limitación conocida):
 - Vista frontal en sentadillas (el plano frontal tiene baja validez).
@@ -240,19 +252,19 @@ Cuándo **no** es fiable (limitación conocida):
 
 ## 7. Recomendaciones pendientes (futuras)
 
-1. **Fallback de delegate**: si `GPU` falla, reintentar con `CPU`.
-2. **Persistencia offline**: reintentar el envío de score si falla la red.
-3. **Uso del eje Z** de los landmarks para robustez ante rotaciones.
-4. **Calibración guiada** en la fase `CALIBRACION` (pedir postura de pie y medir
+1. **Persistencia offline**: reintentar el envío de score si falla la red.
+2. **Uso del eje Z** de los landmarks para robustez ante rotaciones.
+3. **Calibración guiada** en la fase `CALIBRACION` (pedir postura de pie y medir
    proporciones del usuario).
-5. **Clasificador de ejercicio** (LSTM/CNN) para validar que el ejercicio
+4. **Clasificador de ejercicio** (LSTM/CNN) para validar que el ejercicio
    ejecutado corresponde al esperado.
+5. **Medición en cámara real** de los umbrales de forma y del modelo `heavy`.
 
 ---
 
 ## 8. Verificación final
 
-- `npm test` → 108/108 OK
+- `npm test` → 142/142 OK
 - `go test ./...` → OK
 - `npm run build` → OK
 - Despliegue a Firebase Hosting tras las correcciones y mejoras.
