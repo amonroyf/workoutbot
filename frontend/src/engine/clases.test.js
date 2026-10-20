@@ -80,7 +80,9 @@ describe('catálogo de ejercicios', () => {
     expect(esDeTiempo('PLANCHA')).toBe(true);
     expect(esDeTiempo('PLANCHA_LATERAL')).toBe(true);
     expect(esDeTiempo('WALL_SIT')).toBe(true);
+    expect(esDeTiempo('SUPERMAN')).toBe(true);
     expect(esDeTiempo('SENTADILLAS')).toBe(false);
     expect(esDeTiempo('SENTADILLA_SUMO')).toBe(false);
+    expect(esDeTiempo('MOUNTAIN_CLIMBER')).toBe(false);
   });
 });

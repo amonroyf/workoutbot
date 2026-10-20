@@ -464,9 +464,9 @@ export function detectarSuperman(landmarks, estado) {
     return resultado(estado, { mensaje: 'Acuéstate boca abajo de perfil' }, false);
   }
 
-  const brazosAdelante = muneca.x < hombro.x - 0.05;
-  const piernasAtras = tobillo.x > cadera.x + 0.05;
-  if (!brazosAdelante || !piernasAtras) {
+  const brazosExtendidos = Math.abs(muneca.x - hombro.x) > 0.05;
+  const piernasExtendidas = Math.abs(tobillo.x - cadera.x) > 0.05;
+  if (!brazosExtendidos || !piernasExtendidas) {
     return resultado(
       estado,
       { mensaje: 'Estira brazos adelante y piernas atrás' },

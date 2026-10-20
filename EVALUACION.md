@@ -15,7 +15,7 @@ o falsas) y **3 altos** comprometían confiabilidad del timer, la cámara y la
 detección.
 
 Todos los hallazgos fueron corregidos y cubiertos con tests unitarios. La suite
-actual tiene **98 tests de frontend (10 archivos, 100% en verde)** y **5 tests
+actual tiene **108 tests de frontend (10 archivos, 100% en verde)** y **5 tests
 de backend (Go)**. El build de producción
 compila correctamente.
 
@@ -151,7 +151,7 @@ Se extrajo la lógica pura fuera de React:
 | Archivo | Responsabilidad |
 |---------|-----------------|
 | `engine/angles.js` | `calculateAngle`, `distancia`, `esVisible` |
-| `engine/detectors.js` | Máquinas de estado puras de los 8 ejercicios + `DETECTORES` |
+| `engine/detectors.js` | Máquinas de estado puras de los 11 ejercicios + `DETECTORES` |
 | `engine/circuito.js` | Constantes, estado inicial y `avanzarCircuito()` (fases/timer) |
 | `engine/score.js` | `calcularTotal()` |
 
@@ -166,7 +166,7 @@ cd frontend
 npm test
 ```
 
-Resultado: **10 archivos, 98 tests, todos en verde.**
+Resultado: **10 archivos, 108 tests, todos en verde.**
 
 Backend:
 ```bash
@@ -179,7 +179,8 @@ Cobertura de lógica:
 - `angles.test.js`: ángulos 0/90/180, visibilidad, distancia.
 - `detectors.test.js`: calibración de cadera, conteo único por ejercicio, gate
   de visibilidad, rechazo de silla, plancha en flexiones, piernas en JJ, EMA,
-  zancada, plancha isométrica, rodillas altas, puente de glúteo y abdominal.
+  zancada, plancha isométrica, rodillas altas, puente de glúteo, abdominal,
+  mountain climber, plancha lateral y superman.
 - `circuito.test.js`: estado inicial, descuento por tiempo real, transición a
   descanso, cambio de ejercicio, recorrido completo hasta `FIN`, acumulado y
   estaciones del mapa.
@@ -251,7 +252,7 @@ Cuándo **no** es fiable (limitación conocida):
 
 ## 8. Verificación final
 
-- `npm test` → 98/98 OK
+- `npm test` → 108/108 OK
 - `go test ./...` → OK
 - `npm run build` → OK
 - Despliegue a Firebase Hosting tras las correcciones y mejoras.

@@ -8,6 +8,9 @@ import {
   detectarRodillasAltas,
   detectarPuenteGluteo,
   detectarAbdominal,
+  detectarMountainClimber,
+  detectarPlanchaLateral,
+  detectarSuperman,
   crearEstadoDetector,
   suavizar,
   DETECTORES,
@@ -395,6 +398,168 @@ describe('detectarAbdominal', () => {
   });
 });
 
+const ESCALADOR_BASE = {
+  11: { x: 0.34, y: 0.7 },
+  12: { x: 0.34, y: 0.72 },
+  23: { x: 0.55, y: 0.72 },
+  24: { x: 0.55, y: 0.74 },
+  25: { x: 0.7, y: 0.76 },
+  26: { x: 0.7, y: 0.78 },
+  27: { x: 0.85, y: 0.78 },
+  28: { x: 0.85, y: 0.8 },
+};
+const ESCALADOR_IZQ = {
+  ...ESCALADOR_BASE,
+  25: { x: 0.48, y: 0.8 },
+  27: { x: 0.55, y: 0.86 },
+};
+const ESCALADOR_DER = {
+  ...ESCALADOR_BASE,
+  26: { x: 0.48, y: 0.82 },
+  28: { x: 0.55, y: 0.88 },
+};
+
+describe('detectarMountainClimber', () => {
+  it('cuenta cada rodilla que se lleva al pecho', () => {
+    let e = alimentar(detectarMountainClimber, conPuntos(ESCALADOR_BASE), crearEstadoDetector(), 2).estado;
+    expect(e.ladoActivo).toBe(null);
+
+    let r = alimentar(detectarMountainClimber, conPuntos(ESCALADOR_IZQ), e, 4);
+    expect(r.repeticiones).toBe(1);
+    expect(r.estado.ladoActivo).toBe('IZQ');
+
+    r = alimentar(detectarMountainClimber, conPuntos(ESCALADOR_IZQ), r.estado, 3);
+    expect(r.repeticiones).toBe(0);
+
+    r = alimentar(detectarMountainClimber, conPuntos(ESCALADOR_DER), r.estado, 4);
+    expect(r.repeticiones).toBe(1);
+    expect(r.estado.ladoActivo).toBe('DER');
+  });
+
+  it('no cuenta si las dos rodillas estan dobladas', () => {
+    let e = alimentar(detectarMountainClimber, conPuntos(ESCALADOR_BASE), crearEstadoDetector(), 2).estado;
+    const dosDobladas = {
+      ...ESCALADOR_IZQ,
+      26: { x: 0.48, y: 0.82 },
+      28: { x: 0.55, y: 0.88 },
+    };
+    const r = alimentar(detectarMountainClimber, conPuntos(dosDobladas), e, 4);
+    expect(r.repeticiones).toBe(0);
+    expect(r.estado.mensaje).toBe('Alterna las rodillas y estira la otra pierna');
+  });
+
+  it('pide plancha de perfil si el cuerpo esta vertical', () => {
+    const dePie = conPuntos({
+      11: { x: 0.5, y: 0.3 },
+      12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 },
+      24: { x: 0.5, y: 0.6 },
+    });
+    const r = alimentar(detectarMountainClimber, dePie, crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Ponte en plancha de perfil');
+  });
+});
+
+const LATERAL_FIRME = {
+  11: { x: 0.34, y: 0.6 },
+  12: { x: 0.34, y: 0.62 },
+  23: { x: 0.55, y: 0.66 },
+  24: { x: 0.55, y: 0.68 },
+  27: { x: 0.85, y: 0.78 },
+  28: { x: 0.85, y: 0.8 },
+};
+
+describe('detectarPlanchaLateral', () => {
+  it('no cuenta repeticiones y acepta la linea del cuerpo', () => {
+    const r = alimentar(detectarPlanchaLateral, conPuntos(LATERAL_FIRME), crearEstadoDetector(), 2);
+    expect(r.repeticiones).toBe(0);
+    expect(r.estado.mensaje).toBe(null);
+  });
+
+  it('avisa si la cadera se cae', () => {
+    const caderaCaida = {
+      ...LATERAL_FIRME,
+      23: { x: 0.55, y: 0.8 },
+      24: { x: 0.55, y: 0.82 },
+    };
+    const r = alimentar(detectarPlanchaLateral, conPuntos(caderaCaida), crearEstadoDetector(), 2);
+    expect(r.estado.mensaje).toBe('Sube la cadera y alinea el cuerpo');
+  });
+
+  it('pide perfil si el cuerpo esta vertical', () => {
+    const dePie = conPuntos({
+      11: { x: 0.5, y: 0.3 },
+      12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 },
+      24: { x: 0.5, y: 0.6 },
+      27: { x: 0.5, y: 0.9 },
+      28: { x: 0.5, y: 0.9 },
+    });
+    const r = alimentar(detectarPlanchaLateral, dePie, crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Ponte de perfil en plancha lateral');
+  });
+});
+
+const SUPERMAN_BASE = {
+  11: { x: 0.36, y: 0.74 },
+  12: { x: 0.36, y: 0.76 },
+  15: { x: 0.16, y: 0.74 },
+  16: { x: 0.16, y: 0.76 },
+  23: { x: 0.55, y: 0.78 },
+  24: { x: 0.55, y: 0.8 },
+  27: { x: 0.85, y: 0.82 },
+  28: { x: 0.85, y: 0.84 },
+};
+const SUPERMAN_ARRIBA = {
+  ...SUPERMAN_BASE,
+  15: { x: 0.16, y: 0.64 },
+  16: { x: 0.16, y: 0.66 },
+  27: { x: 0.85, y: 0.72 },
+  28: { x: 0.85, y: 0.74 },
+};
+
+describe('detectarSuperman', () => {
+  it('valida el cuerpo boca abajo con brazos y piernas arriba', () => {
+    const r = alimentar(detectarSuperman, conPuntos(SUPERMAN_ARRIBA), crearEstadoDetector(), 2);
+    expect(r.repeticiones).toBe(0);
+    expect(r.estado.mensaje).toBe(null);
+  });
+
+  it('pide levantar brazos y piernas', () => {
+    const r = alimentar(detectarSuperman, conPuntos(SUPERMAN_BASE), crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Levanta brazos y piernas');
+  });
+
+  it('avisa si solo sube una parte del cuerpo', () => {
+    const soloBrazos = {
+      ...SUPERMAN_BASE,
+      15: { x: 0.16, y: 0.64 },
+      16: { x: 0.16, y: 0.66 },
+    };
+    let r = alimentar(detectarSuperman, conPuntos(soloBrazos), crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Sube más las piernas');
+
+    const soloPiernas = {
+      ...SUPERMAN_BASE,
+      27: { x: 0.85, y: 0.72 },
+      28: { x: 0.85, y: 0.74 },
+    };
+    r = alimentar(detectarSuperman, conPuntos(soloPiernas), crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Sube más los brazos');
+  });
+
+  it('pide acostarse de perfil si el cuerpo esta vertical', () => {
+    const dePie = conPuntos({
+      11: { x: 0.5, y: 0.3 },
+      12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 },
+      24: { x: 0.5, y: 0.6 },
+    });
+    const r = alimentar(detectarSuperman, dePie, crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Acuéstate boca abajo de perfil');
+  });
+});
+
 describe('DETECTORES', () => {
   it('mapea los ejercicios del catalogo', () => {
     expect(Object.keys(DETECTORES)).toEqual([
@@ -406,6 +571,9 @@ describe('DETECTORES', () => {
       'RODILLAS_ALTAS',
       'PUENTE_GLUTEO',
       'ABDOMINALES',
+      'MOUNTAIN_CLIMBER',
+      'PLANCHA_LATERAL',
+      'SUPERMAN',
     ]);
   });
 });

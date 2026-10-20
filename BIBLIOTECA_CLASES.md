@@ -7,14 +7,14 @@
 
 ## 1. Respuesta corta
 
-> **Estado actual:** Fases 1, 2 y 2.1 implementadas. El motor interpreta clases
+> **Estado actual:** Fases 1, 2, 2.1 y 2.2 implementadas. El motor interpreta clases
 > como datos (`engine/clases.js`), hay **12 clases** y **18 ejercicios** en el
-> catálogo (`engine/ejercicios.js`), con **5 detectores nuevos** (zancada,
-> plancha, rodillas altas, puente de glúteo y abdominal) y demos stick figure.
-> La plancha y los 7 ejercicios isométricos nuevos se siguen por tiempo.
-> **Plan semanal local** implementado (días, objetivo y rotación de clases).
-> Falta ampliar movilidad, detectores para mountain climber/burpee, el catálogo
-> remoto y la asignación por entrenador.
+> catálogo (`engine/ejercicios.js`), con **11 detectores** (8 anteriores +
+> mountain climber, plancha lateral y superman) y demos stick figure. La plancha,
+> la plancha lateral, el superman y los isométricos sin detector se siguen por
+> tiempo. **Plan semanal local** implementado (días, objetivo y rotación de
+> clases). Falta ampliar movilidad, burpee, el catálogo remoto y la asignación
+> por entrenador.
 
 Sí existen librerías: hay datasets de **800 a 1,324 ejercicios** con JSON,
 instrucciones en español y animaciones/GIFs. Las apps chinas no programan cada
@@ -247,8 +247,8 @@ de contenido puro suelen ser enlaces a videos o datasets traducidos. No hay un
 6. **Principiante**: sentadilla, flexión, puente, plancha.
 
 Detectores nuevos implementados: **zancada, plancha (tiempo), rodillas altas,
-puente de glúteo y abdominal**. Pendientes para una siguiente iteración:
-burpee, movilidad y detectores propios para mountain climber, plancha lateral y superman.
+puente de glúteo, abdominal, mountain climber, plancha lateral y superman**.
+Pendientes: burpee y movilidad.
 
 ### Fase 2.1 — Ampliación de biblioteca (implementada)
 10 ejercicios nuevos, con demo stick y pistas en español:
@@ -256,7 +256,7 @@ burpee, movilidad y detectores propios para mountain climber, plancha lateral y 
 1. **Sentadilla sumo** (reps, detector de sentadilla).
 2. **Flexión diamante** (reps, detector de flexión).
 3. **Puente a una pierna** (reps, detector de puente).
-4. **Mountain climber** (tiempo).
+4. **Mountain climber** (reps, detector propio).
 5. **Plancha lateral** (tiempo).
 6. **Superman** (tiempo).
 7. **Dead bug** (tiempo).
@@ -273,9 +273,16 @@ Clases nuevas:
   pierna, bird dog.
 
 Las variantes con detector reutilizan las máquinas de estado existentes; los
-isométricos usan `modo: 'tiempo'`. Los detectores propios para mountain climber,
-plancha lateral y superman quedan para una iteración posterior con validación
-en cámara.
+isométricos usan `modo: 'tiempo'`. Mountain climber cuenta cada rodilla que
+sube; plancha lateral y superman validan la forma sin contar repeticiones.
+
+### Fase 2.2 — Detectores nuevos (implementada)
+- **Mountain climber**: detecta plancha de perfil y cuenta el cambio de rodilla
+  activa; avisa si las dos rodillas están dobladas.
+- **Plancha lateral**: valida cuerpo horizontal y alineación de hombro-cadera-
+  tobillo; avisa si la cadera se cae.
+- **Superman**: valida posición boca abajo, brazos adelante, piernas atrás y
+  elevación de ambos; avisa qué parte falta subir.
 
 ### Fase 3 — Para clientes
 - Generador de clase por objetivo, tiempo, nivel y equipamiento.
@@ -309,10 +316,10 @@ en cámara.
 
 ## 10. Recomendación
 
-Las fases 1 y 2 ya están implementadas: motor genérico, catálogo, selector de 9
-clases, 5 detectores nuevos y demo stick figure en la esquina. El siguiente paso
-es medir uso real y luego agregar movilidad, mountain climber/burpee y catálogo
-remoto.
+Las fases 1, 2, 2.1 y 2.2 ya están implementadas: motor genérico, catálogo,
+selector de 12 clases, 18 ejercicios, 11 detectores y demo stick figure en la
+esquina. El siguiente paso es medir uso real y luego agregar movilidad, burpee y
+catálogo remoto.
 
 La biblioteca de datos recomendada para el MVP es `free-exercise-db` por
 licencia, y `hasaneyldrm/exercises-dataset` solo como referencia visual hasta
