@@ -1,6 +1,7 @@
 import React, { Fragment } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { estacionesCircuito } from '../engine/circuito';
+import { nombreEjercicio } from '../engine/ejercicios';
 
 const ESTILOS = {
   completado: 'border-green-400 bg-green-500 text-black',
@@ -11,12 +12,17 @@ const ESTILOS = {
 export default function MapaCircuito() {
   const faseActual = useWorkoutStore((s) => s.faseActual);
   const ejercicioActual = useWorkoutStore((s) => s.ejercicioActual);
-  const estaciones = estacionesCircuito({ faseActual, ejercicioActual });
+  const bloqueActual = useWorkoutStore((s) => s.bloqueActual);
+  const claseActual = useWorkoutStore((s) => s.claseActual);
+  const estaciones = estacionesCircuito(
+    { faseActual, ejercicioActual, bloqueActual },
+    claseActual
+  );
 
   return (
-    <div className="mt-3 flex items-start" aria-label="Mapa del circuito">
+    <div className="mt-3 flex items-start" aria-label="Mapa de la clase">
       {estaciones.map((estacion, i) => (
-        <Fragment key={estacion.ejercicio}>
+        <Fragment key={`${estacion.ejercicio}-${i}`}>
           {i > 0 && (
             <div
               className={`mt-4 h-0.5 flex-1 rounded-full ${
@@ -37,7 +43,7 @@ export default function MapaCircuito() {
                 estacion.estado === 'pendiente' ? 'text-white/40' : 'text-white/90'
               }`}
             >
-              {estacion.ejercicio.replace('_', ' ')}
+              {nombreEjercicio(estacion.ejercicio)}
             </span>
           </div>
         </Fragment>

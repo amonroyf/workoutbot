@@ -1,69 +1,92 @@
-export const EJERCICIOS = ['SENTADILLAS', 'FLEXIONES', 'JUMPING_JACKS'];
-export const TIEMPO_TRABAJO = 40;
-export const TIEMPO_DESCANSO = 20;
-export const DURACION_TOTAL =
-  TIEMPO_TRABAJO * EJERCICIOS.length + TIEMPO_DESCANSO * (EJERCICIOS.length - 1);
+import { CLASE_POR_DEFECTO, duracionClase } from './clases';
 
-export function totalesVacios() {
-  return { SENTADILLAS: 0, FLEXIONES: 0, JUMPING_JACKS: 0 };
+export const EJERCICIOS = CLASE_POR_DEFECTO.bloques.map((bloque) => bloque.ejercicio);
+export const TIEMPO_TRABAJO = CLASE_POR_DEFECTO.bloques[0].trabajo;
+export const TIEMPO_DESCANSO = CLASE_POR_DEFECTO.bloques[0].descanso;
+export const DURACION_TOTAL = duracionClase(CLASE_POR_DEFECTO);
+
+export function totalesVacios(clase = CLASE_POR_DEFECTO) {
+  const totales = {};
+  for (const bloque of clase.bloques) {
+    totales[bloque.ejercicio] = 0;
+  }
+  return totales;
 }
 
-export function progresoCircuito(estado) {
+function indiceBloque(estado, clase) {
+  if (Number.isInteger(estado.bloqueActual) && estado.bloqueActual >= 0) {
+    return estado.bloqueActual;
+  }
+  const indice = clase.bloques.findIndex((bloque) => bloque.ejercicio === estado.ejercicioActual);
+  return indice < 0 ? 0 : indice;
+}
+
+function descansoDe(bloque) {
+  return bloque.descanso || 0;
+}
+
+export function progresoCircuito(estado, clase = CLASE_POR_DEFECTO) {
   if (estado.faseActual === 'FIN') return 1;
   if (estado.faseActual === 'CALIBRACION') return 0;
 
-  const indice = EJERCICIOS.indexOf(estado.ejercicioActual);
-  if (indice < 0) return 0;
+  const indice = indiceBloque(estado, clase);
+  const bloque = clase.bloques[indice];
+  if (!bloque) return 0;
+
+  let previos = 0;
+  for (let i = 0; i < indice; i += 1) {
+    previos += clase.bloques[i].trabajo + descansoDe(clase.bloques[i]);
+  }
 
   const transcurrido =
-    indice * (TIEMPO_TRABAJO + TIEMPO_DESCANSO) +
-    (estado.faseActual === 'TRABAJO'
-      ? TIEMPO_TRABAJO - estado.tiempoRestante
-      : TIEMPO_TRABAJO + (TIEMPO_DESCANSO - estado.tiempoRestante));
+    estado.faseActual === 'TRABAJO'
+      ? previos + (bloque.trabajo - estado.tiempoRestante)
+      : previos + bloque.trabajo + (descansoDe(bloque) - estado.tiempoRestante);
 
-  return Math.min(1, Math.max(0, transcurrido / DURACION_TOTAL));
+  const total = duracionClase(clase);
+  return Math.min(1, Math.max(0, transcurrido / total));
 }
 
-export function estacionesCircuito(estado) {
+export function estacionesCircuito(estado, clase = CLASE_POR_DEFECTO) {
   if (estado.faseActual === 'FIN') {
-    return EJERCICIOS.map((ejercicio) => ({ ejercicio, estado: 'completado' }));
+    return clase.bloques.map((bloque) => ({ ejercicio: bloque.ejercicio, estado: 'completado' }));
   }
 
   if (estado.faseActual === 'CALIBRACION') {
-    return EJERCICIOS.map((ejercicio) => ({ ejercicio, estado: 'pendiente' }));
+    return clase.bloques.map((bloque) => ({ ejercicio: bloque.ejercicio, estado: 'pendiente' }));
   }
 
-  const indice = EJERCICIOS.indexOf(estado.ejercicioActual);
-  if (indice < 0) {
-    return EJERCICIOS.map((ejercicio) => ({ ejercicio, estado: 'pendiente' }));
-  }
+  const indice = indiceBloque(estado, clase);
 
-  return EJERCICIOS.map((ejercicio, i) => {
+  return clase.bloques.map((bloque, i) => {
     if (estado.faseActual === 'DESCANSO') {
-      if (i <= indice) return { ejercicio, estado: 'completado' };
-      if (i === indice + 1) return { ejercicio, estado: 'actual' };
-      return { ejercicio, estado: 'pendiente' };
+      if (i <= indice) return { ejercicio: bloque.ejercicio, estado: 'completado' };
+      if (i === indice + 1) return { ejercicio: bloque.ejercicio, estado: 'actual' };
+      return { ejercicio: bloque.ejercicio, estado: 'pendiente' };
     }
 
-    if (i < indice) return { ejercicio, estado: 'completado' };
-    if (i === indice) return { ejercicio, estado: 'actual' };
-    return { ejercicio, estado: 'pendiente' };
+    if (i < indice) return { ejercicio: bloque.ejercicio, estado: 'completado' };
+    if (i === indice) return { ejercicio: bloque.ejercicio, estado: 'actual' };
+    return { ejercicio: bloque.ejercicio, estado: 'pendiente' };
   });
 }
 
-export function estadoInicialCircuito(ahoraMs) {
+export function estadoInicialCircuito(ahoraMs, clase = CLASE_POR_DEFECTO) {
+  const bloque = clase.bloques[0];
   return {
     faseActual: 'TRABAJO',
-    ejercicioActual: EJERCICIOS[0],
-    tiempoRestante: TIEMPO_TRABAJO,
+    claseId: clase.id,
+    bloqueActual: 0,
+    ejercicioActual: bloque.ejercicio,
+    tiempoRestante: bloque.trabajo,
     repeticiones: 0,
     combo: 0,
-    totales: totalesVacios(),
-    finFaseEn: ahoraMs + TIEMPO_TRABAJO * 1000,
+    totales: totalesVacios(clase),
+    finFaseEn: ahoraMs + bloque.trabajo * 1000,
   };
 }
 
-export function avanzarCircuito(estado, ahoraMs) {
+export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
   if (estado.finFaseEn == null) return null;
 
   const restante = Math.max(0, Math.ceil((estado.finFaseEn - ahoraMs) / 1000));
@@ -73,36 +96,47 @@ export function avanzarCircuito(estado, ahoraMs) {
     return { estado: { tiempoRestante: restante }, sonido: null };
   }
 
-  if (estado.faseActual === 'TRABAJO') {
+  const indice = indiceBloque(estado, clase);
+  const bloque = clase.bloques[indice];
+  const esTrabajo = estado.faseActual === 'TRABAJO';
+
+  const totales = esTrabajo
+    ? { ...estado.totales, [estado.ejercicioActual]: estado.repeticiones }
+    : estado.totales;
+
+  if (esTrabajo && descansoDe(bloque) > 0) {
     return {
       estado: {
         faseActual: 'DESCANSO',
-        tiempoRestante: TIEMPO_DESCANSO,
-        finFaseEn: ahoraMs + TIEMPO_DESCANSO * 1000,
-        totales: { ...estado.totales, [estado.ejercicioActual]: estado.repeticiones },
+        tiempoRestante: descansoDe(bloque),
+        finFaseEn: ahoraMs + descansoDe(bloque) * 1000,
+        totales,
         combo: 0,
       },
       sonido: 'silbato',
     };
   }
 
-  const idxActual = EJERCICIOS.indexOf(estado.ejercicioActual);
-  if (idxActual < EJERCICIOS.length - 1) {
+  const siguienteIndice = indice + 1;
+  if (siguienteIndice < clase.bloques.length) {
+    const siguiente = clase.bloques[siguienteIndice];
     return {
       estado: {
         faseActual: 'TRABAJO',
-        ejercicioActual: EJERCICIOS[idxActual + 1],
-        tiempoRestante: TIEMPO_TRABAJO,
-        finFaseEn: ahoraMs + TIEMPO_TRABAJO * 1000,
+        bloqueActual: siguienteIndice,
+        ejercicioActual: siguiente.ejercicio,
+        tiempoRestante: siguiente.trabajo,
+        finFaseEn: ahoraMs + siguiente.trabajo * 1000,
         repeticiones: 0,
         combo: 0,
+        totales,
       },
       sonido: 'inicio',
     };
   }
 
   return {
-    estado: { faseActual: 'FIN', tiempoRestante: 0, finFaseEn: null },
+    estado: { faseActual: 'FIN', tiempoRestante: 0, finFaseEn: null, totales },
     sonido: 'silbato',
   };
 }

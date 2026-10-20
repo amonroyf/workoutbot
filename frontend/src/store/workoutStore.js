@@ -5,6 +5,7 @@ import {
   avanzarCircuito,
   totalesVacios,
 } from '../engine/circuito';
+import { CLASE_POR_DEFECTO, obtenerClase } from '../engine/clases';
 
 const INTERVALO_TICK_MS = 250;
 
@@ -15,11 +16,14 @@ function reproducirSonido(nombre) {
 
 export const useWorkoutStore = create((set, get) => ({
   faseActual: 'CALIBRACION',
-  ejercicioActual: 'SENTADILLAS',
+  claseActual: CLASE_POR_DEFECTO,
+  claseSeleccionadaId: CLASE_POR_DEFECTO.id,
+  bloqueActual: 0,
+  ejercicioActual: CLASE_POR_DEFECTO.bloques[0].ejercicio,
   tiempoRestante: 0,
   repeticiones: 0,
   combo: 0,
-  totales: totalesVacios(),
+  totales: totalesVacios(CLASE_POR_DEFECTO),
   finFaseEn: null,
   timerRef: null,
   mensajeForma: null,
@@ -36,13 +40,29 @@ export const useWorkoutStore = create((set, get) => ({
   pausadoAntesDemo: false,
   pausadoPorAntesDemo: null,
 
-  iniciarRutina: () => {
+  seleccionarClase: (claseId) => {
+    if (get().faseActual !== 'CALIBRACION') return;
+    const clase = obtenerClase(claseId);
+    if (!clase) return;
+    set({
+      claseActual: clase,
+      claseSeleccionadaId: clase.id,
+      bloqueActual: 0,
+      ejercicioActual: clase.bloques[0].ejercicio,
+      totales: totalesVacios(clase),
+    });
+  },
+
+  iniciarRutina: (claseId) => {
     clearInterval(get().timerRef);
     playStart();
 
-    const base = estadoInicialCircuito(Date.now());
+    const clase = obtenerClase(claseId) || get().claseActual || CLASE_POR_DEFECTO;
+    const base = estadoInicialCircuito(Date.now(), clase);
     set({
       ...base,
+      claseActual: clase,
+      claseSeleccionadaId: clase.id,
       mensajeForma: null,
       subtitulo: null,
       pausado: false,
@@ -61,7 +81,7 @@ export const useWorkoutStore = create((set, get) => ({
       const actual = get();
       if (actual.pausado) return;
 
-      const resultado = avanzarCircuito(actual, Date.now());
+      const resultado = avanzarCircuito(actual, Date.now(), actual.claseActual);
       if (!resultado) return;
 
       set(resultado.estado);
@@ -146,13 +166,15 @@ export const useWorkoutStore = create((set, get) => ({
 
   detenerRutina: () => {
     clearInterval(get().timerRef);
+    const clase = get().claseActual || CLASE_POR_DEFECTO;
     set({
       faseActual: 'CALIBRACION',
-      ejercicioActual: 'SENTADILLAS',
+      bloqueActual: 0,
+      ejercicioActual: clase.bloques[0].ejercicio,
       tiempoRestante: 0,
       repeticiones: 0,
       combo: 0,
-      totales: totalesVacios(),
+      totales: totalesVacios(clase),
       finFaseEn: null,
       timerRef: null,
       mensajeForma: null,

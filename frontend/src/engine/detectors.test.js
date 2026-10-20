@@ -3,6 +3,11 @@ import {
   detectarSentadilla,
   detectarFlexion,
   detectarJumpingJack,
+  detectarZancada,
+  detectarPlancha,
+  detectarRodillasAltas,
+  detectarPuenteGluteo,
+  detectarAbdominal,
   crearEstadoDetector,
   suavizar,
   DETECTORES,
@@ -213,12 +218,194 @@ describe('detectarJumpingJack', () => {
   });
 });
 
+describe('detectarZancada', () => {
+  it('cuenta una repeticion al subir tras bajar la cadera', () => {
+    let e = alimentar(detectarZancada, conPuntos(SENTADILLA_ARRIBA), crearEstadoDetector(), 3).estado;
+    e = alimentar(detectarZancada, conPuntos(SENTADILLA_ABAJO), e, 4).estado;
+    expect(e.fase).toBe('ABAJO');
+
+    const r = alimentar(detectarZancada, conPuntos(SENTADILLA_ARRIBA), e, 8);
+    expect(r.repeticiones).toBe(1);
+  });
+
+  it('avisa si flexiona la rodilla sin bajar la cadera', () => {
+    let e = alimentar(detectarZancada, conPuntos(SENTADILLA_ARRIBA), crearEstadoDetector(), 3).estado;
+    const sinDescenso = {
+      ...SENTADILLA_ABAJO,
+      23: { x: 0.5, y: 0.4 },
+      24: { x: 0.5, y: 0.4 },
+    };
+    const r = alimentar(detectarZancada, conPuntos(sinDescenso), e, 6);
+    expect(r.repeticiones).toBe(0);
+    expect(r.estado.mensaje).toBe('Da un paso más largo y baja la rodilla');
+  });
+});
+
+const PLANCHA_FIRME = {
+  11: { x: 0.34, y: 0.7 },
+  12: { x: 0.34, y: 0.7 },
+  23: { x: 0.55, y: 0.72 },
+  24: { x: 0.55, y: 0.72 },
+  27: { x: 0.85, y: 0.74 },
+  28: { x: 0.85, y: 0.74 },
+};
+
+describe('detectarPlancha', () => {
+  it('no cuenta repeticiones y valida la linea del cuerpo', () => {
+    const r = alimentar(detectarPlancha, conPuntos(PLANCHA_FIRME), crearEstadoDetector(), 4);
+    expect(r.repeticiones).toBe(0);
+    expect(r.estado.mensaje).toBe(null);
+  });
+
+  it('avisa si la cadera se cae', () => {
+    const caderaCaida = {
+      ...PLANCHA_FIRME,
+      23: { x: 0.55, y: 0.85 },
+      24: { x: 0.55, y: 0.85 },
+    };
+    const r = alimentar(detectarPlancha, conPuntos(caderaCaida), crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Alinea el cuerpo: no dejes caer la cadera');
+  });
+
+  it('pide perfil si no ve el cuerpo horizontal', () => {
+    const dePie = conPuntos({
+      11: { x: 0.5, y: 0.3 },
+      12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 },
+      24: { x: 0.5, y: 0.6 },
+      27: { x: 0.5, y: 0.9 },
+      28: { x: 0.5, y: 0.9 },
+    });
+    const r = alimentar(detectarPlancha, dePie, crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Ponte en plancha de perfil');
+  });
+});
+
+const RODILLAS_ABAJO = {
+  23: { x: 0.45, y: 0.55 },
+  24: { x: 0.55, y: 0.55 },
+  25: { x: 0.47, y: 0.72 },
+  26: { x: 0.53, y: 0.72 },
+};
+const RODILLA_IZQ_ARRIBA = {
+  ...RODILLAS_ABAJO,
+  25: { x: 0.44, y: 0.45 },
+};
+const RODILLA_DER_ARRIBA = {
+  ...RODILLAS_ABAJO,
+  26: { x: 0.56, y: 0.45 },
+};
+
+describe('detectarRodillasAltas', () => {
+  it('cuenta cada rodilla que sube y baja', () => {
+    let e = alimentar(detectarRodillasAltas, conPuntos(RODILLAS_ABAJO), crearEstadoDetector(), 1).estado;
+    let r = alimentar(detectarRodillasAltas, conPuntos(RODILLA_IZQ_ARRIBA), e, 1);
+    expect(r.repeticiones).toBe(1);
+
+    r = alimentar(detectarRodillasAltas, conPuntos(RODILLA_IZQ_ARRIBA), r.estado, 3);
+    expect(r.repeticiones).toBe(0);
+
+    r = alimentar(detectarRodillasAltas, conPuntos(RODILLAS_ABAJO), r.estado, 1);
+    r = alimentar(detectarRodillasAltas, conPuntos(RODILLA_DER_ARRIBA), r.estado, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+
+  it('ignora landmarks con baja visibilidad', () => {
+    const lms = conPuntos(RODILLA_IZQ_ARRIBA);
+    lms[25].visibility = 0.1;
+    lms[26].visibility = 0.1;
+    const r = detectarRodillasAltas(lms, crearEstadoDetector(), 0);
+    expect(r.repeticion).toBe(false);
+  });
+});
+
+const PUENTE_ABAJO = {
+  11: { x: 0.3, y: 0.78 },
+  12: { x: 0.3, y: 0.78 },
+  23: { x: 0.55, y: 0.78 },
+  24: { x: 0.55, y: 0.78 },
+  25: { x: 0.65, y: 0.62 },
+  26: { x: 0.65, y: 0.62 },
+};
+const PUENTE_ARRIBA = {
+  ...PUENTE_ABAJO,
+  23: { x: 0.55, y: 0.68 },
+  24: { x: 0.55, y: 0.68 },
+};
+
+describe('detectarPuenteGluteo', () => {
+  it('cuenta una repeticion al levantar la cadera', () => {
+    let e = alimentar(detectarPuenteGluteo, conPuntos(PUENTE_ABAJO), crearEstadoDetector(), 1).estado;
+    expect(e.fase).toBe('ABAJO');
+
+    const r = alimentar(detectarPuenteGluteo, conPuntos(PUENTE_ARRIBA), e, 1);
+    expect(r.repeticiones).toBe(1);
+    expect(r.estado.fase).toBe('ARRIBA');
+  });
+
+  it('pide acostarse si el cuerpo esta vertical', () => {
+    const dePie = conPuntos({
+      11: { x: 0.5, y: 0.3 },
+      12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 },
+      24: { x: 0.5, y: 0.6 },
+      25: { x: 0.5, y: 0.8 },
+      26: { x: 0.5, y: 0.8 },
+    });
+    const r = alimentar(detectarPuenteGluteo, dePie, crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Acuéstate boca arriba de perfil');
+  });
+});
+
+const ABDOMINAL_ABAJO = {
+  11: { x: 0.3, y: 0.8 },
+  12: { x: 0.3, y: 0.8 },
+  23: { x: 0.55, y: 0.8 },
+  24: { x: 0.55, y: 0.8 },
+  25: { x: 0.65, y: 0.65 },
+  26: { x: 0.65, y: 0.65 },
+};
+const ABDOMINAL_ARRIBA = {
+  ...ABDOMINAL_ABAJO,
+  11: { x: 0.3, y: 0.7 },
+  12: { x: 0.3, y: 0.7 },
+};
+
+describe('detectarAbdominal', () => {
+  it('cuenta una repeticion al subir el torso', () => {
+    let e = alimentar(detectarAbdominal, conPuntos(ABDOMINAL_ABAJO), crearEstadoDetector(), 1).estado;
+    expect(e.fase).toBe('ABAJO');
+
+    const r = alimentar(detectarAbdominal, conPuntos(ABDOMINAL_ARRIBA), e, 1);
+    expect(r.repeticiones).toBe(1);
+    expect(r.estado.fase).toBe('ARRIBA');
+  });
+
+  it('pide acostarse si el cuerpo esta vertical', () => {
+    const dePie = conPuntos({
+      11: { x: 0.5, y: 0.3 },
+      12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 },
+      24: { x: 0.5, y: 0.6 },
+      25: { x: 0.5, y: 0.8 },
+      26: { x: 0.5, y: 0.8 },
+    });
+    const r = alimentar(detectarAbdominal, dePie, crearEstadoDetector(), 1);
+    expect(r.estado.mensaje).toBe('Acuéstate boca arriba de perfil');
+  });
+});
+
 describe('DETECTORES', () => {
-  it('mapea los tres ejercicios', () => {
+  it('mapea los ejercicios del catalogo', () => {
     expect(Object.keys(DETECTORES)).toEqual([
       'SENTADILLAS',
       'FLEXIONES',
       'JUMPING_JACKS',
+      'ZANCADAS',
+      'PLANCHA',
+      'RODILLAS_ALTAS',
+      'PUENTE_GLUTEO',
+      'ABDOMINALES',
     ]);
   });
 });

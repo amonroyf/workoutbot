@@ -8,14 +8,15 @@ Método: revisión estática + tests unitarios (Vitest)
 
 ## 1. Resumen ejecutivo
 
-Se auditaron las tres mecánicas principales: **timer/fases**, **detección de los
-3 ejercicios** y **scoring**. Se encontraron 13 hallazgos relevantes, de los
+Se auditaron las mecánicas principales: **timer/fases**, **detección de los
+ejercicios** y **scoring**. Se encontraron 13 hallazgos relevantes, de los
 cuales **2 críticos** afectaban directamente la mecánica (repeticiones perdidas
 o falsas) y **3 altos** comprometían confiabilidad del timer, la cámara y la
 detección.
 
-Todos los hallazgos fueron corregidos y cubiertos con **26 tests unitarios**
-(4 archivos, 100% en verde). El build de producción compila correctamente.
+Todos los hallazgos fueron corregidos y cubiertos con tests unitarios. La suite
+actual tiene **78 tests (8 archivos, 100% en verde)**. El build de producción
+compila correctamente.
 
 ---
 
@@ -149,7 +150,7 @@ Se extrajo la lógica pura fuera de React:
 | Archivo | Responsabilidad |
 |---------|-----------------|
 | `engine/angles.js` | `calculateAngle`, `distancia`, `esVisible` |
-| `engine/detectors.js` | Máquinas de estado puras de los 3 ejercicios + `DETECTORES` |
+| `engine/detectors.js` | Máquinas de estado puras de los 8 ejercicios + `DETECTORES` |
 | `engine/circuito.js` | Constantes, estado inicial y `avanzarCircuito()` (fases/timer) |
 | `engine/score.js` | `calcularTotal()` |
 
@@ -164,15 +165,20 @@ cd frontend
 npm test
 ```
 
-Resultado: **6 archivos, 53 tests, todos en verde.**
+Resultado: **8 archivos, 78 tests, todos en verde.**
 
 Cobertura de lógica:
 - `angles.test.js`: ángulos 0/90/180, visibilidad, distancia.
 - `detectors.test.js`: calibración de cadera, conteo único por ejercicio, gate
-  de visibilidad, rechazo de silla, plancha en flexiones, piernas en JJ, EMA.
+  de visibilidad, rechazo de silla, plancha en flexiones, piernas en JJ, EMA,
+  zancada, plancha isométrica, rodillas altas, puente de glúteo y abdominal.
 - `circuito.test.js`: estado inicial, descuento por tiempo real, transición a
   descanso, cambio de ejercicio, recorrido completo hasta `FIN`, acumulado y
   estaciones del mapa.
+- `circuito-clases.test.js`: motor genérico con clases de distinta duración,
+  bloques, progreso y totales.
+- `clases.test.js`: catálogo de 9 clases, duración, formato, ejercicios válidos
+  y modo por tiempo.
 - `demos.test.js`: keyframes de la demo, articulaciones válidas, interpolación
   y guion de voz.
 - `voz.test.js`: bancos de frases y rotación.
@@ -233,6 +239,6 @@ Cuándo **no** es fiable (limitación conocida):
 
 ## 8. Verificación final
 
-- `npm test` → 53/53 OK
+- `npm test` → 78/78 OK
 - `npm run build` → OK
 - Despliegue a Firebase Hosting tras las correcciones y mejoras.

@@ -22,6 +22,15 @@ const LADOS_PLANCHA = [
   [11, 23, 27],
   [12, 24, 28],
 ];
+const LADOS_TORSO = [
+  [11, 23, 25],
+  [12, 24, 26],
+];
+
+export const UMBRAL_RODILLA_ALTA = 0.03;
+export const UMBRAL_TORSO_ARRIBA = 0.04;
+export const UMBRAL_CUERPO_HORIZONTAL = 0.1;
+export const UMBRAL_ALINEACION_PLANCHA = 150;
 
 export function crearEstadoDetector() {
   return {
@@ -49,6 +58,28 @@ function mejorLado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
     .filter((lado) => lado.vis > umbral)
     .sort((a, b) => b.vis - a.vis);
   return validos[0] || null;
+}
+
+function ladoMasFlexionado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
+  const validos = lados
+    .map((indices) => {
+      const [a, b, c] = indices.map((i) => landmarks[i]);
+      return {
+        indices,
+        vis: visibilidad(landmarks, indices),
+        angulo: calculateAngle(a, b, c),
+      };
+    })
+    .filter((lado) => lado.vis > umbral)
+    .sort((a, b) => a.angulo - b.angulo);
+  return validos[0] || null;
+}
+
+function cuerpoHorizontal(hombro, cadera) {
+  return (
+    Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL &&
+    Math.abs(hombro.y - cadera.y) < 0.18
+  );
 }
 
 function resultado(estado, cambios, repeticion = false) {
@@ -175,8 +206,147 @@ export function detectarJumpingJack(landmarks, estado, ahoraMs = Date.now()) {
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
+export function detectarZancada(landmarks, estado) {
+  const lado = ladoMasFlexionado(landmarks, LADOS_SENTADILLA);
+  if (!lado) return resultado(estado, {}, false);
+
+  const [cadera, rodilla, tobillo] = lado.indices.map((i) => landmarks[i]);
+  const angulo = suavizar(estado.suavizado, calculateAngle(cadera, rodilla, tobillo));
+  const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
+
+  let { fase, baseY } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (angulo > UMBRAL_ANGULO_ARRIBA) {
+    baseY = baseY == null ? caderaY : suavizar(baseY, caderaY, ALPHA_BASE);
+    if (fase === 'ABAJO') repeticion = true;
+    fase = 'ARRIBA';
+  } else if (fase === 'ARRIBA' && angulo < UMBRAL_ANGULO_ABAJO) {
+    const descendioCadera = baseY == null || caderaY > baseY + UMBRAL_DESCENSO_CADERA;
+    if (descendioCadera) {
+      fase = 'ABAJO';
+    } else {
+      mensaje = 'Da un paso más largo y baja la rodilla';
+    }
+  }
+
+  return resultado(estado, { fase, suavizado: angulo, baseY, mensaje }, repeticion);
+}
+
+export function detectarPlancha(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_PLANCHA);
+  if (!lado) return resultado(estado, { mensaje: 'Colócate de perfil' }, false);
+
+  const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
+  const angulo = suavizar(estado.suavizado, calculateAngle(hombro, cadera, tobillo));
+  const horizontal =
+    Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
+
+  let mensaje = null;
+  if (!horizontal) {
+    mensaje = 'Ponte en plancha de perfil';
+  } else if (angulo < UMBRAL_ALINEACION_PLANCHA) {
+    mensaje = 'Alinea el cuerpo: no dejes caer la cadera';
+  }
+
+  return resultado(estado, { suavizado: angulo, mensaje }, false);
+}
+
+export function detectarRodillasAltas(landmarks, estado) {
+  if (!esVisible(landmarks, [23, 24, 25, 26], UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, {}, false);
+  }
+
+  const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
+  const enAlto =
+    landmarks[25].y < caderaY - UMBRAL_RODILLA_ALTA ||
+    landmarks[26].y < caderaY - UMBRAL_RODILLA_ALTA;
+
+  let { fase } = estado;
+  let repeticion = false;
+
+  if (enAlto) {
+    if (fase === 'ABAJO') {
+      fase = 'ARRIBA';
+      repeticion = true;
+    }
+  } else {
+    fase = 'ABAJO';
+  }
+
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+export function detectarPuenteGluteo(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_TORSO);
+  if (!lado) {
+    return resultado(estado, { mensaje: 'Acuéstate boca arriba de perfil' }, false);
+  }
+
+  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
+  const horizontal = cuerpoHorizontal(hombro, cadera);
+
+  let { fase } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (!horizontal) {
+    fase = 'ABAJO';
+    mensaje = 'Acuéstate boca arriba de perfil';
+  } else {
+    const caderaArriba = cadera.y < hombro.y - UMBRAL_TORSO_ARRIBA;
+    if (caderaArriba) {
+      if (fase === 'ABAJO') {
+        fase = 'ARRIBA';
+        repeticion = true;
+      }
+    } else if (cadera.y > hombro.y - 0.01) {
+      fase = 'ABAJO';
+    }
+  }
+
+  return resultado(estado, { fase, mensaje }, repeticion);
+}
+
+export function detectarAbdominal(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_TORSO);
+  if (!lado) {
+    return resultado(estado, { mensaje: 'Acuéstate boca arriba de perfil' }, false);
+  }
+
+  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
+  const horizontal = cuerpoHorizontal(hombro, cadera);
+
+  let { fase } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (!horizontal) {
+    fase = 'ABAJO';
+    mensaje = 'Acuéstate boca arriba de perfil';
+  } else {
+    const torsoArriba = hombro.y < cadera.y - UMBRAL_TORSO_ARRIBA;
+    if (torsoArriba) {
+      if (fase === 'ABAJO') {
+        fase = 'ARRIBA';
+        repeticion = true;
+      }
+    } else if (hombro.y > cadera.y - 0.01) {
+      fase = 'ABAJO';
+    }
+  }
+
+  return resultado(estado, { fase, mensaje }, repeticion);
+}
+
 export const DETECTORES = {
   SENTADILLAS: detectarSentadilla,
   FLEXIONES: detectarFlexion,
   JUMPING_JACKS: detectarJumpingJack,
+  ZANCADAS: detectarZancada,
+  PLANCHA: detectarPlancha,
+  RODILLAS_ALTAS: detectarRodillasAltas,
+  PUENTE_GLUTEO: detectarPuenteGluteo,
+  ABDOMINALES: detectarAbdominal,
 };

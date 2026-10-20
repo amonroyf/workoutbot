@@ -1,7 +1,7 @@
 const INICIO = [
   '¡Listo parce, arrancamos! Calienta los hombros y sígueme.',
   '¡Hágale pues! Hoy completamos la rutina, sin excusas.',
-  '¡Vamos con toda! Tres ejercicios y quedamos como nuevos.',
+  '¡Vamos con toda! Terminamos la clase y quedamos como nuevos.',
 ];
 
 const TRABAJO = {
@@ -20,6 +20,31 @@ const TRABAJO = {
     'Jumping jacks. Aterriza suave, con las rodillas flexibles.',
     'Jumping jacks. Mantén el ritmo y no aflojes.',
   ],
+  ZANCADAS: [
+    'Zancadas. Da un paso largo y baja la rodilla de atrás.',
+    'Zancadas. Mantén el pecho arriba y el abdomen firme.',
+    'Zancadas. Empuja con la pierna de adelante para subir.',
+  ],
+  PLANCHA: [
+    'Plancha. Cuerpo en línea recta y abdomen apretado.',
+    'Plancha. No dejes caer la cadera, aguanta firme.',
+    'Plancha. Respira y mantén la posición.',
+  ],
+  RODILLAS_ALTAS: [
+    'Rodillas altas. Sube la rodilla a la altura de la cadera.',
+    'Rodillas altas. Brazos en movimiento y aterriza suave.',
+    'Rodillas altas. Mantén el ritmo y no aflojes.',
+  ],
+  PUENTE_GLUTEO: [
+    'Puente de glúteo. Acuéstate boca arriba con las rodillas flexionadas.',
+    'Puente de glúteo. Empuja con los talones y aprieta los glúteos.',
+    'Puente de glúteo. Sube con control y baja sin soltar.',
+  ],
+  ABDOMINALES: [
+    'Abdominales. Manos detrás de la cabeza, sin halar el cuello.',
+    'Abdominales. Sube con el abdomen y baja con control.',
+    'Abdominales. Exhala al subir y mantén el ombligo adentro.',
+  ],
 };
 
 const TRABAJO_GENERAL = [
@@ -29,7 +54,7 @@ const TRABAJO_GENERAL = [
 
 const DESCANSO = [
   'Descansa, respira por la nariz y prepárate para la siguiente.',
-  'Veinte segundos de descanso. Toma agua y no te enfriés.',
+  'Descanso. Toma agua y prepárate para la siguiente.',
   'Descanso. Suelta los hombros y recarga energía.',
 ];
 

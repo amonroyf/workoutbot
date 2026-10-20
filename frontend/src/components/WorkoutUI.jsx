@@ -1,7 +1,8 @@
 import React from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
-import { progresoCircuito, EJERCICIOS } from '../engine/circuito';
+import { progresoCircuito } from '../engine/circuito';
 import { obtenerDemo } from '../engine/demos';
+import { esDeTiempo, nombreEjercicio } from '../engine/ejercicios';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
 
@@ -47,6 +48,8 @@ export default function WorkoutUI() {
     tiempoRestante,
     repeticiones,
     combo,
+    claseActual,
+    bloqueActual,
     ejercicioActual,
     mensajeForma,
     subtitulo,
@@ -65,13 +68,14 @@ export default function WorkoutUI() {
 
   if (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO') return null;
 
-  const progreso = progresoCircuito(useWorkoutStore.getState());
-  const indice = EJERCICIOS.indexOf(ejercicioActual);
-  const siguiente = EJERCICIOS[indice + 1];
+  const progreso = progresoCircuito(useWorkoutStore.getState(), claseActual);
+  const totalBloques = claseActual.bloques.length;
+  const siguiente = claseActual.bloques[bloqueActual + 1]?.ejercicio;
   const texto = subtitulo || mensajeForma;
   const esCorreccion = Boolean(mensajeForma) && (!subtitulo || subtitulo === mensajeForma);
   const ejercicioDemo = demoEjercicio || (faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   const demoVisible = obtenerDemo(ejercicioDemo);
+  const esTiempo = esDeTiempo(ejercicioActual);
 
   const abrirDemoActual = () => {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
@@ -82,8 +86,8 @@ export default function WorkoutUI() {
       <div className="absolute top-0 left-0 right-0 p-4">
         <div className="flex justify-between text-xs font-semibold uppercase tracking-widest text-white/80 mb-1">
           <span>
-            {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'} · Ejercicio {indice + 1} de{' '}
-            {EJERCICIOS.length}
+            {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'} · Ejercicio {bloqueActual + 1} de{' '}
+            {totalBloques}
           </span>
           <span>{Math.round(progreso * 100)}%</span>
         </div>
@@ -119,7 +123,7 @@ export default function WorkoutUI() {
 
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
         <p className="mb-2 text-2xl font-semibold uppercase tracking-widest">
-          {ejercicioActual.replace('_', ' ')}
+          {nombreEjercicio(ejercicioActual)}
         </p>
         <h1
           className={`text-7xl font-black md:text-9xl ${
@@ -130,35 +134,39 @@ export default function WorkoutUI() {
         </h1>
 
         {faseActual === 'TRABAJO' ? (
-          <div className="mt-3 flex items-center gap-4">
-            <div className="text-left">
-              <p className="text-3xl">Reps: {repeticiones}</p>
-              <div className="mt-1 flex items-center gap-2">
-                {combo >= 3 && (
-                  <span className="rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
-                    Combo x{combo}
-                  </span>
-                )}
-                {flashPerfecta > 0 && (
-                  <span
-                    key={flashPerfecta}
-                    className="perfecta-flash rounded-full bg-green-400 px-3 py-1 text-sm font-black text-black"
-                  >
-                    ¡PERFECTA!
-                  </span>
-                )}
-              </div>
+          esTiempo ? (
+            <div className="mt-3 flex flex-col items-center">
+              <p className="text-3xl font-black text-green-300">Sostén</p>
+              <p className="text-sm text-white/70">Mantén la posición</p>
             </div>
-            <AnilloRep fase={faseRepeticion} />
-          </div>
+          ) : (
+            <div className="mt-3 flex items-center gap-4">
+              <div className="text-left">
+                <p className="text-3xl">Reps: {repeticiones}</p>
+                <div className="mt-1 flex items-center gap-2">
+                  {combo >= 3 && (
+                    <span className="rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
+                      Combo x{combo}
+                    </span>
+                  )}
+                  {flashPerfecta > 0 && (
+                    <span
+                      key={flashPerfecta}
+                      className="perfecta-flash rounded-full bg-green-400 px-3 py-1 text-sm font-black text-black"
+                    >
+                      ¡PERFECTA!
+                    </span>
+                  )}
+                </div>
+              </div>
+              <AnilloRep fase={faseRepeticion} />
+            </div>
+          )
         ) : (
           <div className="mt-2 flex flex-col items-center">
             <p className="text-3xl text-yellow-300">¡Descansa!</p>
             {siguiente && (
-              <div className="mt-1 flex flex-col items-center">
-                <DemoEjercicio ejercicio={siguiente} compacto />
-                <p className="text-lg text-white/70">Sigue: {siguiente.replace('_', ' ')}</p>
-              </div>
+              <p className="text-lg text-white/70">Sigue: {nombreEjercicio(siguiente)}</p>
             )}
           </div>
         )}
@@ -173,6 +181,18 @@ export default function WorkoutUI() {
           </p>
         )}
       </div>
+
+      <button
+        type="button"
+        onClick={abrirDemoActual}
+        aria-label={`Ver demostración de ${nombreEjercicio(ejercicioDemo)}`}
+        className="absolute bottom-4 left-4 z-20 flex flex-col items-center rounded-2xl border border-white/15 bg-black/55 p-1.5 backdrop-blur-md transition hover:bg-black/70"
+      >
+        <DemoEjercicio ejercicio={ejercicioDemo} esquina />
+        <span className="mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/70">
+          {faseActual === 'DESCANSO' ? 'Sigue' : 'Ahora'}
+        </span>
+      </button>
 
       {pausado && !demoAbierta && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center">

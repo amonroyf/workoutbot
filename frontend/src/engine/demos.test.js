@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EJERCICIOS } from './circuito';
+import { EJERCICIOS_CATALOGO } from './ejercicios';
 import {
   DEMOS,
   ARTICULACIONES,
@@ -12,7 +12,7 @@ import {
 
 describe('DEMOS', () => {
   it('tiene una demo para cada ejercicio', () => {
-    for (const ejercicio of EJERCICIOS) {
+    for (const ejercicio of Object.keys(EJERCICIOS_CATALOGO)) {
       const demo = DEMOS[ejercicio];
       expect(demo).toBeTruthy();
       expect(demo.nombre.length).toBeGreaterThan(0);
@@ -22,7 +22,7 @@ describe('DEMOS', () => {
   });
 
   it('usa keyframes ordenados de 0 a 1', () => {
-    for (const ejercicio of EJERCICIOS) {
+    for (const ejercicio of Object.keys(EJERCICIOS_CATALOGO)) {
       const { keyframes } = DEMOS[ejercicio];
       expect(keyframes[0].t).toBe(0);
       expect(keyframes[keyframes.length - 1].t).toBe(1);
@@ -33,7 +33,7 @@ describe('DEMOS', () => {
   });
 
   it('define todas las articulaciones dentro del lienzo', () => {
-    for (const ejercicio of EJERCICIOS) {
+    for (const ejercicio of Object.keys(EJERCICIOS_CATALOGO)) {
       for (const keyframe of DEMOS[ejercicio].keyframes) {
         for (const articulacion of ARTICULACIONES) {
           const punto = keyframe.pose[articulacion];
@@ -52,6 +52,10 @@ describe('DEMOS', () => {
       expect(ARTICULACIONES).toContain(a);
       expect(ARTICULACIONES).toContain(b);
     }
+  });
+
+  it('cubre todo el catalogo de ejercicios', () => {
+    expect(Object.keys(DEMOS).sort()).toEqual(Object.keys(EJERCICIOS_CATALOGO).sort());
   });
 
   it('cae en la primera demo si el ejercicio no existe', () => {
