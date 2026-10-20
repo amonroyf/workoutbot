@@ -106,6 +106,43 @@ export const CLASES = Object.freeze([
       Object.freeze({ ejercicio: 'PLANCHA', trabajo: 20, descanso: 0 }),
     ]),
   }),
+  Object.freeze({
+    id: 'core-fuerte',
+    nombre: 'Core fuerte',
+    descripcion: 'Planchas, dead bug y hollow para un centro sólido.',
+    nivel: 'intermedio',
+    bloques: Object.freeze([
+      Object.freeze({ ejercicio: 'PLANCHA', trabajo: 30, descanso: 15 }),
+      Object.freeze({ ejercicio: 'PLANCHA_LATERAL', trabajo: 25, descanso: 15 }),
+      Object.freeze({ ejercicio: 'DEAD_BUG', trabajo: 30, descanso: 15 }),
+      Object.freeze({ ejercicio: 'SUPERMAN', trabajo: 25, descanso: 15 }),
+      Object.freeze({ ejercicio: 'HOLLOW_HOLD', trabajo: 20, descanso: 0 }),
+    ]),
+  }),
+  Object.freeze({
+    id: 'full-body',
+    nombre: 'Full body',
+    descripcion: 'Piernas, pecho y core con variantes nuevas.',
+    nivel: 'intermedio',
+    bloques: Object.freeze([
+      Object.freeze({ ejercicio: 'SENTADILLA_SUMO', trabajo: 40, descanso: 20 }),
+      Object.freeze({ ejercicio: 'FLEXION_DIAMANTE', trabajo: 40, descanso: 20 }),
+      Object.freeze({ ejercicio: 'PUENTE_UNA_PIERNA', trabajo: 40, descanso: 20 }),
+      Object.freeze({ ejercicio: 'MOUNTAIN_CLIMBER', trabajo: 30, descanso: 0 }),
+    ]),
+  }),
+  Object.freeze({
+    id: 'piernas-express',
+    nombre: 'Piernas express',
+    descripcion: 'Tren inferior y estabilidad sin saltos.',
+    nivel: 'principiante',
+    bloques: Object.freeze([
+      Object.freeze({ ejercicio: 'SENTADILLA_SUMO', trabajo: 40, descanso: 20 }),
+      Object.freeze({ ejercicio: 'WALL_SIT', trabajo: 30, descanso: 15 }),
+      Object.freeze({ ejercicio: 'PUENTE_UNA_PIERNA', trabajo: 40, descanso: 20 }),
+      Object.freeze({ ejercicio: 'BIRD_DOG', trabajo: 30, descanso: 0 }),
+    ]),
+  }),
 ]);
 
 export const CLASE_POR_DEFECTO = CLASES[0];

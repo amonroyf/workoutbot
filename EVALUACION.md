@@ -185,7 +185,7 @@ Cobertura de lógica:
   estaciones del mapa.
 - `circuito-clases.test.js`: motor genérico con clases de distinta duración,
   bloques, progreso y totales.
-- `clases.test.js`: catálogo de 9 clases, duración, formato, ejercicios válidos
+- `clases.test.js`: catálogo de 12 clases, duración, formato, ejercicios válidos
   y modo por tiempo.
 - `demos.test.js`: keyframes de la demo, articulaciones válidas, interpolación
   y guion de voz.

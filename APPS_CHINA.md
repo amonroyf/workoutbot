@@ -103,6 +103,14 @@
 | `zhihuliukanshan/PowerSport` | Sin licencia | Reserva de clases de gimnasio con QR | Nula para el bot individual |
 | `xugy0926/daily-check-in` | Sin licencia | Check-in genérico con LeanCloud | Baja: solo valida el patrón de racha |
 
+**Datos de ejercicios verificados:** el `exercises.json` de
+`Kaiji-Z/workout-timer` tiene **873 ejercicios** con `name`, `force`, `level`,
+`mechanic`, `equipment`, `primaryMuscles`, `secondaryMuscles`, `instructions`,
+`category`, `images` e `id`. Las instrucciones están en inglés; hay
+`instruction_translations.json` con 54 traducciones al chino. El esquema es una
+buena base para un catálogo remoto, pero WorkoutBot necesita demos propias y no
+debe asumir que todos los ejercicios tienen detector.
+
 **Conclusión de los nuevos repos:** los proyectos chinos maduros convergen en
 **calendario/plan + estadísticas + recordatorio + compartir**. WorkoutBot ya
 tiene catálogo, ejecución, check-in, racha, meta semanal y resumen narrado. Lo

@@ -7,13 +7,14 @@
 
 ## 1. Respuesta corta
 
-> **Estado actual:** Fases 1 y 2 implementadas. El motor interpreta clases como
-> datos (`engine/clases.js`), hay **9 clases** y **8 ejercicios** en el catálogo
-> (`engine/ejercicios.js`), con **5 detectores nuevos** (zancada, plancha,
-> rodillas altas, puente de glúteo y abdominal) y demos stick figure. La plancha
-> se sigue por tiempo. **Plan semanal local** implementado (días, objetivo y
-> rotación de clases). Falta ampliar movilidad, mountain climber/burpee, el
-> catálogo remoto y la asignación por entrenador.
+> **Estado actual:** Fases 1, 2 y 2.1 implementadas. El motor interpreta clases
+> como datos (`engine/clases.js`), hay **12 clases** y **18 ejercicios** en el
+> catálogo (`engine/ejercicios.js`), con **5 detectores nuevos** (zancada,
+> plancha, rodillas altas, puente de glúteo y abdominal) y demos stick figure.
+> La plancha y los 7 ejercicios isométricos nuevos se siguen por tiempo.
+> **Plan semanal local** implementado (días, objetivo y rotación de clases).
+> Falta ampliar movilidad, detectores para mountain climber/burpee, el catálogo
+> remoto y la asignación por entrenador.
 
 Sí existen librerías: hay datasets de **800 a 1,324 ejercicios** con JSON,
 instrucciones en español y animaciones/GIFs. Las apps chinas no programan cada
@@ -247,7 +248,34 @@ de contenido puro suelen ser enlaces a videos o datasets traducidos. No hay un
 
 Detectores nuevos implementados: **zancada, plancha (tiempo), rodillas altas,
 puente de glúteo y abdominal**. Pendientes para una siguiente iteración:
-mountain climber, burpee, dead bug, movilidad y variantes con silla/pared.
+burpee, movilidad y detectores propios para mountain climber, plancha lateral y superman.
+
+### Fase 2.1 — Ampliación de biblioteca (implementada)
+10 ejercicios nuevos, con demo stick y pistas en español:
+
+1. **Sentadilla sumo** (reps, detector de sentadilla).
+2. **Flexión diamante** (reps, detector de flexión).
+3. **Puente a una pierna** (reps, detector de puente).
+4. **Mountain climber** (tiempo).
+5. **Plancha lateral** (tiempo).
+6. **Superman** (tiempo).
+7. **Dead bug** (tiempo).
+8. **Hollow hold** (tiempo).
+9. **Sentadilla en pared** (tiempo).
+10. **Bird dog** (tiempo).
+
+Clases nuevas:
+
+- **Core fuerte**: plancha, plancha lateral, dead bug, superman, hollow hold.
+- **Full body**: sentadilla sumo, flexión diamante, puente a una pierna,
+  mountain climber.
+- **Piernas express**: sentadilla sumo, sentadilla en pared, puente a una
+  pierna, bird dog.
+
+Las variantes con detector reutilizan las máquinas de estado existentes; los
+isométricos usan `modo: 'tiempo'`. Los detectores propios para mountain climber,
+plancha lateral y superman quedan para una iteración posterior con validación
+en cámara.
 
 ### Fase 3 — Para clientes
 - Generador de clase por objetivo, tiempo, nivel y equipamiento.

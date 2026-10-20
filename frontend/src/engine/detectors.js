@@ -31,6 +31,9 @@ export const UMBRAL_RODILLA_ALTA = 0.03;
 export const UMBRAL_TORSO_ARRIBA = 0.04;
 export const UMBRAL_CUERPO_HORIZONTAL = 0.1;
 export const UMBRAL_ALINEACION_PLANCHA = 150;
+export const UMBRAL_RODILLA_ESCALADOR = 120;
+export const UMBRAL_PIERNA_EXTENDIDA = 150;
+export const UMBRAL_SUPERMAN = 0.03;
 
 export function crearEstadoDetector() {
   return {
@@ -40,6 +43,9 @@ export function crearEstadoDetector() {
     tiempoZonaBajaMs: null,
     sentado: false,
     mensaje: null,
+    anguloI: null,
+    anguloD: null,
+    ladoActivo: null,
   };
 }
 
@@ -340,6 +346,149 @@ export function detectarAbdominal(landmarks, estado) {
   return resultado(estado, { fase, mensaje }, repeticion);
 }
 
+export function detectarMountainClimber(landmarks, estado) {
+  const visibles = [11, 12, 23, 24, 25, 26, 27, 28];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Colócate en plancha de perfil' }, false);
+  }
+
+  const hombro = {
+    x: (landmarks[11].x + landmarks[12].x) / 2,
+    y: (landmarks[11].y + landmarks[12].y) / 2,
+  };
+  const cadera = {
+    x: (landmarks[23].x + landmarks[24].x) / 2,
+    y: (landmarks[23].y + landmarks[24].y) / 2,
+  };
+  const horizontal =
+    Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL &&
+    Math.abs(hombro.y - cadera.y) < 0.2;
+
+  if (!horizontal) {
+    return resultado(
+      estado,
+      { mensaje: 'Ponte en plancha de perfil', ladoActivo: null },
+      false
+    );
+  }
+
+  const anguloI = suavizar(
+    estado.anguloI,
+    calculateAngle(landmarks[23], landmarks[25], landmarks[27])
+  );
+  const anguloD = suavizar(
+    estado.anguloD,
+    calculateAngle(landmarks[24], landmarks[26], landmarks[28])
+  );
+
+  const izquierdaActiva =
+    anguloI < UMBRAL_RODILLA_ESCALADOR && anguloD > UMBRAL_PIERNA_EXTENDIDA;
+  const derechaActiva =
+    anguloD < UMBRAL_RODILLA_ESCALADOR && anguloI > UMBRAL_PIERNA_EXTENDIDA;
+
+  let { ladoActivo } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (izquierdaActiva) {
+    if (ladoActivo !== 'IZQ') {
+      repeticion = true;
+      ladoActivo = 'IZQ';
+    }
+  } else if (derechaActiva) {
+    if (ladoActivo !== 'DER') {
+      repeticion = true;
+      ladoActivo = 'DER';
+    }
+  } else if (
+    anguloI > UMBRAL_PIERNA_EXTENDIDA &&
+    anguloD > UMBRAL_PIERNA_EXTENDIDA
+  ) {
+    ladoActivo = null;
+  } else {
+    ladoActivo = null;
+    mensaje = 'Alterna las rodillas y estira la otra pierna';
+  }
+
+  return resultado(estado, { anguloI, anguloD, ladoActivo, mensaje }, repeticion);
+}
+
+export function detectarPlanchaLateral(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_PLANCHA);
+  if (!lado) {
+    return resultado(estado, { mensaje: 'Colócate de perfil' }, false);
+  }
+
+  const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
+  const angulo = suavizar(estado.suavizado, calculateAngle(hombro, cadera, tobillo));
+  const horizontal =
+    Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
+
+  let mensaje = null;
+  if (!horizontal) {
+    mensaje = 'Ponte de perfil en plancha lateral';
+  } else if (angulo < UMBRAL_ALINEACION_PLANCHA) {
+    mensaje = 'Sube la cadera y alinea el cuerpo';
+  }
+
+  return resultado(estado, { suavizado: angulo, mensaje }, false);
+}
+
+export function detectarSuperman(landmarks, estado) {
+  const visibles = [11, 12, 15, 16, 23, 24, 27, 28];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Acuéstate boca abajo de perfil' }, false);
+  }
+
+  const hombro = {
+    x: (landmarks[11].x + landmarks[12].x) / 2,
+    y: (landmarks[11].y + landmarks[12].y) / 2,
+  };
+  const cadera = {
+    x: (landmarks[23].x + landmarks[24].x) / 2,
+    y: (landmarks[23].y + landmarks[24].y) / 2,
+  };
+  const muneca = {
+    x: (landmarks[15].x + landmarks[16].x) / 2,
+    y: (landmarks[15].y + landmarks[16].y) / 2,
+  };
+  const tobillo = {
+    x: (landmarks[27].x + landmarks[28].x) / 2,
+    y: (landmarks[27].y + landmarks[28].y) / 2,
+  };
+
+  const horizontal =
+    Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL &&
+    Math.abs(hombro.y - cadera.y) < 0.18;
+  if (!horizontal) {
+    return resultado(estado, { mensaje: 'Acuéstate boca abajo de perfil' }, false);
+  }
+
+  const brazosAdelante = muneca.x < hombro.x - 0.05;
+  const piernasAtras = tobillo.x > cadera.x + 0.05;
+  if (!brazosAdelante || !piernasAtras) {
+    return resultado(
+      estado,
+      { mensaje: 'Estira brazos adelante y piernas atrás' },
+      false
+    );
+  }
+
+  const brazosArriba = muneca.y < hombro.y - UMBRAL_SUPERMAN;
+  const piernasArriba = tobillo.y < cadera.y - UMBRAL_SUPERMAN;
+
+  let mensaje = null;
+  if (!brazosArriba && !piernasArriba) {
+    mensaje = 'Levanta brazos y piernas';
+  } else if (!brazosArriba) {
+    mensaje = 'Sube más los brazos';
+  } else if (!piernasArriba) {
+    mensaje = 'Sube más las piernas';
+  }
+
+  return resultado(estado, { mensaje }, false);
+}
+
 export const DETECTORES = {
   SENTADILLAS: detectarSentadilla,
   FLEXIONES: detectarFlexion,
@@ -349,4 +498,7 @@ export const DETECTORES = {
   RODILLAS_ALTAS: detectarRodillasAltas,
   PUENTE_GLUTEO: detectarPuenteGluteo,
   ABDOMINALES: detectarAbdominal,
+  MOUNTAIN_CLIMBER: detectarMountainClimber,
+  PLANCHA_LATERAL: detectarPlanchaLateral,
+  SUPERMAN: detectarSuperman,
 };

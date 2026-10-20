@@ -28,14 +28,17 @@ describe('CLASES', () => {
     }
   });
 
-  it('incluye las seis clases nuevas', () => {
-    expect(CLASES).toHaveLength(9);
+  it('incluye las clases nuevas', () => {
+    expect(CLASES).toHaveLength(12);
     expect(obtenerClase('fuerza-total')).toBeTruthy();
     expect(obtenerClase('cardio-express')).toBeTruthy();
     expect(obtenerClase('core')).toBeTruthy();
     expect(obtenerClase('piernas-gluteos')).toBeTruthy();
     expect(obtenerClase('tren-superior')).toBeTruthy();
     expect(obtenerClase('principiante')).toBeTruthy();
+    expect(obtenerClase('core-fuerte')).toBeTruthy();
+    expect(obtenerClase('full-body')).toBeTruthy();
+    expect(obtenerClase('piernas-express')).toBeTruthy();
   });
 
   it('calcula la duración total de cada clase', () => {
@@ -48,6 +51,9 @@ describe('CLASES', () => {
     expect(duracionClase(obtenerClase('piernas-gluteos'))).toBe(220);
     expect(duracionClase(obtenerClase('tren-superior'))).toBe(190);
     expect(duracionClase(obtenerClase('principiante'))).toBe(170);
+    expect(duracionClase(obtenerClase('core-fuerte'))).toBe(190);
+    expect(duracionClase(obtenerClase('full-body'))).toBe(210);
+    expect(duracionClase(obtenerClase('piernas-express'))).toBe(195);
   });
 
   it('busca clases por id', () => {
@@ -70,8 +76,11 @@ describe('catálogo de ejercicios', () => {
     expect(nombreEjercicio('NO_EXISTE')).toBe('NO EXISTE');
   });
 
-  it('marca la plancha como ejercicio de tiempo', () => {
+  it('marca los ejercicios de tiempo', () => {
     expect(esDeTiempo('PLANCHA')).toBe(true);
+    expect(esDeTiempo('PLANCHA_LATERAL')).toBe(true);
+    expect(esDeTiempo('WALL_SIT')).toBe(true);
     expect(esDeTiempo('SENTADILLAS')).toBe(false);
+    expect(esDeTiempo('SENTADILLA_SUMO')).toBe(false);
   });
 });
