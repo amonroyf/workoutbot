@@ -71,6 +71,34 @@ export function estacionesCircuito(estado, clase = CLASE_POR_DEFECTO) {
   });
 }
 
+export function estacionesSeccion(estado, clase = CLASE_POR_DEFECTO) {
+  if (!Array.isArray(clase.secciones)) return null;
+
+  const indice = indiceBloque(estado, clase);
+  const bloque = clase.bloques[indice];
+  const esFin = estado.faseActual === 'FIN';
+  const esCalibracion = estado.faseActual === 'CALIBRACION';
+  const referencia =
+    !esFin && !esCalibracion && estado.faseActual === 'DESCANSO'
+      ? clase.bloques[indice + 1] || bloque
+      : bloque;
+  const seccionActual = referencia?.seccionIndex ?? 0;
+
+  return clase.secciones.map((seccion, i) => {
+    let estadoSeccion = 'pendiente';
+    if (esFin || i < seccionActual) estadoSeccion = 'completado';
+    else if (!esCalibracion && i === seccionActual) estadoSeccion = 'actual';
+
+    return {
+      id: seccion.id,
+      nombre: seccion.nombre,
+      estado: estadoSeccion,
+      ronda: i === seccionActual ? referencia?.ronda ?? 1 : null,
+      totalRondas: seccion.rondas || 1,
+    };
+  });
+}
+
 export function estadoInicialCircuito(ahoraMs, clase = CLASE_POR_DEFECTO) {
   const bloque = clase.bloques[0];
   return {
@@ -101,7 +129,11 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
   const esTrabajo = estado.faseActual === 'TRABAJO';
 
   const totales = esTrabajo
-    ? { ...estado.totales, [estado.ejercicioActual]: estado.repeticiones }
+    ? {
+        ...estado.totales,
+        [estado.ejercicioActual]:
+          (estado.totales[estado.ejercicioActual] || 0) + estado.repeticiones,
+      }
     : estado.totales;
 
   if (esTrabajo && descansoDe(bloque) > 0) {

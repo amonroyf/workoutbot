@@ -29,7 +29,8 @@ describe('CLASES', () => {
   });
 
   it('incluye las clases nuevas', () => {
-    expect(CLASES).toHaveLength(12);
+    expect(CLASES).toHaveLength(13);
+    expect(obtenerClase('funcional-45')).toBeTruthy();
     expect(obtenerClase('fuerza-total')).toBeTruthy();
     expect(obtenerClase('cardio-express')).toBeTruthy();
     expect(obtenerClase('core')).toBeTruthy();
@@ -41,7 +42,26 @@ describe('CLASES', () => {
     expect(obtenerClase('piernas-express')).toBeTruthy();
   });
 
+  it('incluye la clase completa Funcional 45', () => {
+    const clase = obtenerClase('funcional-45');
+    expect(clase.formato).toBe('completa');
+    expect(clase.secciones).toHaveLength(5);
+    expect(clase.bloques).toHaveLength(38);
+    expect(duracionClase(clase)).toBe(2700);
+    expect(clase.bloques[0]).toMatchObject({
+      ejercicio: 'MARCHA',
+      seccionId: 'calentamiento',
+      ronda: 1,
+      totalRondas: 1,
+    });
+    const fuerza = clase.bloques.filter((bloque) => bloque.seccionId === 'fuerza');
+    expect(fuerza).toHaveLength(12);
+    expect(fuerza[3]).toMatchObject({ ronda: 1, descanso: 60 });
+    expect(fuerza[4]).toMatchObject({ ejercicio: 'SENTADILLAS', ronda: 2 });
+  });
+
   it('calcula la duración total de cada clase', () => {
+    expect(duracionClase(obtenerClase('funcional-45'))).toBe(2700);
     expect(duracionClase(obtenerClase('clasico'))).toBe(160);
     expect(duracionClase(obtenerClase('explosivo'))).toBe(120);
     expect(duracionClase(obtenerClase('resistencia'))).toBe(190);
@@ -81,6 +101,9 @@ describe('catálogo de ejercicios', () => {
     expect(esDeTiempo('PLANCHA_LATERAL')).toBe(true);
     expect(esDeTiempo('WALL_SIT')).toBe(true);
     expect(esDeTiempo('SUPERMAN')).toBe(true);
+    expect(esDeTiempo('MARCHA')).toBe(true);
+    expect(esDeTiempo('MARCHA_SUAVE')).toBe(true);
+    expect(esDeTiempo('ESTIRAMIENTO_GENERAL')).toBe(true);
     expect(esDeTiempo('SENTADILLAS')).toBe(false);
     expect(esDeTiempo('SENTADILLA_SUMO')).toBe(false);
     expect(esDeTiempo('MOUNTAIN_CLIMBER')).toBe(false);

@@ -7,14 +7,14 @@
 
 ## 1. Respuesta corta
 
-> **Estado actual:** Fases 1, 2, 2.1 y 2.2 implementadas. El motor interpreta clases
-> como datos (`engine/clases.js`), hay **12 clases** y **18 ejercicios** en el
-> catálogo (`engine/ejercicios.js`), con **11 detectores** (8 anteriores +
-> mountain climber, plancha lateral y superman) y demos stick figure. La plancha,
-> la plancha lateral, el superman y los isométricos sin detector se siguen por
-> tiempo. **Plan semanal local** implementado (días, objetivo y rotación de
-> clases). Falta ampliar movilidad, burpee, el catálogo remoto y la asignación
-> por entrenador.
+> **Estado actual:** Fases 1, 2, 2.1, 2.2 y esquema v2 implementados. El motor
+> interpreta clases como datos (`engine/clases.js`), hay **13 clases** y **21
+> ejercicios** en el catálogo (`engine/ejercicios.js`), con **11 detectores** y
+> demos stick figure. La plancha, la plancha lateral, el superman, la marcha, el
+> estiramiento y los isométricos sin detector se siguen por tiempo. **Funcional
+> 45** es la primera clase completa con 5 secciones y rondas. **Plan semanal
+> local** implementado (días, objetivo y rotación de clases). Falta ampliar
+> movilidad avanzada, burpee, el catálogo remoto y la asignación por entrenador.
 
 Sí existen librerías: hay datasets de **800 a 1,324 ejercicios** con JSON,
 instrucciones en español y animaciones/GIFs. Las apps chinas no programan cada
@@ -72,6 +72,38 @@ Y cada ejercicio en el catálogo:
   "contraindicaciones": []
 }
 ```
+
+### Clases completas por secciones
+
+Para clases de 45 minutos no conviene listar 38 bloques a mano. La clase se
+define por secciones con rondas y se compila a la lista plana que ya consume el
+motor:
+
+```js
+{
+  id: 'funcional-45',
+  secciones: [
+    {
+      id: 'fuerza',
+      nombre: 'Fuerza',
+      tipo: 'principal',
+      rondas: 3,
+      descansoRonda: 60,
+      bloques: [
+        { ejercicio: 'SENTADILLAS', trabajo: 40, descanso: 20 },
+        { ejercicio: 'FLEXIONES', trabajo: 40, descanso: 20 },
+        { ejercicio: 'ZANCADAS', trabajo: 40, descanso: 20 },
+        { ejercicio: 'PUENTE_GLUTEO', trabajo: 40, descanso: 60 }
+      ]
+    }
+  ]
+}
+```
+
+`compilarClase()` expande las rondas y agrega `seccionId`, `seccionNombre`,
+`seccionTipo`, `ronda` y `totalRondas` a cada bloque. El temporizador sigue
+siendo el mismo; la UI muestra secciones en vez de 38 bloques y la voz anuncia
+cambio de sección, ronda y mitad del ejercicio.
 
 Ventajas:
 
@@ -326,10 +358,11 @@ sube; plancha lateral y superman validan la forma sin contar repeticiones.
 
 ## 10. Recomendación
 
-Las fases 1, 2, 2.1 y 2.2 ya están implementadas: motor genérico, catálogo,
-selector de 12 clases, 18 ejercicios, 11 detectores, score de forma en vivo y
-demo stick figure en la esquina. El siguiente paso es medir uso real y luego agregar movilidad, burpee y
-catálogo remoto.
+Las fases 1, 2, 2.1, 2.2 y el esquema v2 ya están implementadas: motor genérico,
+catálogo, selector de 13 clases, 21 ejercicios, 11 detectores, score de forma en
+vivo, `Funcional 45` por secciones y demo stick figure. El siguiente paso es
+medir uso real en sesiones de 45 minutos y luego agregar movilidad avanzada,
+burpee y catálogo remoto.
 
 La biblioteca de datos recomendada para el MVP es `free-exercise-db` por
 licencia, y `hasaneyldrm/exercises-dataset` solo como referencia visual hasta

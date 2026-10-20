@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { obtenerFrase } from '../engine/voz';
 import { guionDemo } from '../engine/demos';
+import { nombreEjercicio } from '../engine/ejercicios';
 import { textoNarrado } from '../engine/progreso';
 
-const MS_ENTRE_ANIMO = 9000;
+const MS_ENTRE_ANIMO = 16000;
 const MS_ENTRE_CORRECCION = 3500;
 const MS_ATASCADO = 12000;
 const INTERVALO_APOYO_MS = 3000;
@@ -32,6 +33,8 @@ export function useEntrenadorVoz(resumen = null) {
   const vozActiva = useWorkoutStore((s) => s.vozActiva);
   const demoAbierta = useWorkoutStore((s) => s.demoAbierta);
   const demoEjercicio = useWorkoutStore((s) => s.demoEjercicio);
+  const bloqueActual = useWorkoutStore((s) => s.bloqueActual);
+  const claseActual = useWorkoutStore((s) => s.claseActual);
 
   const rotacion = useRef(0);
   const ultimaCorreccion = useRef(0);
@@ -39,6 +42,7 @@ export function useEntrenadorVoz(resumen = null) {
   const ultimaRep = useRef(Date.now());
   const avisoAtasco = useRef(false);
   const narradoRef = useRef(false);
+  const bloque = claseActual.bloques?.[bloqueActual] || null;
   const prev = useRef({
     fase: faseActual,
     ejercicio: ejercicioActual,
@@ -47,6 +51,9 @@ export function useEntrenadorVoz(resumen = null) {
     mensaje: mensajeForma,
     pausado,
     demo: demoAbierta,
+    bloque: bloqueActual,
+    seccion: bloque?.seccionId ?? null,
+    ronda: bloque?.ronda ?? null,
   });
 
   const hablar = useCallback((texto, { interrumpir = false, rate = 1, pitch = 1 } = {}) => {
@@ -83,6 +90,9 @@ export function useEntrenadorVoz(resumen = null) {
       mensaje: mensajeForma,
       pausado,
       demo: demoAbierta,
+      bloque: bloqueActual,
+      seccion: bloque?.seccionId ?? null,
+      ronda: bloque?.ronda ?? null,
     };
 
     if (!vozActiva) return;
@@ -96,26 +106,63 @@ export function useEntrenadorVoz(resumen = null) {
       return;
     }
 
+    const anunciarBloque = () => {
+      if (bloque && bloque.seccionId !== antes.seccion) {
+        const evento =
+          bloque.seccionTipo === 'calentamiento'
+            ? 'CALENTAMIENTO'
+            : bloque.seccionTipo === 'enfriamiento'
+              ? 'ENFRIAMIENTO'
+              : 'SECCION';
+        hablar(
+          `${obtenerFrase(evento, rotacion.current++)} ${bloque.pistaVoz || ''}`.trim()
+        );
+        return;
+      }
+
+      if (bloque?.totalRondas > 1 && bloque.ronda !== antes.ronda) {
+        hablar(
+          `${obtenerFrase('RONDA', rotacion.current++)} ${bloque.pistaVoz || ''}`.trim()
+        );
+        return;
+      }
+
+      hablar(bloque?.pistaVoz || obtenerFrase('TRABAJO', rotacion.current++, ejercicioActual));
+    };
+
     if (antes.fase !== faseActual) {
       if (faseActual === 'TRABAJO') {
-        if (antes.fase === 'CALIBRACION') {
+        const primerBloque = antes.fase === 'CALIBRACION';
+        if (primerBloque) {
           hablar(obtenerFrase('INICIO', rotacion.current++));
-          const ejercicio = ejercicioActual;
+          const pista =
+            bloque?.pistaVoz || obtenerFrase('TRABAJO', rotacion.current, ejercicioActual);
           setTimeout(() => {
             if (useWorkoutStore.getState().faseActual === 'TRABAJO') {
-              hablar(obtenerFrase('TRABAJO', rotacion.current++, ejercicio));
+              hablar(pista);
             }
           }, 1600);
         } else {
-          hablar(obtenerFrase('TRABAJO', rotacion.current++, ejercicioActual));
+          anunciarBloque();
         }
         ultimaRep.current = Date.now();
         avisoAtasco.current = false;
       } else if (faseActual === 'DESCANSO') {
-        hablar(obtenerFrase('DESCANSO', rotacion.current++));
+        const siguiente = claseActual.bloques[bloqueActual + 1];
+        const pistaSiguiente = siguiente
+          ? `Sigue ${nombreEjercicio(siguiente.ejercicio)}.`
+          : '';
+        hablar(`${obtenerFrase('DESCANSO', rotacion.current++)} ${pistaSiguiente}`.trim());
       } else if (faseActual === 'FIN') {
         hablar(obtenerFrase('FIN', rotacion.current++), { interrumpir: true });
       }
+      return;
+    }
+
+    if (antes.bloque !== bloqueActual && faseActual === 'TRABAJO' && !pausado) {
+      anunciarBloque();
+      ultimaRep.current = Date.now();
+      avisoAtasco.current = false;
       return;
     }
 
@@ -133,6 +180,16 @@ export function useEntrenadorVoz(resumen = null) {
       if (repeticiones > 0 && repeticiones % 10 === 0) {
         hablar(obtenerFrase('HITO', rotacion.current++));
       }
+    }
+
+    if (
+      bloque?.trabajo >= 30 &&
+      tiempoRestante === Math.ceil(bloque.trabajo / 2) &&
+      antes.restante !== tiempoRestante
+    ) {
+      const evento = bloque.seccionTipo === 'enfriamiento' ? 'RESPIRACION' : 'MITAD';
+      hablar(obtenerFrase(evento, rotacion.current++), { interrumpir: true });
+      return;
     }
 
     if (tiempoRestante === 3 && antes.restante !== 3) {
@@ -157,6 +214,8 @@ export function useEntrenadorVoz(resumen = null) {
     vozActiva,
     demoAbierta,
     demoEjercicio,
+    bloqueActual,
+    claseActual,
     hablar,
   ]);
 

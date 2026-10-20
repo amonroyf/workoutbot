@@ -5,51 +5,72 @@ import {
   totalesVacios,
   progresoCircuito,
   estacionesCircuito,
-  EJERCICIOS,
-  TIEMPO_TRABAJO,
-  TIEMPO_DESCANSO,
+  estacionesSeccion,
   DURACION_TOTAL,
 } from './circuito';
+import { obtenerClase, duracionClase } from './clases';
 
-function aplicar(estado, ahoraMs) {
-  const resultado = avanzarCircuito(estado, ahoraMs);
+const CLASICO = obtenerClase('clasico');
+const FUNCIONAL = obtenerClase('funcional-45');
+
+function aplicar(estado, ahoraMs, clase = CLASICO) {
+  const resultado = avanzarCircuito(estado, ahoraMs, clase);
   if (!resultado) return { estado, sonido: null };
   return { estado: { ...estado, ...resultado.estado }, sonido: resultado.sonido };
 }
 
 describe('estadoInicialCircuito', () => {
   it('empieza en TRABAJO con el primer ejercicio', () => {
-    const e = estadoInicialCircuito(0);
+    const e = estadoInicialCircuito(0, CLASICO);
     expect(e.faseActual).toBe('TRABAJO');
-    expect(e.ejercicioActual).toBe(EJERCICIOS[0]);
-    expect(e.tiempoRestante).toBe(TIEMPO_TRABAJO);
+    expect(e.ejercicioActual).toBe(CLASICO.bloques[0].ejercicio);
+    expect(e.tiempoRestante).toBe(CLASICO.bloques[0].trabajo);
     expect(e.repeticiones).toBe(0);
-    expect(e.finFaseEn).toBe(TIEMPO_TRABAJO * 1000);
-    expect(e.totales).toEqual(totalesVacios());
+    expect(e.finFaseEn).toBe(CLASICO.bloques[0].trabajo * 1000);
+    expect(e.totales).toEqual(totalesVacios(CLASICO));
     expect(e.combo).toBe(0);
+  });
+
+  it('arranca la clase completa con el calentamiento', () => {
+    const e = estadoInicialCircuito(0, FUNCIONAL);
+    expect(e.ejercicioActual).toBe('MARCHA');
+    expect(e.tiempoRestante).toBe(120);
   });
 });
 
 describe('progresoCircuito', () => {
-  it('va de 0 a 1 durante el circuito', () => {
-    expect(DURACION_TOTAL).toBe(TIEMPO_TRABAJO * 3 + TIEMPO_DESCANSO * 2);
+  it('va de 0 a 1 durante la clase completa', () => {
+    expect(DURACION_TOTAL).toBe(2700);
     expect(progresoCircuito({ faseActual: 'CALIBRACION' })).toBe(0);
     expect(
-      progresoCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'SENTADILLAS', tiempoRestante: 40 })
-    ).toBe(0);
+      progresoCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'MARCHA', tiempoRestante: 60 })
+    ).toBeCloseTo(60 / 2700, 5);
     expect(
-      progresoCircuito({ faseActual: 'DESCANSO', ejercicioActual: 'SENTADILLAS', tiempoRestante: 20 })
-    ).toBeCloseTo(40 / DURACION_TOTAL, 5);
-    expect(
-      progresoCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'JUMPING_JACKS', tiempoRestante: 0 })
+      progresoCircuito({
+        faseActual: 'TRABAJO',
+        ejercicioActual: 'ESTIRAMIENTO_GENERAL',
+        tiempoRestante: 0,
+      })
     ).toBe(1);
     expect(progresoCircuito({ faseActual: 'FIN' })).toBe(1);
+  });
+
+  it('también calcula el progreso de una clase exprés', () => {
+    expect(duracionClase(CLASICO)).toBe(160);
+    expect(
+      progresoCircuito(
+        { faseActual: 'TRABAJO', ejercicioActual: 'SENTADILLAS', tiempoRestante: 20 },
+        CLASICO
+      )
+    ).toBeCloseTo(20 / 160, 5);
   });
 });
 
 describe('estacionesCircuito', () => {
   it('marca el primer ejercicio como actual al empezar', () => {
-    expect(estacionesCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'SENTADILLAS' })).toEqual([
+    expect(
+      estacionesCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'SENTADILLAS' }, CLASICO)
+    ).toEqual([
       { ejercicio: 'SENTADILLAS', estado: 'actual' },
       { ejercicio: 'FLEXIONES', estado: 'pendiente' },
       { ejercicio: 'JUMPING_JACKS', estado: 'pendiente' },
@@ -57,7 +78,9 @@ describe('estacionesCircuito', () => {
   });
 
   it('marca completados los anteriores y actual el que va', () => {
-    expect(estacionesCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'FLEXIONES' })).toEqual([
+    expect(
+      estacionesCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'FLEXIONES' }, CLASICO)
+    ).toEqual([
       { ejercicio: 'SENTADILLAS', estado: 'completado' },
       { ejercicio: 'FLEXIONES', estado: 'actual' },
       { ejercicio: 'JUMPING_JACKS', estado: 'pendiente' },
@@ -65,7 +88,9 @@ describe('estacionesCircuito', () => {
   });
 
   it('en descanso marca el siguiente como actual', () => {
-    expect(estacionesCircuito({ faseActual: 'DESCANSO', ejercicioActual: 'SENTADILLAS' })).toEqual([
+    expect(
+      estacionesCircuito({ faseActual: 'DESCANSO', ejercicioActual: 'SENTADILLAS' }, CLASICO)
+    ).toEqual([
       { ejercicio: 'SENTADILLAS', estado: 'completado' },
       { ejercicio: 'FLEXIONES', estado: 'actual' },
       { ejercicio: 'JUMPING_JACKS', estado: 'pendiente' },
@@ -73,7 +98,9 @@ describe('estacionesCircuito', () => {
   });
 
   it('marca todo completado al terminar', () => {
-    expect(estacionesCircuito({ faseActual: 'FIN', ejercicioActual: 'JUMPING_JACKS' })).toEqual([
+    expect(
+      estacionesCircuito({ faseActual: 'FIN', ejercicioActual: 'JUMPING_JACKS' }, CLASICO)
+    ).toEqual([
       { ejercicio: 'SENTADILLAS', estado: 'completado' },
       { ejercicio: 'FLEXIONES', estado: 'completado' },
       { ejercicio: 'JUMPING_JACKS', estado: 'completado' },
@@ -81,47 +108,100 @@ describe('estacionesCircuito', () => {
   });
 
   it('deja todo pendiente en calibración', () => {
-    const estaciones = estacionesCircuito({ faseActual: 'CALIBRACION', ejercicioActual: 'SENTADILLAS' });
+    const estaciones = estacionesCircuito(
+      { faseActual: 'CALIBRACION', ejercicioActual: 'SENTADILLAS' },
+      CLASICO
+    );
     expect(estaciones.every((e) => e.estado === 'pendiente')).toBe(true);
+  });
+});
+
+describe('estacionesSeccion', () => {
+  it('resume la clase completa en cinco secciones', () => {
+    const estaciones = estacionesSeccion({ faseActual: 'TRABAJO' }, FUNCIONAL);
+    expect(estaciones).toHaveLength(5);
+    expect(estaciones[0]).toMatchObject({ id: 'calentamiento', estado: 'actual' });
+    expect(estaciones[4]).toMatchObject({ id: 'enfriamiento', estado: 'pendiente' });
+  });
+
+  it('marca secciones completadas y muestra la ronda actual', () => {
+    const indice = FUNCIONAL.bloques.findIndex(
+      (bloque) => bloque.seccionId === 'fuerza' && bloque.ronda === 2
+    );
+    const estaciones = estacionesSeccion(
+      { faseActual: 'TRABAJO', bloqueActual: indice },
+      FUNCIONAL
+    );
+    expect(estaciones[0].estado).toBe('completado');
+    expect(estaciones[1]).toMatchObject({ estado: 'actual', ronda: 2, totalRondas: 3 });
+  });
+
+  it('devuelve null para clases exprés', () => {
+    expect(estacionesSeccion({ faseActual: 'TRABAJO' }, CLASICO)).toBeNull();
   });
 });
 
 describe('avanzarCircuito', () => {
   it('devuelve null cuando no cambia el segundo', () => {
-    expect(avanzarCircuito(estadoInicialCircuito(0), 0)).toBeNull();
+    expect(avanzarCircuito(estadoInicialCircuito(0, CLASICO), 0, CLASICO)).toBeNull();
   });
 
   it('descuenta segundos con el tiempo real', () => {
-    const r = avanzarCircuito(estadoInicialCircuito(0), 10000);
+    const r = avanzarCircuito(estadoInicialCircuito(0, CLASICO), 10000, CLASICO);
     expect(r).toEqual({ estado: { tiempoRestante: 30 }, sonido: null });
   });
 
   it('cambia a DESCANSO al terminar el trabajo y acumula repeticiones', () => {
-    const e = { ...estadoInicialCircuito(0), repeticiones: 7 };
-    const r = avanzarCircuito(e, 40000);
+    const e = { ...estadoInicialCircuito(0, CLASICO), repeticiones: 7 };
+    const r = avanzarCircuito(e, 40000, CLASICO);
     expect(r.estado.faseActual).toBe('DESCANSO');
-    expect(r.estado.tiempoRestante).toBe(TIEMPO_DESCANSO);
+    expect(r.estado.tiempoRestante).toBe(CLASICO.bloques[0].descanso);
     expect(r.estado.totales.SENTADILLAS).toBe(7);
     expect(r.sonido).toBe('silbato');
   });
 
   it('avanza al siguiente ejercicio tras el descanso', () => {
     const e = {
-      ...estadoInicialCircuito(0),
+      ...estadoInicialCircuito(0, CLASICO),
       faseActual: 'DESCANSO',
       tiempoRestante: 0,
       finFaseEn: 60000,
     };
-    const r = avanzarCircuito(e, 60000);
+    const r = avanzarCircuito(e, 60000, CLASICO);
     expect(r.estado.faseActual).toBe('TRABAJO');
     expect(r.estado.ejercicioActual).toBe('FLEXIONES');
-    expect(r.estado.tiempoRestante).toBe(TIEMPO_TRABAJO);
+    expect(r.estado.tiempoRestante).toBe(CLASICO.bloques[1].trabajo);
     expect(r.estado.repeticiones).toBe(0);
     expect(r.sonido).toBe('inicio');
   });
 
+  it('avanza del calentamiento al primer ejercicio de fuerza sin descanso', () => {
+    const e = estadoInicialCircuito(0, FUNCIONAL);
+    const r = avanzarCircuito(e, 120000, FUNCIONAL);
+    expect(r.estado.faseActual).toBe('TRABAJO');
+    expect(r.estado.ejercicioActual).toBe('SENTADILLAS');
+    expect(r.estado.bloqueActual).toBe(1);
+  });
+
+  it('acumula repeticiones del mismo ejercicio en distintas rondas', () => {
+    const base = estadoInicialCircuito(0, FUNCIONAL);
+    const indiceSentadillas = FUNCIONAL.bloques.findIndex(
+      (bloque) => bloque.ejercicio === 'SENTADILLAS'
+    );
+    const e = {
+      ...base,
+      bloqueActual: indiceSentadillas,
+      ejercicioActual: 'SENTADILLAS',
+      repeticiones: 8,
+      totales: { ...base.totales, SENTADILLAS: 5 },
+      finFaseEn: 0,
+    };
+    const r = avanzarCircuito(e, 0, FUNCIONAL);
+    expect(r.estado.totales.SENTADILLAS).toBe(13);
+  });
+
   it('recorre el circuito completo y termina en FIN', () => {
-    let { estado } = { estado: estadoInicialCircuito(0) };
+    let estado = estadoInicialCircuito(0, CLASICO);
 
     estado = { ...estado, repeticiones: 10 };
     estado = aplicar(estado, 40000).estado;

@@ -202,7 +202,7 @@ export default function App() {
                     {formatearDuracion(duracionClase(clase))}
                   </span>
                   <span className="block text-[10px] uppercase tracking-wide text-white/50">
-                    {clase.nivel}
+                    {clase.formato === 'completa' ? 'Completa' : 'Exprés'} · {clase.nivel}
                   </span>
                 </button>
               );
@@ -211,10 +211,22 @@ export default function App() {
 
           <div className="mt-3 max-w-md text-sm text-white/70">
             <p>{claseActual.descripcion}</p>
-            <p className="mt-1">
-              {claseActual.bloques.length} ejercicios:{' '}
-              {claseActual.bloques.map((bloque) => nombreEjercicio(bloque.ejercicio)).join(' · ')}
-            </p>
+            {claseActual.secciones ? (
+              <>
+                <p className="mt-1">
+                  {claseActual.secciones.length} secciones:{' '}
+                  {claseActual.secciones.map((seccion) => seccion.nombre).join(' · ')}
+                </p>
+                <p className="mt-1">
+                  {claseActual.bloques.length} bloques · {formatearDuracion(duracionClase(claseActual))}
+                </p>
+              </>
+            ) : (
+              <p className="mt-1">
+                {claseActual.bloques.length} ejercicios:{' '}
+                {claseActual.bloques.map((bloque) => nombreEjercicio(bloque.ejercicio)).join(' · ')}
+              </p>
+            )}
             <p className="mt-1">El entrenador te guía por voz y corrige tu postura.</p>
             <p>La demo va en la esquina; tócala para verla en grande.</p>
           </div>

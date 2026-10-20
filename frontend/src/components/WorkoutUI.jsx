@@ -78,6 +78,8 @@ export default function WorkoutUI() {
   const ejercicioDemo = demoEjercicio || (faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   const demoVisible = obtenerDemo(ejercicioDemo);
   const esTiempo = esDeTiempo(ejercicioActual);
+  const bloque = claseActual.bloques?.[bloqueActual] || null;
+  const esCompleta = Boolean(bloque?.seccionNombre);
   const colorScore =
     scoreForma >= UMBRAL_SCORE_PERFECTO
       ? 'bg-green-400 text-black'
@@ -94,8 +96,11 @@ export default function WorkoutUI() {
       <div className="absolute top-0 left-0 right-0 p-4">
         <div className="flex justify-between text-xs font-semibold uppercase tracking-widest text-white/80 mb-1">
           <span>
-            {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'} · Ejercicio {bloqueActual + 1} de{' '}
-            {totalBloques}
+            {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'} ·{' '}
+            {esCompleta ? bloque.seccionNombre : `Ejercicio ${bloqueActual + 1} de ${totalBloques}`}
+            {esCompleta && bloque.totalRondas > 1
+              ? ` · Ronda ${bloque.ronda}/${bloque.totalRondas}`
+              : ''}
           </span>
           <span>{Math.round(progreso * 100)}%</span>
         </div>
@@ -133,6 +138,12 @@ export default function WorkoutUI() {
         <p className="mb-2 text-2xl font-semibold uppercase tracking-widest">
           {nombreEjercicio(ejercicioActual)}
         </p>
+        {esCompleta && (
+          <p className="mb-1 text-xs font-bold uppercase tracking-[0.2em] text-white/60">
+            {bloque.seccionNombre}
+            {bloque.totalRondas > 1 ? ` · Ronda ${bloque.ronda}/${bloque.totalRondas}` : ''}
+          </p>
+        )}
         <h1
           className={`text-7xl font-black md:text-9xl ${
             faseActual === 'DESCANSO' ? 'text-yellow-400' : 'text-white'

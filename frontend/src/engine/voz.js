@@ -40,6 +40,42 @@ const TRABAJO = {
     'Puente de glúteo. Empuja con los talones y aprieta los glúteos.',
     'Puente de glúteo. Sube con control y baja sin soltar.',
   ],
+  MARCHA: [
+    'Marcha en el lugar. Suelta los hombros y respira.',
+    'Marcha. Brazos relajados y paso cómodo.',
+  ],
+  MARCHA_SUAVE: [
+    'Marcha suave. Baja el ritmo y recupera la respiración.',
+    'Marcha suave. Deja que el pulso baje poco a poco.',
+  ],
+  BIRD_DOG: [
+    'Bird dog. Estira brazo y pierna opuestos sin arquear la espalda.',
+    'Bird dog. Mantén el abdomen firme y el cuello relajado.',
+  ],
+  MOUNTAIN_CLIMBER: [
+    'Mountain climber. Rodillas al pecho y cadera baja.',
+    'Mountain climber. Ritmo firme, sin rebotar la cadera.',
+  ],
+  DEAD_BUG: [
+    'Dead bug. Espalda pegada al piso y movimientos lentos.',
+    'Dead bug. Estira brazo y pierna opuestos con control.',
+  ],
+  HOLLOW_HOLD: [
+    'Hollow hold. Lumbar pegada al piso y abdomen apretado.',
+    'Hollow hold. Respira corto y mantén la posición.',
+  ],
+  PLANCHA_LATERAL: [
+    'Plancha lateral. Cadera arriba y cuerpo alineado.',
+    'Plancha lateral. Apoya el antebrazo y no dejes caer la cadera.',
+  ],
+  SUPERMAN: [
+    'Superman. Levanta brazos y piernas sin forzar el cuello.',
+    'Superman. Sube con control y baja lento.',
+  ],
+  ESTIRAMIENTO_GENERAL: [
+    'Estiramiento general. Sin rebotar, sostén cada posición.',
+    'Estiramiento. Respira lento y suelta la tensión.',
+  ],
   ABDOMINALES: [
     'Abdominales. Manos detrás de la cabeza, sin halar el cuello.',
     'Abdominales. Sube con el abdomen y baja con control.',
@@ -103,8 +139,51 @@ const SEGURIDAD = [
   'Cuida tus rodillas, no fuerces si algo molesta.',
 ];
 
+
+const CALENTAMIENTO = [
+  'Calentamiento. Vamos a preparar el cuerpo con movimiento suave.',
+  'Arrancamos el calentamiento. Sube la temperatura poco a poco.',
+];
+
+const SECCION = [
+  'Cambiamos de bloque. Mantén la técnica.',
+  'Nuevo bloque. Respira y enfócate.',
+];
+
+const RONDA = [
+  'Nueva ronda. Misma técnica, un poco más de energía.',
+  'Otra ronda. No aflojes.',
+];
+
+const MITAD = [
+  'Mitad del ejercicio. Mantén la forma.',
+  'Vas por la mitad. Respira y sigue.',
+];
+
+const SIGUIENTE = [
+  'Prepárate para lo que viene.',
+  'Sigue el siguiente ejercicio.',
+];
+
+const ENFRIAMIENTO = [
+  'Vuelta a la calma. Baja el pulso y estira.',
+  'Enfriamiento. Respira profundo y suelta los músculos.',
+];
+
+const RESPIRACION = [
+  'Respira profundo, lento. Suelta el aire.',
+  'Inhala por la nariz, exhala suave.',
+];
+
 const BANCOS = {
   INICIO,
+  CALENTAMIENTO,
+  SECCION,
+  RONDA,
+  MITAD,
+  SIGUIENTE,
+  ENFRIAMIENTO,
+  RESPIRACION,
   DESCANSO,
   FIN,
   PAUSA,
@@ -134,6 +213,13 @@ export function obtenerFrase(evento, indice = 0, ejercicio = null) {
 
 export const EVENTOS_VOZ = Object.freeze([
   'INICIO',
+  'CALENTAMIENTO',
+  'SECCION',
+  'RONDA',
+  'MITAD',
+  'SIGUIENTE',
+  'ENFRIAMIENTO',
+  'RESPIRACION',
   'TRABAJO',
   'DESCANSO',
   'FIN',

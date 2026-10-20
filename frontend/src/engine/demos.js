@@ -169,6 +169,40 @@ const JUMPING_JACK_ABIERTO = pose(
   p(0.72, 0.9)
 );
 
+const ESTIRAMIENTO_ARRIBA = pose(
+  p(0.5, 0.18),
+  p(0.5, 0.28),
+  p(0.44, 0.3),
+  p(0.56, 0.3),
+  p(0.42, 0.16),
+  p(0.58, 0.16),
+  p(0.42, 0.04),
+  p(0.58, 0.04),
+  p(0.46, 0.5),
+  p(0.54, 0.5),
+  p(0.47, 0.7),
+  p(0.53, 0.7),
+  p(0.47, 0.9),
+  p(0.53, 0.9)
+);
+
+const ESTIRAMIENTO_LADO = pose(
+  p(0.58, 0.2),
+  p(0.54, 0.29),
+  p(0.48, 0.31),
+  p(0.6, 0.31),
+  p(0.4, 0.42),
+  p(0.72, 0.18),
+  p(0.38, 0.55),
+  p(0.78, 0.1),
+  p(0.46, 0.5),
+  p(0.54, 0.5),
+  p(0.47, 0.7),
+  p(0.53, 0.7),
+  p(0.47, 0.9),
+  p(0.53, 0.9)
+);
+
 const ZANCADA_ARRIBA = pose(
   p(0.5, 0.22),
   p(0.5, 0.3),
@@ -656,6 +690,43 @@ export const DEMOS = Object.freeze({
       { t: 0.6, pose: RODILLA_DER_ARRIBA },
       { t: 0.8, pose: RODILLAS_NEUTRO },
       { t: 1, pose: RODILLAS_NEUTRO },
+    ]),
+  }),
+  MARCHA: Object.freeze({
+    nombre: 'Marcha en el lugar',
+    vista: 'frontal',
+    cicloMs: 1600,
+    pistas: ['Camina en el lugar', 'Brazos relajados', 'Sube la temperatura poco a poco'],
+    keyframes: Object.freeze([
+      { t: 0, pose: RODILLAS_NEUTRO },
+      { t: 0.25, pose: RODILLA_IZQ_ARRIBA },
+      { t: 0.5, pose: RODILLAS_NEUTRO },
+      { t: 0.75, pose: RODILLA_DER_ARRIBA },
+      { t: 1, pose: RODILLAS_NEUTRO },
+    ]),
+  }),
+  MARCHA_SUAVE: Object.freeze({
+    nombre: 'Marcha suave',
+    vista: 'frontal',
+    cicloMs: 2600,
+    pistas: ['Baja el ritmo', 'Respira profundo', 'Deja que el pulso baje'],
+    keyframes: Object.freeze([
+      { t: 0, pose: RODILLAS_NEUTRO },
+      { t: 0.25, pose: RODILLA_IZQ_ARRIBA },
+      { t: 0.5, pose: RODILLAS_NEUTRO },
+      { t: 0.75, pose: RODILLA_DER_ARRIBA },
+      { t: 1, pose: RODILLAS_NEUTRO },
+    ]),
+  }),
+  ESTIRAMIENTO_GENERAL: Object.freeze({
+    nombre: 'Estiramiento general',
+    vista: 'frontal',
+    cicloMs: 6000,
+    pistas: ['Estira sin rebotar', 'Respira lento', 'Sostén cada posición'],
+    keyframes: Object.freeze([
+      { t: 0, pose: ESTIRAMIENTO_ARRIBA },
+      { t: 0.5, pose: ESTIRAMIENTO_LADO },
+      { t: 1, pose: ESTIRAMIENTO_ARRIBA },
     ]),
   }),
   PUENTE_GLUTEO: Object.freeze({

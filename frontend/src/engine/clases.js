@@ -1,4 +1,4 @@
-export const CLASES = Object.freeze([
+const CLASES_EXPRESS_BASE = Object.freeze([
   Object.freeze({
     id: 'clasico',
     nombre: 'Clásico',
@@ -144,6 +144,296 @@ export const CLASES = Object.freeze([
     ]),
   }),
 ]);
+
+function congelarLista(lista) {
+  return Object.freeze(lista.map((item) => Object.freeze({ ...item })));
+}
+
+export function compilarClase(clase) {
+  const totalSecciones = clase.secciones.length;
+  const bloques = [];
+
+  clase.secciones.forEach((seccion, seccionIndex) => {
+    const totalRondas = Math.max(1, seccion.rondas || 1);
+    const bloquesSeccion = seccion.bloques;
+
+    for (let ronda = 1; ronda <= totalRondas; ronda += 1) {
+      bloquesSeccion.forEach((bloque, indice) => {
+        const esUltimo = indice === bloquesSeccion.length - 1;
+        const descanso =
+          esUltimo && ronda < totalRondas
+            ? seccion.descansoRonda ?? bloque.descanso ?? 0
+            : bloque.descanso ?? 0;
+
+        bloques.push(
+          Object.freeze({
+            ...bloque,
+            descanso,
+            seccionId: seccion.id,
+            seccionNombre: seccion.nombre,
+            seccionTipo: seccion.tipo,
+            seccionIndex,
+            totalSecciones,
+            ronda,
+            totalRondas,
+          })
+        );
+      });
+    }
+  });
+
+  const secciones = Object.freeze(
+    clase.secciones.map((seccion) =>
+      Object.freeze({
+        ...seccion,
+        bloques: congelarLista(seccion.bloques),
+      })
+    )
+  );
+
+  return Object.freeze({
+    ...clase,
+    formato: clase.formato || 'completa',
+    secciones,
+    bloques: Object.freeze(bloques),
+    duracion: bloques.reduce(
+      (total, bloque) => total + bloque.trabajo + bloque.descanso,
+      0
+    ),
+  });
+}
+
+const FUNCIONAL_45_BASE = {
+  id: 'funcional-45',
+  nombre: 'Funcional 45',
+  descripcion:
+    'Clase completa de 45 minutos: calentamiento, fuerza, metabólico, core y vuelta a la calma.',
+  nivel: 'intermedio',
+  tipo: 'funcional',
+  formato: 'completa',
+  duracionMin: 45,
+  equipamiento: 'ninguno',
+  secciones: [
+    {
+      id: 'calentamiento',
+      nombre: 'Calentamiento',
+      tipo: 'calentamiento',
+      rondas: 1,
+      pistaVoz: 'Calentamiento, ocho minutos. Vamos a preparar el cuerpo.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA',
+          trabajo: 120,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Empezamos suave, camina en el lugar y suelta los hombros.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 60,
+          descanso: 15,
+          intensidad: 'suave',
+          pistaVoz: 'Sentadillas sin peso, baja hasta donde estés cómodo.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 60,
+          descanso: 15,
+          intensidad: 'suave',
+          pistaVoz: 'Zancadas alternas, paso corto y controlado.',
+        },
+        {
+          ejercicio: 'BIRD_DOG',
+          trabajo: 60,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Bird dog para activar core y espalda.',
+        },
+        {
+          ejercicio: 'RODILLAS_ALTAS',
+          trabajo: 60,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Rodillas altas suave, sin saltar.',
+        },
+        {
+          ejercicio: 'MARCHA',
+          trabajo: 90,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Últimos segundos de calentamiento, respira.',
+        },
+      ],
+    },
+    {
+      id: 'fuerza',
+      nombre: 'Fuerza',
+      tipo: 'principal',
+      rondas: 3,
+      descansoRonda: 60,
+      pistaVoz: 'Bloque de fuerza, tres rondas.',
+      bloques: [
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 40,
+          descanso: 20,
+          intensidad: 'media',
+          pistaVoz: 'Sentadilla, cadera atrás y pecho arriba.',
+        },
+        {
+          ejercicio: 'FLEXIONES',
+          trabajo: 40,
+          descanso: 20,
+          intensidad: 'media',
+          pistaVoz: 'Flexión, cuerpo en plancha y codos a cuarenta y cinco grados.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 40,
+          descanso: 20,
+          intensidad: 'media',
+          pistaVoz: 'Zancada, baja la rodilla de atrás con control.',
+        },
+        {
+          ejercicio: 'PUENTE_GLUTEO',
+          trabajo: 40,
+          descanso: 60,
+          intensidad: 'media',
+          pistaVoz: 'Puente, empuja con los talones y aprieta los glúteos.',
+        },
+      ],
+    },
+    {
+      id: 'metabolico',
+      nombre: 'Metabólico',
+      tipo: 'principal',
+      rondas: 3,
+      descansoRonda: 40,
+      pistaVoz: 'Bloque metabólico, tres rondas. Mantén la técnica.',
+      bloques: [
+        {
+          ejercicio: 'JUMPING_JACKS',
+          trabajo: 30,
+          descanso: 20,
+          intensidad: 'alta',
+          pistaVoz: 'Jumping jacks, abre brazos y piernas al mismo tiempo.',
+        },
+        {
+          ejercicio: 'MOUNTAIN_CLIMBER',
+          trabajo: 30,
+          descanso: 20,
+          intensidad: 'alta',
+          pistaVoz: 'Mountain climber, rodillas al pecho y cadera baja.',
+        },
+        {
+          ejercicio: 'RODILLAS_ALTAS',
+          trabajo: 30,
+          descanso: 20,
+          intensidad: 'alta',
+          pistaVoz: 'Rodillas altas, ritmo fuerte pero controlado.',
+        },
+        {
+          ejercicio: 'PLANCHA',
+          trabajo: 30,
+          descanso: 40,
+          intensidad: 'media',
+          pistaVoz: 'Plancha, cuerpo en línea y abdomen firme.',
+        },
+      ],
+    },
+    {
+      id: 'core',
+      nombre: 'Core y control',
+      tipo: 'principal',
+      rondas: 1,
+      pistaVoz: 'Bloque de core y control. Calidad antes que velocidad.',
+      bloques: [
+        {
+          ejercicio: 'DEAD_BUG',
+          trabajo: 45,
+          descanso: 15,
+          intensidad: 'media',
+          pistaVoz: 'Dead bug, espalda pegada al piso.',
+        },
+        {
+          ejercicio: 'HOLLOW_HOLD',
+          trabajo: 30,
+          descanso: 15,
+          intensidad: 'media',
+          pistaVoz: 'Hollow hold, lumbar pegada y respira.',
+        },
+        {
+          ejercicio: 'BIRD_DOG',
+          trabajo: 45,
+          descanso: 15,
+          intensidad: 'media',
+          pistaVoz: 'Bird dog, estira brazo y pierna opuestos.',
+        },
+        {
+          ejercicio: 'PLANCHA_LATERAL',
+          trabajo: 30,
+          descanso: 15,
+          intensidad: 'media',
+          pistaVoz: 'Plancha lateral, cadera arriba y cuerpo alineado.',
+        },
+        {
+          ejercicio: 'SUPERMAN',
+          trabajo: 30,
+          descanso: 30,
+          intensidad: 'media',
+          pistaVoz: 'Superman, levanta brazos y piernas sin forzar el cuello.',
+        },
+        {
+          ejercicio: 'PLANCHA',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'media',
+          pistaVoz: 'Plancha final, aguanta y respira.',
+        },
+      ],
+    },
+    {
+      id: 'enfriamiento',
+      nombre: 'Vuelta a la calma',
+      tipo: 'enfriamiento',
+      rondas: 1,
+      pistaVoz: 'Vuelta a la calma. Baja el pulso y estira.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA_SUAVE',
+          trabajo: 120,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Bajamos el ritmo, camina suave y respira.',
+        },
+        {
+          ejercicio: 'ESTIRAMIENTO_GENERAL',
+          trabajo: 300,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Estiramiento general, sin rebotar, sostén cada posición.',
+        },
+      ],
+    },
+  ],
+};
+
+export const FUNCIONAL_45 = compilarClase(FUNCIONAL_45_BASE);
+
+export const CLASES_EXPRESS = Object.freeze(
+  CLASES_EXPRESS_BASE.map((clase) =>
+    Object.freeze({
+      ...clase,
+      tipo: 'express',
+      formato: 'express',
+    })
+  )
+);
+
+export const CLASES_COMPLETAS = Object.freeze([FUNCIONAL_45]);
+
+export const CLASES = Object.freeze([...CLASES_COMPLETAS, ...CLASES_EXPRESS]);
+
 
 export const CLASE_POR_DEFECTO = CLASES[0];
 

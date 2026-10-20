@@ -15,7 +15,7 @@ o falsas) y **3 altos** comprometían confiabilidad del timer, la cámara y la
 detección.
 
 Todos los hallazgos fueron corregidos y cubiertos con tests unitarios. La suite
-actual tiene **142 tests de frontend (13 archivos, 100% en verde)** y **5 tests
+actual tiene **150 tests de frontend (13 archivos, 100% en verde)** y **5 tests
 de backend (Go)**. El build de producción compila correctamente.
 
 ---
@@ -165,7 +165,7 @@ cd frontend
 npm test
 ```
 
-Resultado: **13 archivos, 142 tests, todos en verde.**
+Resultado: **13 archivos, 150 tests, todos en verde.**
 
 Backend:
 ```bash
@@ -186,12 +186,12 @@ Cobertura de lógica:
   zancada, plancha isométrica, rodillas altas, puente de glúteo, abdominal,
   mountain climber, plancha lateral, superman y score de forma.
 - `circuito.test.js`: estado inicial, descuento por tiempo real, transición a
-  descanso, cambio de ejercicio, recorrido completo hasta `FIN`, acumulado y
-  estaciones del mapa.
+  descanso, cambio de ejercicio, recorrido completo hasta `FIN`, acumulado por
+  rondas, estaciones del mapa y resumen por secciones.
 - `circuito-clases.test.js`: motor genérico con clases de distinta duración,
   bloques, progreso y totales.
-- `clases.test.js`: catálogo de 12 clases, duración, formato, ejercicios válidos
-  y modo por tiempo.
+- `clases.test.js`: catálogo de 13 clases, duración, formato, ejercicios válidos,
+  modo por tiempo y compilación de `Funcional 45` (5 secciones, 38 bloques).
 - `demos.test.js`: keyframes de la demo, articulaciones válidas, interpolación
   y guion de voz.
 - `progreso.test.js`: diferencia de reps, comparación y guion narrado del resumen.
@@ -264,7 +264,7 @@ Cuándo **no** es fiable (limitación conocida):
 
 ## 8. Verificación final
 
-- `npm test` → 142/142 OK
+- `npm test` → 150/150 OK
 - `go test ./...` → OK
 - `npm run build` → OK
 - Despliegue a Firebase Hosting tras las correcciones y mejoras.

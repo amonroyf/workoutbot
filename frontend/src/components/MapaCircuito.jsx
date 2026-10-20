@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
-import { estacionesCircuito } from '../engine/circuito';
+import { estacionesCircuito, estacionesSeccion } from '../engine/circuito';
 import { nombreEjercicio } from '../engine/ejercicios';
 
 const ESTILOS = {
@@ -14,10 +14,49 @@ export default function MapaCircuito() {
   const ejercicioActual = useWorkoutStore((s) => s.ejercicioActual);
   const bloqueActual = useWorkoutStore((s) => s.bloqueActual);
   const claseActual = useWorkoutStore((s) => s.claseActual);
-  const estaciones = estacionesCircuito(
-    { faseActual, ejercicioActual, bloqueActual },
-    claseActual
-  );
+  const estado = { faseActual, ejercicioActual, bloqueActual };
+  const secciones = estacionesSeccion(estado, claseActual);
+
+  if (secciones) {
+    return (
+      <div className="mt-3 flex items-start" aria-label="Secciones de la clase">
+        {secciones.map((seccion, i) => (
+          <Fragment key={seccion.id}>
+            {i > 0 && (
+              <div
+                className={`mt-4 h-0.5 flex-1 rounded-full ${
+                  secciones[i - 1].estado === 'completado' ? 'bg-green-400' : 'bg-white/20'
+                }`}
+              />
+            )}
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-black ${
+                  ESTILOS[seccion.estado]
+                }`}
+              >
+                {seccion.estado === 'completado' ? 'OK' : i + 1}
+              </div>
+              <span
+                className={`w-full truncate text-center text-[9px] font-bold uppercase ${
+                  seccion.estado === 'pendiente' ? 'text-white/40' : 'text-white/90'
+                }`}
+              >
+                {seccion.nombre}
+              </span>
+              {seccion.estado === 'actual' && seccion.totalRondas > 1 && (
+                <span className="text-[8px] font-bold uppercase tracking-wide text-green-300">
+                  Ronda {seccion.ronda}/{seccion.totalRondas}
+                </span>
+              )}
+            </div>
+          </Fragment>
+        ))}
+      </div>
+    );
+  }
+
+  const estaciones = estacionesCircuito(estado, claseActual);
 
   return (
     <div className="mt-3 flex items-start" aria-label="Mapa de la clase">
