@@ -5,6 +5,7 @@ import {
   obtenerClase,
   duracionClase,
   formatearDuracion,
+  formatearReloj,
   resumenSecciones,
 } from './clases';
 import { obtenerEjercicio, nombreEjercicio, esDeTiempo } from './ejercicios';
@@ -55,6 +56,13 @@ describe('CLASES', () => {
       ronda: 1,
       totalRondas: 1,
     });
+    expect(clase.secciones.map((seccion) => seccion.nombreCorto)).toEqual([
+      'Calent.',
+      'Fuerza',
+      'Metab.',
+      'Core',
+      'Calma',
+    ]);
     const fuerza = clase.bloques.filter((bloque) => bloque.seccionId === 'fuerza');
     expect(fuerza).toHaveLength(12);
     expect(fuerza[3]).toMatchObject({ ronda: 1, descanso: 60 });
@@ -108,6 +116,15 @@ describe('resumenSecciones', () => {
 
   it('devuelve null para clases exprés', () => {
     expect(resumenSecciones(obtenerClase('clasico'))).toBeNull();
+  });
+});
+
+describe('formatearReloj', () => {
+  it('formatea minutos y segundos con dos dígitos', () => {
+    expect(formatearReloj(45)).toBe('0:45');
+    expect(formatearReloj(472)).toBe('7:52');
+    expect(formatearReloj(2700)).toBe('45:00');
+    expect(formatearReloj(-10)).toBe('0:00');
   });
 });
 

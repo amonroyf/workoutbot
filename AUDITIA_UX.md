@@ -207,9 +207,25 @@ En el bundle ya no queda ninguna clase de la paleta anterior
 6. **Guion de la clase** como token de datos, para que el guion viva en la clase
    y no en el motor.
 
-## 6. Cómo se verifica
+## 6. Revisión móvil (safe areas y uso del espacio)
 
-- `npm test` en `frontend/` (171 tests).
+Verificado con capturas reales en Chrome headless a 360×780 y 390×844.
+
+| Hallazgo | Corrección |
+|---|---|
+| La app usaba `h-screen` (100vh): sobraba espacio con la barra del navegador | `h-dvh` (altura dinámica) en el contenedor raíz |
+| El notch y la barra de gestos se comían la cabecera y la barra de botones | `viewport-fit=cover` + `env(safe-area-inset-*)` en cabecera, barra inferior, overlays, resumen, login y avisos |
+| La pantalla inicial no cabía y el botón "Empezar clase" quedaba cortado | Pantalla inicial con scroll propio (`overflow-y-auto`, `overscroll-contain`) y contenido alineado arriba |
+| La cabecera se partía en dos líneas y el texto derecho se cortaba | Fila única: chip de fase + nombre de sección truncado + reloj de sección (`7:52`) |
+| Los nombres de sección salían truncados ("Calen...", "Vuelt...") | `nombreCorto` por sección (Calent., Fuerza, Metab., Core, Calma) y conectores de ancho fijo |
+| La barra inferior se salía de pantalla ("Cómo se hace" cortado) | Botones cortos (Pausa / Voz / Música) + un icono de ayuda con `aria-label` |
+| El aviso de cámara tapaba la cabecera y el mapa | En clase es una píldora discreta abajo; en el inicio es una tarjeta en el flujo del contenido |
+| Decía "Sostén" en ejercicios que no son isométricos (marchar, estirar) | Campo `consigna` y `consignaAyuda` por ejercicio: Muévete, Sostén, Estira, Levanta, Controla, Respira |
+| El error de cámara y el estado "Activando cámara" flotaban sobre el saludo | Estado de cámara en el store (`errorCamara`, `camaraActiva`, `reintentoCamara`) y aviso en línea |
+
+## 7. Cómo se verifica
+
+- `npm test` en `frontend/` (174 tests).
 - `npm run build` en `frontend/`.
-- Prueba manual en móvil: primer ingreso (guía), pantalla de inicio, clase,
-  barra inferior, tutorial, resumen y cierre.
+- Capturas reales en móvil con Chrome headless a 360 y 390 px de ancho.
+- Prueba manual en un teléfono real: notch, barra de gestos y barra del navegador.

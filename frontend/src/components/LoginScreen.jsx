@@ -15,7 +15,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-tinta-950/80 px-6 text-center text-tinta-100">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto bg-tinta-950/80 px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-[calc(2rem+env(safe-area-inset-top))] text-center text-tinta-100">
       <span className="flex h-16 w-16 items-center justify-center rounded-ficha bg-marca-500/15 text-marca-400">
         <Icono nombre="rayo" tamano={30} />
       </span>

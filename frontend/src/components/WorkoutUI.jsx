@@ -1,9 +1,14 @@
 import React from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { progresoCircuito, progresoSecciones } from '../engine/circuito';
-import { duracionClase, formatearDuracion } from '../engine/clases';
+import { duracionClase, formatearReloj } from '../engine/clases';
 import { obtenerDemo } from '../engine/demos';
-import { esDeTiempo, nombreEjercicio, modificacionesEjercicio } from '../engine/ejercicios';
+import {
+  consignaEjercicio,
+  esDeTiempo,
+  nombreEjercicio,
+  modificacionesEjercicio,
+} from '../engine/ejercicios';
 import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
 import { useMusica } from '../hooks/useMusica';
 import Icono from './Icono';
@@ -93,6 +98,7 @@ export default function WorkoutUI() {
   const demoVisible = obtenerDemo(ejercicioDemo);
   const modificaciones = modificacionesEjercicio(ejercicioDemo);
   const esTiempo = esDeTiempo(ejercicioActual);
+  const consigna = consignaEjercicio(ejercicioActual);
   const bloque = claseActual.bloques?.[bloqueActual] || null;
   const esCompleta = Boolean(bloque?.seccionNombre);
   const colorScore =
@@ -108,18 +114,26 @@ export default function WorkoutUI() {
 
   return (
     <div className="absolute inset-0 z-10 text-tinta-100">
-      <div className="absolute top-0 left-0 right-0 p-4">
-        <div className="mb-1 flex items-baseline justify-between gap-3 text-xs font-semibold text-tinta-200">
-          <span>
-            {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'} ·{' '}
-            {esCompleta ? bloque.seccionNombre : `Ejercicio ${bloqueActual + 1} de ${totalBloques}`}
-            {esCompleta && bloque.totalRondas > 1
-              ? ` · Ronda ${bloque.ronda} de ${bloque.totalRondas}`
-              : ''}
+      <div className="absolute top-0 left-0 right-0 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
+        <div className="mb-1 flex items-center gap-2 text-xs font-semibold">
+          <span
+            className={`shrink-0 rounded-chip px-2 py-0.5 text-[10px] font-bold ${
+              faseActual === 'TRABAJO'
+                ? 'bg-marca-500/20 text-marca-300'
+                : 'bg-aviso-500/20 text-aviso-300'
+            }`}
+          >
+            {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'}
           </span>
-          <span className="shrink-0">
-            {esCompleta ? `Faltan ${formatearDuracion(restanteSeccion)} en esta sección · ` : ''}
-            {Math.round(progreso * 100)}%
+          <span className="min-w-0 flex-1 truncate text-tinta-200">
+            {esCompleta
+              ? `${bloque.seccionNombre}${
+                  bloque.totalRondas > 1 ? ` · Ronda ${bloque.ronda} de ${bloque.totalRondas}` : ''
+                }`
+              : `Ejercicio ${bloqueActual + 1} de ${totalBloques}`}
+          </span>
+          <span className="shrink-0 tabular-nums text-tinta-300">
+            {esCompleta ? formatearReloj(restanteSeccion) : `${Math.round(progreso * 100)}%`}
           </span>
         </div>
         {avisoMusica && (
@@ -134,12 +148,19 @@ export default function WorkoutUI() {
                 seccion.estado === 'completado'
                   ? 'bg-marca-400'
                   : seccion.estado === 'actual'
-                    ? 'bg-marca-300'
+                    ? 'bg-marca-500/40'
                     : 'bg-tinta-800/60';
+              const relleno =
+                seccion.estado === 'actual'
+                  ? 'bg-marca-300'
+                  : seccion.estado === 'completado'
+                    ? 'bg-marca-400'
+                    : 'bg-transparent';
               return (
                 <div key={seccion.id} className="relative h-full" style={{ width: `${ancho}%` }}>
+                  <div className={`h-full ${color}`} />
                   <div
-                    className={`h-full ${color} transition-all duration-300`}
+                    className={`absolute inset-y-0 left-0 ${relleno} transition-all duration-300`}
                     style={{ width: `${avance * 100}%` }}
                   />
                 </div>
@@ -157,7 +178,7 @@ export default function WorkoutUI() {
         <MapaCircuito />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2 border-t border-linea bg-tinta-950/85 px-3 py-2 backdrop-blur-md">
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2 border-t border-linea bg-tinta-950/85 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-md">
         <button
           onClick={togglePausa}
           className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-boton bg-marca-500 px-4 text-base font-black text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
@@ -168,29 +189,34 @@ export default function WorkoutUI() {
         <button
           onClick={() => setVozActiva(!vozActiva)}
           aria-pressed={vozActiva}
-          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+          aria-label={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
+          title={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
+          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
-          <Icono nombre="voz" tamano={16} />
-          Voz: {vozActiva ? 'sí' : 'no'}
+          <Icono nombre="voz" tamano={16} className={vozActiva ? 'text-marca-300' : 'text-tinta-500'} />
+          <span className={vozActiva ? 'text-marca-300' : 'text-tinta-400'}>Voz</span>
         </button>
         <button
           onClick={() => setMusicaActiva(!musicaActiva)}
           aria-pressed={musicaActiva}
-          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+          aria-label={musicaActiva ? 'Apagar la música' : 'Encender la música'}
+          title={musicaActiva ? 'Apagar la música' : 'Encender la música'}
+          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
-          <Icono nombre="musica" tamano={16} />
-          Música: {musicaActiva ? 'sí' : 'no'}
+          <Icono nombre="musica" tamano={16} className={musicaActiva ? 'text-marca-300' : 'text-tinta-500'} />
+          <span className={musicaActiva ? 'text-marca-300' : 'text-tinta-400'}>Música</span>
         </button>
         <button
           onClick={abrirDemoActual}
-          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+          aria-label="Cómo se hace este ejercicio"
+          title="Cómo se hace este ejercicio"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-boton border border-linea bg-tinta-800/70 text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
-          <Icono nombre="ayuda" tamano={16} />
-          Cómo se hace
+          <Icono nombre="ayuda" tamano={18} />
         </button>
       </div>
 
-      <div className="flex h-full flex-col items-center justify-center px-6 pb-28 text-center">
+      <div className="flex h-full flex-col items-center justify-center px-6 pb-36 pt-24 text-center">
         <p className="mb-1 text-2xl font-bold">{nombreEjercicio(ejercicioActual)}</p>
         {esCompleta && (
           <p className="mb-2 text-xs font-semibold text-tinta-400">
@@ -215,8 +241,8 @@ export default function WorkoutUI() {
         {faseActual === 'TRABAJO' ? (
           esTiempo ? (
             <div className="mt-3 flex flex-col items-center gap-2">
-              <p className="text-3xl font-black text-marca-300">Sostén</p>
-              <p className="text-sm text-tinta-300">Mantén la posición</p>
+              <p className="text-3xl font-black text-marca-300">{consigna.consigna}</p>
+              <p className="text-sm text-tinta-300">{consigna.consignaAyuda}</p>
               {scoreForma != null && (
                 <span className={`rounded-full px-4 py-1 text-sm font-black ${colorScore}`}>
                   Forma {scoreForma}%
@@ -272,16 +298,16 @@ export default function WorkoutUI() {
         type="button"
         onClick={abrirDemoActual}
         aria-label={`Ver demostración de ${nombreEjercicio(ejercicioDemo)}`}
-        className="absolute bottom-20 right-3 z-20 flex flex-col items-center rounded-ficha border border-linea bg-tinta-950/70 p-1.5 backdrop-blur-md transition hover:bg-tinta-950/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+        className="absolute bottom-[calc(5rem+env(safe-area-inset-bottom))] right-3 z-20 flex flex-col items-center rounded-ficha border border-linea bg-tinta-950/70 p-1.5 backdrop-blur-md transition hover:bg-tinta-950/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
       >
-        <DemoEjercicio ejercicio={ejercicioDemo} esquina />
+        <DemoEjercicio ejercicio={ejercicioDemo} pequena />
         <span className="mt-1 text-[10px] font-bold text-tinta-300">
           {faseActual === 'DESCANSO' ? 'Después' : 'Ahora'}
         </span>
       </button>
 
       {pausado && !demoAbierta && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-tinta-950/85 px-6 text-center">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-tinta-950/85 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center">
           <p className="text-6xl font-black">PAUSA</p>
           <p className="text-xl text-tinta-200">
             {pausadoPor === 'faltaPose'
@@ -298,7 +324,7 @@ export default function WorkoutUI() {
       )}
 
       {demoAbierta && (
-        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-tinta-950/95 px-6 text-center">
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 overflow-y-auto bg-tinta-950/95 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center">
           <p className="text-sm font-bold text-marca-400">Así se hace</p>
           <p className="text-3xl font-black">{demoVisible.nombre}</p>
           <DemoEjercicio ejercicio={ejercicioDemo} />

@@ -44,7 +44,7 @@ function dibujarPose(ctx, pose, ancho, alto) {
   }
 }
 
-export default function DemoEjercicio({ ejercicio, compacto = false, esquina = false }) {
+export default function DemoEjercicio({ ejercicio, compacto = false, esquina = false, pequena = false }) {
   const canvasRef = useRef(null);
   const demo = obtenerDemo(ejercicio);
 
@@ -76,11 +76,13 @@ export default function DemoEjercicio({ ejercicio, compacto = false, esquina = f
     return () => cancelAnimationFrame(frame);
   }, [demo]);
 
-  const tamano = esquina
-    ? 'h-24 w-24 md:h-28 md:w-28'
-    : compacto
-      ? 'h-36 w-36'
-      : 'aspect-square w-full max-w-xs';
+  const tamano = pequena
+    ? 'h-16 w-16'
+    : esquina
+      ? 'h-24 w-24 md:h-28 md:w-28'
+      : compacto
+        ? 'h-36 w-36'
+        : 'aspect-square w-full max-w-xs';
 
   return (
     <div className={tamano}>

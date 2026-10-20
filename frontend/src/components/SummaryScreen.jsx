@@ -52,7 +52,7 @@ export default function SummaryScreen({ resumen, cargando = false }) {
       ];
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto bg-fondo/80 px-5 py-6 text-center text-tinta-100">
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-fondo/80 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center text-tinta-100">
       <p className="text-sm font-semibold text-marca-400">{claseActual.nombre}</p>
       <h1 className="mb-4 mt-1 text-3xl font-black md:text-4xl">Clase completada</h1>
 

@@ -211,6 +211,7 @@ export function resumenSecciones(clase) {
     return {
       id: seccion.id,
       nombre: seccion.nombre,
+      nombreCorto: seccion.nombreCorto || seccion.nombre,
       tipo: seccion.tipo,
       rondas: seccion.rondas || 1,
       duracion: bloques.reduce(
@@ -236,6 +237,7 @@ const FUNCIONAL_45_BASE = {
     {
       id: 'calentamiento',
       nombre: 'Calentamiento',
+      nombreCorto: 'Calent.',
       tipo: 'calentamiento',
       rondas: 1,
       pistaVoz: 'Calentamiento, ocho minutos. Vamos a preparar el cuerpo.',
@@ -287,6 +289,7 @@ const FUNCIONAL_45_BASE = {
     {
       id: 'fuerza',
       nombre: 'Fuerza',
+      nombreCorto: 'Fuerza',
       tipo: 'principal',
       rondas: 3,
       descansoRonda: 60,
@@ -325,6 +328,7 @@ const FUNCIONAL_45_BASE = {
     {
       id: 'metabolico',
       nombre: 'Metabólico',
+      nombreCorto: 'Metab.',
       tipo: 'principal',
       rondas: 3,
       descansoRonda: 40,
@@ -363,6 +367,7 @@ const FUNCIONAL_45_BASE = {
     {
       id: 'core',
       nombre: 'Core y control',
+      nombreCorto: 'Core',
       tipo: 'principal',
       rondas: 1,
       pistaVoz: 'Bloque de core y control. Calidad antes que velocidad.',
@@ -414,6 +419,7 @@ const FUNCIONAL_45_BASE = {
     {
       id: 'enfriamiento',
       nombre: 'Vuelta a la calma',
+      nombreCorto: 'Calma',
       tipo: 'enfriamiento',
       rondas: 1,
       pistaVoz: 'Vuelta a la calma. Baja el pulso y estira.',
@@ -473,4 +479,11 @@ export function formatearDuracion(segundos) {
   if (minutos === 0) return `${resto}s`;
   if (resto === 0) return `${minutos} min`;
   return `${minutos} min ${resto}s`;
+}
+
+export function formatearReloj(segundos) {
+  const total = Math.max(0, Math.round(segundos));
+  const minutos = Math.floor(total / 60);
+  const resto = total % 60;
+  return `${minutos}:${String(resto).padStart(2, '0')}`;
 }

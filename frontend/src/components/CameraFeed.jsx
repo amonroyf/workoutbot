@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useMediaPipe } from '../hooks/useMediaPipe';
+import { useWorkoutStore } from '../store/workoutStore';
 import { Esqueleto } from './Esqueleto';
 import Icono from './Icono';
 
@@ -19,10 +20,15 @@ function mensajeDeError(err) {
 export default function CameraFeed() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const [errorCamara, setErrorCamara] = useState(null);
-  const [activa, setActiva] = useState(false);
-  const [reintento, setReintento] = useState(0);
   const { isLoaded } = useMediaPipe(videoRef, canvasRef);
+  const faseActual = useWorkoutStore((s) => s.faseActual);
+  const errorCamara = useWorkoutStore((s) => s.errorCamara);
+  const reintento = useWorkoutStore((s) => s.reintentoCamara);
+  const setErrorCamara = useWorkoutStore((s) => s.setErrorCamara);
+  const setReintento = useWorkoutStore((s) => s.setReintentoCamara);
+  const activa = useWorkoutStore((s) => s.camaraActiva);
+  const setActiva = useWorkoutStore((s) => s.setCamaraActiva);
+  const enClase = faseActual === 'TRABAJO' || faseActual === 'DESCANSO';
 
   useEffect(() => {
     let stream = null;
@@ -102,24 +108,24 @@ export default function CameraFeed() {
         muted
       />
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
-      {!activa && !errorCamara && (
-        <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-chip border border-linea bg-tinta-950/85 px-4 py-2 text-sm text-tinta-200 backdrop-blur">
+      {!activa && !errorCamara && enClase && (
+        <div className="absolute left-1/2 top-[calc(1rem+env(safe-area-inset-top))] z-20 flex -translate-x-1/2 items-center gap-2 rounded-chip border border-linea bg-tinta-950/85 px-4 py-2 text-sm text-tinta-200 backdrop-blur">
           <Icono nombre="camara" tamano={16} className="text-marca-400" />
           Activando cámara
           <Esqueleto className="h-2 w-12" redondeado="rounded-chip" />
         </div>
       )}
-      {errorCamara && (
-        <div className="absolute top-4 left-1/2 z-20 flex max-w-[90vw] -translate-x-1/2 flex-col items-center gap-2 rounded-panel border border-error-500/40 bg-tinta-950/95 px-4 py-3 text-center text-tinta-100">
-          <p className="flex items-start gap-2 text-sm">
-            <Icono nombre="alerta" tamano={16} className="mt-0.5 shrink-0 text-error-300" />
-            {errorCamara}
-          </p>
+      {errorCamara && enClase && (
+        <div
+          className="absolute bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-3 z-20 flex max-w-[calc(100%-7.5rem)] items-center gap-2 rounded-panel border border-error-500/40 bg-tinta-950/95 px-3 py-2 text-left text-xs text-tinta-100"
+        >
+          <Icono nombre="alerta" tamano={16} className="shrink-0 text-error-300" />
+          <span className="line-clamp-2">{errorCamara}</span>
           <button
-            onClick={() => setReintento((valor) => valor + 1)}
-            className="flex min-h-11 items-center gap-2 rounded-boton bg-marca-500 px-4 text-sm font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+            onClick={() => setReintento(reintento + 1)}
+            className="flex min-h-9 shrink-0 items-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
           >
-            <Icono nombre="reproducir" tamano={16} />
+            <Icono nombre="reproducir" tamano={14} />
             Reintentar
           </button>
         </div>

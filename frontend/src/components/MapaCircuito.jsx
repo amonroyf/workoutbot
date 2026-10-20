@@ -24,8 +24,8 @@ export default function MapaCircuito() {
           <Fragment key={seccion.id}>
             {i > 0 && (
               <div
-                className={`mt-4 h-0.5 flex-1 rounded-full ${
-                  secciones[i - 1].estado === 'completado' ? 'bg-marca-400' : 'bg-tinta-700/60'
+                className={`mt-4 h-0.5 w-4 flex-none rounded-full ${
+                  secciones[i - 1].estado === 'completado' ? 'bg-marca-400' : 'bg-tinta-700'
                 }`}
               />
             )}
@@ -43,7 +43,7 @@ export default function MapaCircuito() {
                   seccion.estado === 'pendiente' ? 'text-tinta-500' : 'text-tinta-200'
                 }`}
               >
-                {seccion.nombre}
+                {seccion.nombreCorto}
               </span>
               {seccion.estado === 'actual' && seccion.totalRondas > 1 && (
                 <span className="text-[9px] font-semibold text-marca-300">

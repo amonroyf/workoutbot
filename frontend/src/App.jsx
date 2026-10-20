@@ -30,6 +30,10 @@ export default function App() {
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
   const claseActual = useWorkoutStore((state) => state.claseActual);
   const claseSeleccionadaId = useWorkoutStore((state) => state.claseSeleccionadaId);
+  const errorCamara = useWorkoutStore((state) => state.errorCamara);
+  const camaraActiva = useWorkoutStore((state) => state.camaraActiva);
+  const reintentoCamara = useWorkoutStore((state) => state.reintentoCamara);
+  const setReintentoCamara = useWorkoutStore((state) => state.setReintentoCamara);
   const resumenClase = resumenSecciones(claseActual);
   const seleccionarClase = useWorkoutStore((state) => state.seleccionarClase);
   const enviadoRef = useRef(false);
@@ -141,7 +145,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="w-full h-screen bg-fondo flex items-center justify-center text-tinta-100 text-2xl">
+      <div className="flex h-dvh w-full items-center justify-center bg-fondo text-2xl text-tinta-100">
         Cargando...
       </div>
     );
@@ -149,18 +153,41 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="relative w-full h-screen bg-fondo overflow-hidden">
+      <div className="relative h-dvh w-full overflow-hidden bg-fondo">
         <LoginScreen />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-screen bg-fondo overflow-hidden">
+    <div className="relative h-dvh w-full overflow-hidden bg-fondo">
       <CameraFeed />
       {faseActual === 'CALIBRACION' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-tinta-100 z-10 px-6 text-center">
+        <>
+          <div className="pointer-events-none absolute inset-0 z-[5] bg-gradient-to-b from-fondo/80 via-fondo/50 to-fondo/85" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center overflow-y-auto overscroll-contain px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center text-tinta-100">
           <p className="text-xl mb-1 text-tinta-300">Hola, {user.displayName}</p>
+          {errorCamara && (
+            <div className="mt-2 flex w-full max-w-md items-start gap-2 rounded-panel border border-error-500/40 bg-tinta-900/90 p-3 text-left">
+              <Icono nombre="alerta" tamano={16} className="mt-0.5 shrink-0 text-error-300" />
+              <p className="flex-1 text-xs text-tinta-200">{errorCamara}</p>
+              <button
+                type="button"
+                onClick={() => setReintentoCamara(reintentoCamara + 1)}
+                className="flex min-h-9 shrink-0 items-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+              >
+                <Icono nombre="reproducir" tamano={14} />
+                Reintentar
+              </button>
+            </div>
+          )}
+          {!camaraActiva && !errorCamara && (
+            <div className="mt-2 flex w-full max-w-md items-center gap-2 rounded-panel border border-linea bg-tinta-900/80 p-3 text-left text-xs text-tinta-300">
+              <Icono nombre="camara" tamano={16} className="text-marca-400" />
+              Activando cámara
+              <Esqueleto className="h-2 w-12" redondeado="rounded-chip" />
+            </div>
+          )}
           {cargandoResumen && !resumen && (
             <div className="mt-2 flex items-center gap-2">
               <Esqueleto className="h-7 w-24" redondeado="rounded-chip" />
@@ -322,7 +349,8 @@ export default function App() {
             <Icono nombre="reproducir" tamano={22} />
             Empezar clase
           </button>
-        </div>
+          </div>
+        </>
       )}
       <WorkoutUI />
       <SummaryScreen resumen={resumenActual} cargando={cargandoResumen} />

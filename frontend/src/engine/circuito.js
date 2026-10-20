@@ -126,6 +126,7 @@ export function estacionesSeccion(estado, clase = CLASE_POR_DEFECTO) {
     return {
       id: seccion.id,
       nombre: seccion.nombre,
+      nombreCorto: seccion.nombreCorto || seccion.nombre,
       estado: estadoSeccion,
       ronda: i === seccionActual ? referencia?.ronda ?? 1 : null,
       totalRondas: seccion.rondas || 1,

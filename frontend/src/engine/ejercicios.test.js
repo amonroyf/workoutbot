@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   EJERCICIOS_CATALOGO,
   MODIFICACIONES,
+  consignaEjercicio,
   modificacionesEjercicio,
 } from './ejercicios';
 
@@ -25,6 +26,22 @@ describe('modificacionesEjercicio', () => {
     expect(modificacionesEjercicio('NO_EXISTE')).toEqual({
       facil: 'Reduce el rango o el ritmo',
       fuerte: 'Aumenta el rango o el ritmo',
+    });
+  });
+});
+
+describe('consignaEjercicio', () => {
+  it('usa la consigna propia de cada ejercicio de tiempo', () => {
+    expect(consignaEjercicio('MARCHA').consigna).toBe('Muévete');
+    expect(consignaEjercicio('PLANCHA').consigna).toBe('Sostén');
+    expect(consignaEjercicio('ESTIRAMIENTO_GENERAL').consigna).toBe('Estira');
+    expect(consignaEjercicio('MARCHA').consignaAyuda.length).toBeGreaterThan(0);
+  });
+
+  it('cae en valores por defecto si el ejercicio no existe', () => {
+    expect(consignaEjercicio('NO_EXISTE')).toEqual({
+      consigna: 'Sostén',
+      consignaAyuda: 'Mantén la posición',
     });
   });
 });

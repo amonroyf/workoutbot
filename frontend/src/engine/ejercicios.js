@@ -56,6 +56,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     vista: 'perfil',
     detector: 'plancha',
     modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Cuerpo en línea recta',
     demo: 'stick',
     pistas: ['Cuerpo en línea recta', 'Aprieta el abdomen', 'No dejes caer la cadera'],
   }),
@@ -152,6 +154,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     vista: 'perfil',
     detector: 'plancha_lateral',
     modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Cadera arriba, cuerpo alineado',
     demo: 'stick',
     pistas: ['Codo debajo del hombro', 'Cadera bien arriba', 'Cuerpo en línea recta'],
   }),
@@ -164,6 +168,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     vista: 'perfil',
     detector: 'superman',
     modo: 'tiempo',
+    consigna: 'Levanta',
+    consignaAyuda: 'Brazos y piernas, sin forzar el cuello',
     demo: 'stick',
     pistas: ['Acuéstate boca abajo', 'Estira brazos y piernas', 'Levanta sin forzar el cuello'],
   }),
@@ -175,6 +181,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'ninguno',
     vista: 'perfil',
     modo: 'tiempo',
+    consigna: 'Controla',
+    consignaAyuda: 'Espalda pegada al piso',
     demo: 'stick',
     pistas: ['Espalda pegada al piso', 'Brazos hacia el techo', 'Estira brazo y pierna opuestos'],
   }),
@@ -186,6 +194,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'ninguno',
     vista: 'perfil',
     modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Lumbar pegada, respira',
     demo: 'stick',
     pistas: ['Baja la espalda al piso', 'Brazos y piernas estirados', 'Sostén sin perder la lumbar'],
   }),
@@ -197,6 +207,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'pared',
     vista: 'perfil',
     modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Espalda contra la pared',
     demo: 'stick',
     pistas: ['Espalda contra la pared', 'Muslos paralelos al piso', 'Rodillas sobre los tobillos'],
   }),
@@ -208,6 +220,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'ninguno',
     vista: 'frontal',
     modo: 'tiempo',
+    consigna: 'Muévete',
+    consignaAyuda: 'Camina en el lugar, paso constante',
     demo: 'stick',
     pistas: ['Camina en el lugar', 'Brazos relajados', 'Sube la temperatura poco a poco'],
   }),
@@ -219,6 +233,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'ninguno',
     vista: 'frontal',
     modo: 'tiempo',
+    consigna: 'Respira',
+    consignaAyuda: 'Baja el ritmo y recupera',
     demo: 'stick',
     pistas: ['Baja el ritmo', 'Respira profundo', 'Deja que el pulso baje'],
   }),
@@ -230,6 +246,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'ninguno',
     vista: 'frontal',
     modo: 'tiempo',
+    consigna: 'Estira',
+    consignaAyuda: 'Sin rebotar, sostén cada posición',
     demo: 'stick',
     pistas: ['Estira sin rebotar', 'Respira lento', 'Sostén cada posición'],
   }),
@@ -241,6 +259,8 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     equipamiento: 'ninguno',
     vista: 'perfil',
     modo: 'tiempo',
+    consigna: 'Estira',
+    consignaAyuda: 'Brazo y pierna opuestos',
     demo: 'stick',
     pistas: ['Manos y rodillas en el piso', 'Estira brazo y pierna opuestos', 'No gires la cadera'],
   }),
@@ -284,4 +304,13 @@ export function nombreEjercicio(id) {
 
 export function esDeTiempo(id) {
   return obtenerEjercicio(id)?.modo === 'tiempo';
+}
+
+export function consignaEjercicio(id) {
+  const ejercicio = obtenerEjercicio(id);
+  if (!ejercicio) return { consigna: 'Sostén', consignaAyuda: 'Mantén la posición' };
+  return {
+    consigna: ejercicio.consigna || 'Sostén',
+    consignaAyuda: ejercicio.consignaAyuda || 'Mantén la posición',
+  };
 }

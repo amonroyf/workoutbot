@@ -43,6 +43,15 @@ export const useWorkoutStore = create((set, get) => ({
   demoEjercicio: null,
   pausadoAntesDemo: false,
   pausadoPorAntesDemo: null,
+  errorCamara: null,
+  reintentoCamara: 0,
+  camaraActiva: false,
+
+  setCamaraActiva: (camaraActiva) => set({ camaraActiva }),
+
+  setErrorCamara: (errorCamara) => set({ errorCamara }),
+
+  setReintentoCamara: (reintentoCamara) => set({ reintentoCamara }),
 
   seleccionarClase: (claseId) => {
     if (get().faseActual !== 'CALIBRACION') return;
