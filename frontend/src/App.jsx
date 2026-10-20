@@ -6,11 +6,15 @@ import { calcularTotal } from './engine/score';
 import { CLASES, duracionClase, formatearDuracion, resumenSecciones } from './engine/clases';
 import { nombreEjercicio } from './engine/ejercicios';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
+import { esPrimeraVez, guiaVista, marcarGuiaVista } from './engine/primeraVez';
 import CameraFeed from './components/CameraFeed';
 import WorkoutUI from './components/WorkoutUI';
 import SummaryScreen from './components/SummaryScreen';
 import LoginScreen from './components/LoginScreen';
 import PlanSemanal from './components/PlanSemanal';
+import GuiaPrimeraVez from './components/GuiaPrimeraVez';
+import { Esqueleto, EsqueletoTarjeta } from './components/Esqueleto';
+import Icono from './components/Icono';
 import { useEntrenadorVoz } from './hooks/useEntrenadorVoz';
 
 export default function App() {
@@ -19,6 +23,8 @@ export default function App() {
   const [resumen, setResumen] = useState(null);
   const [resumenActual, setResumenActual] = useState(null);
   const [verDetalle, setVerDetalle] = useState(false);
+  const [cargandoResumen, setCargandoResumen] = useState(false);
+  const [guiaVisible, setGuiaVisible] = useState(() => !guiaVista());
   const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
@@ -33,8 +39,9 @@ export default function App() {
   const cargarResumen = useCallback(async () => {
     const actual = auth.currentUser;
     if (!actual) return;
+    setCargandoResumen(true);
     try {
-      const token = await actual.getIdToken();
+      const token = await actual.getToken();
       const res = await fetch('/api/v1/stats', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -43,6 +50,8 @@ export default function App() {
       if (data.resumen) setResumen(data.resumen);
     } catch (err) {
       console.error('No se pudo cargar el progreso:', err);
+    } finally {
+      setCargandoResumen(false);
     }
   }, []);
 
@@ -90,6 +99,7 @@ export default function App() {
     if (!user || enviadoRef.current) return;
 
     enviadoRef.current = true;
+    setCargandoResumen(true);
     const estado = useWorkoutStore.getState();
     const total = calcularTotal(estado.totales);
 
@@ -125,12 +135,13 @@ export default function App() {
       })
       .catch((err) => {
         console.error('No se pudo guardar el entrenamiento:', err);
-      });
+      })
+      .finally(() => setCargandoResumen(false));
   }, [faseActual, user]);
 
   if (loading) {
     return (
-      <div className="w-full h-screen bg-black flex items-center justify-center text-white text-2xl">
+      <div className="w-full h-screen bg-fondo flex items-center justify-center text-tinta-100 text-2xl">
         Cargando...
       </div>
     );
@@ -138,25 +149,33 @@ export default function App() {
 
   if (!user) {
     return (
-      <div className="relative w-full h-screen bg-black overflow-hidden">
+      <div className="relative w-full h-screen bg-fondo overflow-hidden">
         <LoginScreen />
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-screen bg-black overflow-hidden">
+    <div className="relative w-full h-screen bg-fondo overflow-hidden">
       <CameraFeed />
       {faseActual === 'CALIBRACION' && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10 px-6 text-center">
-          <p className="text-xl mb-1 text-gray-300">Hola, {user.displayName}</p>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-tinta-100 z-10 px-6 text-center">
+          <p className="text-xl mb-1 text-tinta-300">Hola, {user.displayName}</p>
+          {cargandoResumen && !resumen && (
+            <div className="mt-2 flex items-center gap-2">
+              <Esqueleto className="h-7 w-24" redondeado="rounded-chip" />
+              <Esqueleto className="h-7 w-24" redondeado="rounded-chip" />
+            </div>
+          )}
           {resumen && (
             <div className="mt-1 flex flex-col items-center">
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wide">
-                <span className="rounded-full bg-orange-500/20 px-3 py-1 text-orange-300">
+              <div className="flex items-center gap-2 text-xs font-bold">
+                <span className="flex items-center gap-1 rounded-chip bg-racha-500/20 px-3 py-1 text-racha-300">
+                  <Icono nombre="fuego" tamano={14} />
                   Racha {resumen.racha} {resumen.racha === 1 ? 'día' : 'días'}
                 </span>
-                <span className="rounded-full bg-green-500/20 px-3 py-1 text-green-300">
+                <span className="flex items-center gap-1 rounded-chip bg-marca-500/20 px-3 py-1 text-marca-300">
+                  <Icono nombre="check" tamano={14} />
                   Semana {resumen.dias_semana}/{resumen.meta_semanal}
                 </span>
               </div>
@@ -165,12 +184,12 @@ export default function App() {
                   <div key={dia.fecha} className="flex flex-col items-center gap-1" title={dia.fecha}>
                     <span
                       className={`h-2.5 w-2.5 rounded-full ${
-                        dia.hecha ? 'bg-green-400' : 'bg-white/20'
-                      } ${dia.hoy ? 'ring-2 ring-white/70' : ''}`}
+                        dia.hecha ? 'bg-marca-400' : 'bg-tinta-700'
+                      } ${dia.hoy ? 'ring-2 ring-tinta-100' : ''}`}
                     />
                     <span
-                      className={`text-[9px] font-bold ${
-                        dia.hoy ? 'text-white' : 'text-white/40'
+                      className={`text-[10px] font-bold ${
+                        dia.hoy ? 'text-tinta-100' : 'text-tinta-500'
                       }`}
                     >
                       {dia.etiqueta}
@@ -182,7 +201,16 @@ export default function App() {
           )}
           <PlanSemanal plan={plan} resumen={resumen} onGuardar={guardarPlanSemanal} />
 
-          <p className="mt-3 text-lg font-semibold">Elige tu clase</p>
+          {guiaVisible && esPrimeraVez(resumen) && (
+            <GuiaPrimeraVez
+              onCerrar={() => {
+                marcarGuiaVista();
+                setGuiaVisible(false);
+              }}
+            />
+          )}
+
+          <p className="mt-3 text-lg font-semibold text-tinta-100">Elige tu clase</p>
 
           <div className="mt-3 flex w-full max-w-md snap-x gap-2 overflow-x-auto pb-1">
             {CLASES.map((clase) => {
@@ -191,19 +219,20 @@ export default function App() {
                 <button
                   key={clase.id}
                   onClick={() => seleccionarClase(clase.id)}
-                  className={`min-w-[108px] shrink-0 snap-start rounded-lg border-2 p-2 text-left transition ${
+                  aria-pressed={activa}
+                  className={`min-w-[112px] shrink-0 snap-start rounded-boton border-2 p-2 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100 ${
                     activa
-                      ? 'border-green-400 bg-green-500/20'
-                      : 'border-white/20 bg-white/5 hover:bg-white/10'
+                      ? 'border-marca-400 bg-marca-500/20'
+                      : 'border-linea bg-tinta-900/60 hover:bg-tinta-800/60'
                   }`}
                 >
-                  <span className="block text-sm font-black leading-tight">
+                  <span className="block text-sm font-black leading-tight text-tinta-100">
                     {clase.nombre}
                   </span>
-                  <span className="mt-1 block text-[11px] text-white/70">
+                  <span className="mt-1 block text-[11px] text-tinta-300">
                     {formatearDuracion(duracionClase(clase))}
                   </span>
-                  <span className="block text-[11px] text-white/50">
+                  <span className="block text-[11px] text-tinta-400">
                     {clase.formato === 'completa' ? 'Completa' : 'Exprés'} · {clase.nivel}
                     {clase.equipamiento
                       ? ` · ${clase.equipamiento === 'ninguno' ? 'Sin equipo' : clase.equipamiento}`
@@ -214,11 +243,11 @@ export default function App() {
             })}
           </div>
 
-          <div className="mt-3 w-full max-w-md rounded-xl border border-white/10 bg-white/5 p-3 text-left">
-            <p className="text-xs font-bold text-green-400">Antes de empezar</p>
-            <p className="mt-1 text-base font-black text-white">{claseActual.nombre}</p>
-            <p className="text-sm text-white/70">{claseActual.descripcion}</p>
-            <p className="mt-1 text-xs text-white/60">
+          <div className="mt-3 w-full max-w-md rounded-ficha border border-linea bg-panel p-3 text-left">
+            <p className="text-xs font-bold text-marca-400">Antes de empezar</p>
+            <p className="mt-1 text-base font-black text-tinta-100">{claseActual.nombre}</p>
+            <p className="text-sm text-tinta-300">{claseActual.descripcion}</p>
+            <p className="mt-1 text-xs text-tinta-400">
               {claseActual.formato === 'completa' ? 'Clase completa' : 'Exprés'} ·{' '}
               {claseActual.nivel} · {formatearDuracion(duracionClase(claseActual))} ·{' '}
               {claseActual.equipamiento
@@ -228,7 +257,7 @@ export default function App() {
                 : 'No requiere equipo'}
             </p>
             {resumenClase && (
-              <p className="mt-1 text-xs text-white/60">
+              <p className="mt-1 text-xs text-tinta-400">
                 Movimientos clave:{' '}
                 {[...new Set(resumenClase.flatMap((seccion) => seccion.ejercicios))]
                   .slice(0, 6)
@@ -236,40 +265,41 @@ export default function App() {
                   .join(' · ')}
               </p>
             )}
-            <p className="mt-1 text-xs text-white/60">
+            <p className="mt-1 text-xs text-tinta-400">
               Si te cuesta: apóyate en una silla o una pared, o haz menos repeticiones.
             </p>
             <button
               type="button"
               onClick={() => setVerDetalle(!verDetalle)}
               aria-expanded={verDetalle}
-              className="mt-1 min-h-11 text-sm font-bold text-green-300 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="mt-1 flex min-h-11 items-center gap-1 text-sm font-bold text-marca-300 underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
             >
+              <Icono nombre={verDetalle ? 'chevronAbajo' : 'chevronDerecha'} tamano={16} />
               {verDetalle ? 'Ocultar el detalle de la clase' : 'Ver el detalle de la clase'}
             </button>
 
             {verDetalle && (
-              <div className="mt-1 space-y-2 border-t border-white/10 pt-2">
+              <div className="mt-1 space-y-2 border-t border-linea pt-2">
                 {resumenClase ? (
                   <>
                     {resumenClase.map((seccion, i) => (
                       <div key={seccion.id}>
-                        <p className="text-sm font-bold text-white">
+                        <p className="text-sm font-bold text-tinta-100">
                           {i + 1}. {seccion.nombre} · {formatearDuracion(seccion.duracion)}
                           {seccion.rondas > 1 ? ` · ${seccion.rondas} rondas` : ''}
                         </p>
-                        <p className="text-xs text-white/60">
+                        <p className="text-xs text-tinta-400">
                           {seccion.ejercicios.map(nombreEjercicio).join(' · ')}
                         </p>
                       </div>
                     ))}
-                    <p className="text-xs text-white/50">
+                    <p className="text-xs text-tinta-500">
                       {claseActual.bloques.length} ejercicios en {claseActual.secciones.length}{' '}
                       secciones
                     </p>
                   </>
                 ) : (
-                  <p className="text-xs text-white/60">
+                  <p className="text-xs text-tinta-400">
                     {claseActual.bloques.length} ejercicios:{' '}
                     {claseActual.bloques
                       .map((bloque) => nombreEjercicio(bloque.ejercicio))
@@ -280,21 +310,22 @@ export default function App() {
             )}
           </div>
 
-          <p className="mt-2 max-w-md text-xs text-white/50">
+          <p className="mt-2 max-w-md text-xs text-tinta-500">
             El entrenador te guía por voz y te corrige la postura. Toca la demo para verla en
             grande.
           </p>
 
           <button
             onClick={() => iniciarRutina(claseSeleccionadaId)}
-            className="mt-4 min-h-14 w-full max-w-md rounded-2xl bg-green-500 px-8 text-2xl font-black text-black transition hover:bg-green-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            className="mt-4 flex min-h-14 w-full max-w-md items-center justify-center gap-2 rounded-ficha bg-marca-500 px-8 text-2xl font-black text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
           >
+            <Icono nombre="reproducir" tamano={22} />
             Empezar clase
           </button>
         </div>
       )}
       <WorkoutUI />
-      <SummaryScreen resumen={resumenActual} />
+      <SummaryScreen resumen={resumenActual} cargando={cargandoResumen} />
     </div>
   );
 }

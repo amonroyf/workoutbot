@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Icono from './Icono';
 import {
   DIAS,
   OBJETIVOS,
@@ -19,11 +20,11 @@ function ChipDia({ dia, activo, hecho, hoy, onClick }) {
       title={nombreDia(dia.id)}
       className={`flex h-8 w-8 items-center justify-center rounded-full border text-[11px] font-black transition ${
         hecho
-          ? 'border-green-400 bg-green-500/20 text-green-200'
+          ? 'border-marca-400 bg-marca-500/20 text-marca-300'
           : activo
-            ? 'border-orange-400/60 bg-orange-500/20 text-orange-200'
-            : 'border-white/10 bg-white/5 text-white/30'
-      } ${hoy ? 'ring-2 ring-white/70' : ''}`}
+            ? 'border-racha-400/60 bg-racha-500/20 text-racha-300'
+            : 'border-linea bg-tinta-900/60 text-tinta-600'
+      } ${hoy ? 'ring-2 ring-tinta-100/70' : ''}`}
     >
       {dia.corto}
     </button>
@@ -61,16 +62,17 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
 
   return (
     <>
-      <div className="mt-3 w-full max-w-md rounded-xl border border-white/10 bg-white/5 p-3 text-left">
+      <div className="mt-3 w-full max-w-md rounded-panel border border-linea bg-tinta-900/60 p-3 text-left">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-orange-300">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-racha-300">
+              <Icono nombre="calendario" tamano={14} />
               Tu plan semanal
             </p>
-            <p className="mt-0.5 truncate text-sm font-black text-white">
+            <p className="mt-0.5 truncate text-sm font-black text-tinta-100">
               {hoyClase ? `Hoy toca ${hoyClase.nombre}` : 'Hoy descansas'}
             </p>
-            <p className="mt-0.5 truncate text-[10px] text-white/55">
+            <p className="mt-0.5 truncate text-[10px] text-tinta-400">
               {proximo
                 ? `El ${nombreDia(proximo.dia)} toca ${proximo.clase.nombre}`
                 : `${objetivo.nombre} · ${formatearDias(plan.dias)}`}
@@ -79,7 +81,7 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
           <button
             type="button"
             onClick={abrirEditor}
-            className="shrink-0 rounded-md border border-white/15 px-2.5 py-1 text-[10px] font-bold text-white/70 transition hover:bg-white/10"
+            className="shrink-0 rounded-md border border-linea px-2.5 py-1 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800/60"
           >
             Editar
           </button>
@@ -101,11 +103,11 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
 
       {editando && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-3 sm:items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-tinta-950/85 p-3 sm:items-center"
           onClick={() => setEditando(false)}
         >
           <div
-            className="w-full max-w-md rounded-2xl border border-white/10 bg-zinc-950 p-4 text-left shadow-2xl"
+            className="w-full max-w-md rounded-ficha border border-linea bg-tinta-950 p-4 text-left shadow-flotante"
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -113,19 +115,20 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-lg font-black text-white">Tu plan semanal</p>
-                <p className="text-xs text-white/55">Elige tus días y el enfoque.</p>
+                <p className="text-lg font-black text-tinta-100">Tu plan semanal</p>
+                <p className="text-xs text-tinta-400">Elige tus días y el enfoque.</p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditando(false)}
-                className="rounded-md border border-white/15 px-2.5 py-1 text-[11px] font-bold text-white/70"
+                aria-label="Cerrar"
+                className="flex h-10 w-10 items-center justify-center rounded-boton border border-linea text-tinta-300 transition hover:bg-tinta-800/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
               >
-                Cerrar
+                <Icono nombre="cerrar" tamano={16} />
               </button>
             </div>
 
-            <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-white/45">
+            <p className="mt-4 text-xs font-bold text-tinta-500">
               Días de entrenamiento
             </p>
             <div className="mt-1.5 flex justify-between gap-1">
@@ -136,10 +139,10 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
                     key={dia.id}
                     type="button"
                     onClick={() => alternarDia(dia.id)}
-                    className={`flex h-10 flex-1 flex-col items-center justify-center rounded-lg border text-[11px] font-black transition ${
+                    className={`flex h-10 flex-1 flex-col items-center justify-center rounded-boton border text-[11px] font-black transition ${
                       activo
-                        ? 'border-orange-400 bg-orange-500/20 text-orange-200'
-                        : 'border-white/10 bg-white/5 text-white/40'
+                        ? 'border-racha-400 bg-racha-500/20 text-racha-300'
+                        : 'border-linea bg-tinta-900/60 text-tinta-500'
                     }`}
                   >
                     <span>{dia.corto}</span>
@@ -149,7 +152,7 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
               })}
             </div>
 
-            <p className="mt-4 text-[10px] font-bold uppercase tracking-wide text-white/45">
+            <p className="mt-4 text-xs font-bold text-tinta-500">
               Enfoque
             </p>
             <div className="mt-1.5 grid grid-cols-2 gap-2">
@@ -160,28 +163,28 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
                     key={item.id}
                     type="button"
                     onClick={() => setBorrador((actual) => ({ ...actual, objetivo: item.id }))}
-                    className={`rounded-lg border p-2 text-left transition ${
+                    className={`rounded-boton border p-2 text-left transition ${
                       activo
-                        ? 'border-green-400 bg-green-500/15'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10'
+                        ? 'border-marca-400 bg-marca-500/15'
+                        : 'border-linea bg-tinta-900/60 hover:bg-tinta-800/60'
                     }`}
                   >
-                    <span className="block text-xs font-black text-white">{item.nombre}</span>
-                    <span className="block text-[10px] text-white/50">{item.descripcion}</span>
+                    <span className="block text-xs font-black text-tinta-100">{item.nombre}</span>
+                    <span className="block text-[10px] text-tinta-400">{item.descripcion}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="mt-4 rounded-lg border border-white/10 bg-white/5 p-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-white/40">
+            <div className="mt-4 rounded-boton border border-linea bg-tinta-900/60 p-2.5">
+              <p className="text-xs font-bold text-tinta-500">
                 Queda así
               </p>
               <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1">
                 {borrador.dias.map((dia) => (
                   <div key={dia} className="flex items-center justify-between gap-2 text-[11px]">
-                    <span className="capitalize text-white/50">{nombreDia(dia)}</span>
-                    <span className="truncate font-bold text-white/85">
+                    <span className="capitalize text-tinta-400">{nombreDia(dia)}</span>
+                    <span className="truncate font-bold text-tinta-200">
                       {claseParaDia(borrador, dia)?.nombre}
                     </span>
                   </div>
@@ -193,15 +196,16 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
               <button
                 type="button"
                 onClick={() => setEditando(false)}
-                className="flex-1 rounded-lg border border-white/15 py-2.5 text-sm font-bold text-white/60"
+                className="min-h-12 flex-1 rounded-boton border border-linea text-sm font-bold text-tinta-300 transition hover:bg-tinta-800/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
               >
                 Cancelar
               </button>
               <button
                 type="button"
                 onClick={guardar}
-                className="flex-1 rounded-lg bg-green-500 py-2.5 text-sm font-black text-black transition hover:bg-green-400"
+                className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-boton bg-marca-500 text-sm font-black text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
               >
+                <Icono nombre="check" tamano={16} />
                 Guardar plan
               </button>
             </div>

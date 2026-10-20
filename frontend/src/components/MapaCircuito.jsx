@@ -4,9 +4,9 @@ import { estacionesCircuito, estacionesSeccion } from '../engine/circuito';
 import { nombreEjercicio } from '../engine/ejercicios';
 
 const ESTILOS = {
-  completado: 'border-green-400 bg-green-500 text-black',
-  actual: 'border-green-400 bg-green-500/25 text-white shadow-[0_0_18px_rgba(74,222,128,0.55)]',
-  pendiente: 'border-white/30 bg-white/10 text-white/50',
+  completado: 'border-marca-400 bg-marca-500 text-black',
+  actual: 'border-marca-400 bg-marca-500/25 text-tinta-100 shadow-[0_0_18px_rgba(74,222,128,0.35)]',
+  pendiente: 'border-linea bg-tinta-800/60 text-tinta-400',
 };
 
 export default function MapaCircuito() {
@@ -25,7 +25,7 @@ export default function MapaCircuito() {
             {i > 0 && (
               <div
                 className={`mt-4 h-0.5 flex-1 rounded-full ${
-                  secciones[i - 1].estado === 'completado' ? 'bg-green-400' : 'bg-white/20'
+                  secciones[i - 1].estado === 'completado' ? 'bg-marca-400' : 'bg-tinta-700/60'
                 }`}
               />
             )}
@@ -40,13 +40,13 @@ export default function MapaCircuito() {
               <span
                 title={seccion.nombre}
                 className={`w-full truncate text-center text-[10px] font-semibold ${
-                  seccion.estado === 'pendiente' ? 'text-white/40' : 'text-white/90'
+                  seccion.estado === 'pendiente' ? 'text-tinta-500' : 'text-tinta-200'
                 }`}
               >
                 {seccion.nombre}
               </span>
               {seccion.estado === 'actual' && seccion.totalRondas > 1 && (
-                <span className="text-[9px] font-semibold text-green-300">
+                <span className="text-[9px] font-semibold text-marca-300">
                   Ronda {seccion.ronda} de {seccion.totalRondas}
                 </span>
               )}
@@ -66,7 +66,7 @@ export default function MapaCircuito() {
           {i > 0 && (
             <div
               className={`mt-4 h-0.5 flex-1 rounded-full ${
-                estaciones[i - 1].estado === 'completado' ? 'bg-green-400' : 'bg-white/20'
+                estaciones[i - 1].estado === 'completado' ? 'bg-marca-400' : 'bg-tinta-700/60'
               }`}
             />
           )}
@@ -81,7 +81,7 @@ export default function MapaCircuito() {
             <span
               title={nombreEjercicio(estacion.ejercicio)}
               className={`w-full truncate text-center text-[10px] font-semibold ${
-                estacion.estado === 'pendiente' ? 'text-white/40' : 'text-white/90'
+                estacion.estado === 'pendiente' ? 'text-tinta-500' : 'text-tinta-200'
               }`}
             >
               {nombreEjercicio(estacion.ejercicio)}

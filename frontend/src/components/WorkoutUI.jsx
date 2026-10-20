@@ -6,6 +6,7 @@ import { obtenerDemo } from '../engine/demos';
 import { esDeTiempo, nombreEjercicio, modificacionesEjercicio } from '../engine/ejercicios';
 import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
 import { useMusica } from '../hooks/useMusica';
+import Icono from './Icono';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
 
@@ -96,19 +97,19 @@ export default function WorkoutUI() {
   const esCompleta = Boolean(bloque?.seccionNombre);
   const colorScore =
     scoreForma >= UMBRAL_SCORE_PERFECTO
-      ? 'bg-green-400 text-black'
+      ? 'bg-marca-400 text-black'
       : scoreForma >= 65
-        ? 'bg-yellow-400 text-black'
-        : 'bg-red-400 text-white';
+        ? 'bg-aviso-400 text-black'
+        : 'bg-error-400 text-tinta-100';
 
   const abrirDemoActual = () => {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   };
 
   return (
-    <div className="absolute inset-0 z-10 text-white">
+    <div className="absolute inset-0 z-10 text-tinta-100">
       <div className="absolute top-0 left-0 right-0 p-4">
-        <div className="mb-1 flex items-baseline justify-between gap-3 text-xs font-semibold text-white/75">
+        <div className="mb-1 flex items-baseline justify-between gap-3 text-xs font-semibold text-tinta-200">
           <span>
             {faseActual === 'TRABAJO' ? 'Trabajo' : 'Descanso'} ·{' '}
             {esCompleta ? bloque.seccionNombre : `Ejercicio ${bloqueActual + 1} de ${totalBloques}`}
@@ -122,19 +123,19 @@ export default function WorkoutUI() {
           </span>
         </div>
         {avisoMusica && (
-          <p className="mt-1 text-xs font-semibold text-yellow-300">{avisoMusica}</p>
+          <p className="mt-1 text-xs font-semibold text-aviso-300">{avisoMusica}</p>
         )}
         {seccionesProgreso ? (
-          <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-white/20">
+          <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-tinta-700/60">
             {seccionesProgreso.map((seccion) => {
               const ancho = (seccion.duracion / duracionClase(claseActual)) * 100;
               const avance = seccion.duracion > 0 ? seccion.transcurrido / seccion.duracion : 0;
               const color =
                 seccion.estado === 'completado'
-                  ? 'bg-green-400'
+                  ? 'bg-marca-400'
                   : seccion.estado === 'actual'
-                    ? 'bg-green-300'
-                    : 'bg-white/10';
+                    ? 'bg-marca-300'
+                    : 'bg-tinta-800/60';
               return (
                 <div key={seccion.id} className="relative h-full" style={{ width: `${ancho}%` }}>
                   <div
@@ -146,9 +147,9 @@ export default function WorkoutUI() {
             })}
           </div>
         ) : (
-          <div className="h-3 w-full overflow-hidden rounded-full bg-white/20">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-tinta-700/60">
             <div
-              className="h-full rounded-full bg-green-400 transition-all duration-300"
+              className="h-full rounded-full bg-marca-400 transition-all duration-300"
               style={{ width: `${progreso * 100}%` }}
             />
           </div>
@@ -156,31 +157,35 @@ export default function WorkoutUI() {
         <MapaCircuito />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2 border-t border-white/10 bg-black/70 px-3 py-2 backdrop-blur-md">
+      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2 border-t border-linea bg-tinta-950/85 px-3 py-2 backdrop-blur-md">
         <button
           onClick={togglePausa}
-          className="min-h-11 flex-1 rounded-xl bg-green-500 px-4 text-base font-black text-black transition hover:bg-green-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-boton bg-marca-500 px-4 text-base font-black text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
+          <Icono nombre={pausado ? 'reproducir' : 'pausa'} tamano={18} />
           {pausado ? 'Seguir' : 'Pausa'}
         </button>
         <button
           onClick={() => setVozActiva(!vozActiva)}
           aria-pressed={vozActiva}
-          className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
+          <Icono nombre="voz" tamano={16} />
           Voz: {vozActiva ? 'sí' : 'no'}
         </button>
         <button
           onClick={() => setMusicaActiva(!musicaActiva)}
           aria-pressed={musicaActiva}
-          className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
+          <Icono nombre="musica" tamano={16} />
           Música: {musicaActiva ? 'sí' : 'no'}
         </button>
         <button
           onClick={abrirDemoActual}
-          className="min-h-11 rounded-xl border border-white/20 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
+          <Icono nombre="ayuda" tamano={16} />
           Cómo se hace
         </button>
       </div>
@@ -188,21 +193,21 @@ export default function WorkoutUI() {
       <div className="flex h-full flex-col items-center justify-center px-6 pb-28 text-center">
         <p className="mb-1 text-2xl font-bold">{nombreEjercicio(ejercicioActual)}</p>
         {esCompleta && (
-          <p className="mb-2 text-xs font-semibold text-white/60">
+          <p className="mb-2 text-xs font-semibold text-tinta-400">
             {bloque.seccionNombre}
             {bloque.totalRondas > 1 ? ` · Ronda ${bloque.ronda} de ${bloque.totalRondas}` : ''}
           </p>
         )}
         <h1
           className={`text-7xl font-black md:text-9xl ${
-            faseActual === 'DESCANSO' ? 'text-yellow-400' : 'text-white'
+            faseActual === 'DESCANSO' ? 'text-aviso-400' : 'text-tinta-100'
           }`}
         >
           {tiempoRestante}
         </h1>
 
         {siguiente && (
-          <p className="mt-2 text-sm text-white/70">
+          <p className="mt-2 text-sm text-tinta-300">
             {faseActual === 'TRABAJO' ? 'Siguiente' : 'Sigue'}: {nombreEjercicio(siguiente)}
           </p>
         )}
@@ -210,8 +215,8 @@ export default function WorkoutUI() {
         {faseActual === 'TRABAJO' ? (
           esTiempo ? (
             <div className="mt-3 flex flex-col items-center gap-2">
-              <p className="text-3xl font-black text-green-300">Sostén</p>
-              <p className="text-sm text-white/70">Mantén la posición</p>
+              <p className="text-3xl font-black text-marca-300">Sostén</p>
+              <p className="text-sm text-tinta-300">Mantén la posición</p>
               {scoreForma != null && (
                 <span className={`rounded-full px-4 py-1 text-sm font-black ${colorScore}`}>
                   Forma {scoreForma}%
@@ -229,14 +234,14 @@ export default function WorkoutUI() {
                     </span>
                   )}
                   {combo >= 3 && (
-                    <span className="rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
+                    <span className="rounded-full bg-racha-500 px-3 py-1 text-sm font-black">
                       Combo x{combo}
                     </span>
                   )}
                   {flashPerfecta > 0 && (
                     <span
                       key={flashPerfecta}
-                      className="perfecta-flash rounded-full bg-green-400 px-3 py-1 text-sm font-black text-black"
+                      className="perfecta-flash rounded-full bg-marca-400 px-3 py-1 text-sm font-black text-black"
                     >
                       ¡PERFECTA!
                     </span>
@@ -248,14 +253,14 @@ export default function WorkoutUI() {
           )
         ) : (
           <div className="mt-2 flex flex-col items-center">
-            <p className="text-2xl font-bold text-yellow-300">¡Descansa!</p>
+            <p className="text-2xl font-bold text-aviso-300">¡Descansa!</p>
           </div>
         )}
 
         {texto && (
           <p
-            className={`mt-4 max-w-xl rounded-lg px-4 py-2 text-lg font-semibold ${
-              esCorreccion ? 'bg-yellow-500/90 text-black' : 'bg-black/60 text-white'
+            className={`mt-4 max-w-xl rounded-boton px-4 py-2 text-lg font-semibold ${
+              esCorreccion ? 'bg-aviso-500/90 text-black' : 'bg-tinta-950/80 text-tinta-100'
             }`}
           >
             {texto}
@@ -267,25 +272,25 @@ export default function WorkoutUI() {
         type="button"
         onClick={abrirDemoActual}
         aria-label={`Ver demostración de ${nombreEjercicio(ejercicioDemo)}`}
-        className="absolute bottom-20 right-3 z-20 flex flex-col items-center rounded-2xl border border-white/15 bg-black/55 p-1.5 backdrop-blur-md transition hover:bg-black/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="absolute bottom-20 right-3 z-20 flex flex-col items-center rounded-ficha border border-linea bg-tinta-950/70 p-1.5 backdrop-blur-md transition hover:bg-tinta-950/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
       >
         <DemoEjercicio ejercicio={ejercicioDemo} esquina />
-        <span className="mt-1 text-[10px] font-bold text-white/70">
+        <span className="mt-1 text-[10px] font-bold text-tinta-300">
           {faseActual === 'DESCANSO' ? 'Después' : 'Ahora'}
         </span>
       </button>
 
       {pausado && !demoAbierta && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center">
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-tinta-950/85 px-6 text-center">
           <p className="text-6xl font-black">PAUSA</p>
-          <p className="text-xl text-white/80">
+          <p className="text-xl text-tinta-200">
             {pausadoPor === 'faltaPose'
               ? 'No te veo. Vuelve al cuadro de la cámara.'
               : 'Respira. Sigue cuando estés listo.'}
           </p>
           <button
             onClick={togglePausa}
-            className="rounded-lg bg-green-500 px-8 py-3 text-2xl font-bold hover:bg-green-600"
+            className="rounded-boton bg-marca-500 px-8 py-3 text-2xl font-bold hover:bg-marca-600"
           >
             Seguir
           </button>
@@ -293,28 +298,28 @@ export default function WorkoutUI() {
       )}
 
       {demoAbierta && (
-        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.3em] text-green-400">Así se hace</p>
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-tinta-950/95 px-6 text-center">
+          <p className="text-sm font-bold text-marca-400">Así se hace</p>
           <p className="text-3xl font-black">{demoVisible.nombre}</p>
           <DemoEjercicio ejercicio={ejercicioDemo} />
           <ul className="space-y-1">
             {demoVisible.pistas.map((pista) => (
-              <li key={pista} className="text-base text-white/80">
+              <li key={pista} className="text-base text-tinta-200">
                 {pista}
               </li>
             ))}
           </ul>
           <div className="mt-2 grid gap-1 text-left text-xs">
-            <p className="text-white/80">
-              <span className="font-bold text-green-300">Más fácil:</span> {modificaciones.facil}
+            <p className="text-tinta-200">
+              <span className="font-bold text-marca-300">Más fácil:</span> {modificaciones.facil}
             </p>
-            <p className="text-white/80">
-              <span className="font-bold text-yellow-300">Más fuerte:</span> {modificaciones.fuerte}
+            <p className="text-tinta-200">
+              <span className="font-bold text-aviso-300">Más fuerte:</span> {modificaciones.fuerte}
             </p>
           </div>
           <button
             onClick={cerrarDemo}
-            className="mt-2 rounded-lg bg-green-500 px-8 py-3 text-xl font-bold hover:bg-green-600"
+            className="mt-2 rounded-boton bg-marca-500 px-8 py-3 text-xl font-bold hover:bg-marca-600"
           >
             Listo, sigo
           </button>

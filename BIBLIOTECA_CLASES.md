@@ -14,7 +14,9 @@
 > (`CLASE_GRUPAL_REAL.md`) también tiene su P0: briefing, música por sección,
 > cues de anticipación, modificaciones y cierre. La auditoría de diseño
 > (`AUDITIA_UX.md`) ya corrigió jerarquía, nomenclatura, feedback y targets
-> táctiles contra los sistemas de diseño chinos. El motor
+> táctiles contra los sistemas de diseño chinos, y además trae el sistema de
+> tokens (`frontend/src/index.css`), la iconografía, los skeletons, el empty state
+> de primer usuario y la paleta unificada. El motor
 > interpreta clases como datos (`engine/clases.js`), hay **13 clases** y **21
 > ejercicios** en el catálogo (`engine/ejercicios.js`), con **11 detectores** y
 > demos stick figure. La plancha, la plancha lateral, el superman, la marcha, el

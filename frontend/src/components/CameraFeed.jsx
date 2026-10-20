@@ -1,5 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useMediaPipe } from '../hooks/useMediaPipe';
+import { Esqueleto } from './Esqueleto';
+import Icono from './Icono';
 
 function mensajeDeError(err) {
   if (err?.name === 'NotAllowedError' || err?.name === 'SecurityError') {
@@ -101,17 +103,23 @@ export default function CameraFeed() {
       />
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
       {!activa && !errorCamara && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 rounded bg-black/80 px-4 py-2 text-white">
-          Activando cámara...
+        <div className="absolute top-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-chip border border-linea bg-tinta-950/85 px-4 py-2 text-sm text-tinta-200 backdrop-blur">
+          <Icono nombre="camara" tamano={16} className="text-marca-400" />
+          Activando cámara
+          <Esqueleto className="h-2 w-12" redondeado="rounded-chip" />
         </div>
       )}
       {errorCamara && (
-        <div className="absolute top-4 left-1/2 z-20 flex max-w-[90vw] -translate-x-1/2 flex-col items-center gap-2 rounded bg-red-600/90 px-4 py-2 text-center text-white">
-          <p>{errorCamara}</p>
+        <div className="absolute top-4 left-1/2 z-20 flex max-w-[90vw] -translate-x-1/2 flex-col items-center gap-2 rounded-panel border border-error-500/40 bg-tinta-950/95 px-4 py-3 text-center text-tinta-100">
+          <p className="flex items-start gap-2 text-sm">
+            <Icono nombre="alerta" tamano={16} className="mt-0.5 shrink-0 text-error-300" />
+            {errorCamara}
+          </p>
           <button
             onClick={() => setReintento((valor) => valor + 1)}
-            className="rounded bg-white px-4 py-1 text-sm font-bold text-black hover:bg-gray-200"
+            className="flex min-h-11 items-center gap-2 rounded-boton bg-marca-500 px-4 text-sm font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
           >
+            <Icono nombre="reproducir" tamano={16} />
             Reintentar
           </button>
         </div>

@@ -1,5 +1,55 @@
 @import "tailwindcss";
 
+@theme {
+  --color-marca-300: #86efac;
+  --color-marca-400: #4ade80;
+  --color-marca-500: #22c55e;
+  --color-marca-600: #16a34a;
+  --color-marca-700: #15803d;
+
+  --color-aviso-300: #fcd34d;
+  --color-aviso-400: #fbbf24;
+  --color-aviso-500: #f59e0b;
+  --color-aviso-600: #d97706;
+
+  --color-racha-300: #fdba74;
+  --color-racha-400: #fb923c;
+  --color-racha-500: #f97316;
+
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+
+  --color-tinta-100: #fafafa;
+  --color-tinta-200: #e4e4e7;
+  --color-tinta-300: #d4d4d8;
+  --color-tinta-400: #a1a1aa;
+  --color-tinta-500: #71717a;
+  --color-tinta-600: #52525b;
+  --color-tinta-700: #3f3f46;
+  --color-tinta-800: #27272a;
+  --color-tinta-900: #18181b;
+  --color-tinta-950: #09090b;
+
+  --color-fondo: #000000;
+  --color-panel: #131316;
+  --color-panel-alto: #1c1c21;
+  --color-linea: #2a2a30;
+
+  --radius-boton: 0.75rem;
+  --radius-panel: 1rem;
+  --radius-ficha: 1.25rem;
+  --radius-chip: 999px;
+
+  --shadow-flotante: 0 18px 40px rgba(0, 0, 0, 0.55);
+  --shadow-foco: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
 @keyframes perfecta {
   0% {
     opacity: 0;
@@ -19,3 +69,29 @@
   animation: perfecta 1100ms ease-out forwards;
 }
 
+@keyframes esqueleto-brillo {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.esqueleto {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.14) 37%,
+    rgba(255, 255, 255, 0.05) 63%
+  );
+  background-size: 200% 100%;
+  animation: esqueleto-brillo 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto,
+  .perfecta-flash {
+    animation: none;
+  }
+}

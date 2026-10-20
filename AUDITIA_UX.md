@@ -137,24 +137,79 @@ Proximidad, alineación, contraste, repetición, *make it direct*, *stay on the 
 | Verde, naranja, amarillo y un arcoíris con varios significados | Verde = acción primaria, amarillo = descanso/atención, naranja = racha y combo | `WorkoutUI.jsx`, `SummaryScreen.jsx` |
 | Formatos de ronda distintos según pantalla | Un solo formato "Ronda X de Y" | toda la app |
 
-## 4. Pendientes (no implementados)
+## 4. Sistema de tokens, iconos, skeleton y empty state
 
-1. **Tokens de diseño**: hoy hay colores y espaciados sueltos. Conviene definir un
-   set mínimo (color, radio, sombra, espaciado 8 pt) como el de Arco o TDesign.
-2. **Empty state de primer usuario**: la pantalla inicial no explica qué es WorkoutBot
-   ni ofrece un primer paso guiado.
-3. **Iconografía**: los botones principales ("Pausa", "Cómo se hace") gagnerían con
-   iconos consistentes (Ant Design "Icon": icono como refuerzo, nunca sustituto).
-4. **Skeleton y perceived performance** en el resumen cuando llegan los datos del
-   servidor.
-5. **Copys de error** para cámara y voz: hoy existen, pero no siguen el patrón
-   "problema + salida".
-6. **Unificación de la paleta** en `PlanSemanal.jsx` y `SummaryScreen.jsx` con los
-   mismos tokens.
+### 4.1 Tokens de diseño (`frontend/src/index.css`)
 
-## 5. Cómo se verifica
+Bloque `@theme` de Tailwind v4. Genera utilidades tipo `bg-marca-500`,
+`text-tinta-100`, `rounded-ficha`, `shadow-flotante`.
 
-- `npm test` en `frontend/` (166 tests).
+| Familia | Tokens | Regla |
+|---|---|---|
+| Marca | `marca-300…700` | Acción primaria, progreso, positivo |
+| Aviso | `aviso-300…600` | Descanso, atención, cuenta regresiva |
+| Racha | `racha-300…500` | Racha, combo, plan semanal |
+| Error | `error-300…600` | Cámara, permisos, errores |
+| Info | `info-300…500` | Datos neutrales informativos |
+| Tinta | `tinta-100…950` | Texto y superficies (9 niveles) |
+| Superficies | `fondo`, `panel`, `panel-alto`, `linea` | Fondo de la app, tarjetas, separadores |
+| Radios | `boton`, `panel`, `ficha`, `chip` | 12, 16, 20 y 999 px |
+| Sombras | `flotante`, `foco` | Diálogos y anillos de foco |
+
+Regla de uso: verde = acción principal, ámbar = descanso, naranja = racha,
+rojo = error. Ningún componente usa colores sueltos.
+
+### 4.2 Iconografía (`frontend/src/components/Icono.jsx`)
+
+18 iconos SVG con el mismo trazo (1.8), `currentColor` y viewBox 24×24:
+pausa, reproducir, voz, musica, ayuda, chevronDerecha, chevronAbajo, calendario,
+fuego, reloj, check, alerta, camara, info, casa, rayo, cerrar.
+
+Reglas aplicadas (Ant Design, spec de iconos):
+
+- El icono acompaña a la etiqueta, nunca la reemplaza.
+- Tamaño 16 px en botones de la barra, 18–22 px en acciones principales.
+- `currentColor`: el icono hereda el color del texto, sin colores propios.
+- Iconos decorativos con `aria-hidden`; los accionables con `aria-label`.
+
+### 4.3 Skeleton (`frontend/src/components/Esqueleto.jsx`)
+
+- `Esqueleto`: bloque con brillo animado.
+- `EsqueletoTexto`: líneas de texto.
+- `EsqueletoTarjeta`: tarjeta completa.
+
+Uso: carga de estadísticas al entrar, carga del resumen al terminar la clase y
+activación de la cámara. Respeta `prefers-reduced-motion`.
+
+### 4.4 Empty state de primer usuario
+
+`engine/primeraVez.js` + `components/GuiaPrimeraVez.jsx`.
+
+- Se muestra solo si no hay historial (`esPrimeraVez`) y no se ha descartado.
+- Es una guía de un solo uso (patrón "one-time prompt" de Arco): se guarda en
+  `localStorage` (`workoutbot:guia:v1`) al pulsar "Entendido".
+- Tres pasos con icono: cámara, elección de clase, entrenador por voz.
+
+### 4.5 Unificación de paleta
+
+Migrados a tokens: `App.jsx`, `WorkoutUI.jsx`, `SummaryScreen.jsx`,
+`PlanSemanal.jsx`, `MapaCircuito.jsx`, `CameraFeed.jsx` y `LoginScreen.jsx`.
+En el bundle ya no queda ninguna clase de la paleta anterior
+(`text-white`, `bg-green-500`, `text-orange-300`).
+
+## 5. Pendientes (no implementados)
+
+1. **Tipografía**: falta una escala tipográfica con tokens (`--text-*`).
+2. **Iconos de marca**: el logo de WorkoutBot es un rayo genérico.
+3. **Skeleton en el plan semanal** cuando se sincroniza con el servidor.
+4. **Copys de error** para cámara y voz con el patrón "problema + salida".
+5. **Modo de alto contraste** y verificación AA en todas las combinaciones de token.
+6. **Guion de la clase** como token de datos, para que el guion viva en la clase
+   y no en el motor.
+
+## 6. Cómo se verifica
+
+- `npm test` en `frontend/` (171 tests).
 - `npm run build` en `frontend/`.
-- Prueba manual en móvil: pantalla de inicio, inicio de clase, barra inferior,
-  tutorial, resumen y diferencias de tiempo/repeticiones.
+- Prueba manual en móvil: primer ingreso (guía), pantalla de inicio, clase,
+  barra inferior, tutorial, resumen y cierre.
