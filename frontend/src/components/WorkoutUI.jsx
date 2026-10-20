@@ -1,6 +1,45 @@
 import React from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { progresoCircuito, EJERCICIOS } from '../engine/circuito';
+import { obtenerDemo } from '../engine/demos';
+import MapaCircuito from './MapaCircuito';
+import DemoEjercicio from './DemoEjercicio';
+
+function AnilloRep({ fase }) {
+  const radio = 24;
+  const circunferencia = 2 * Math.PI * radio;
+  const avance = fase === 'ABAJO' ? 1 : 0;
+
+  return (
+    <div className="relative h-16 w-16">
+      <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90">
+        <circle
+          cx="32"
+          cy="32"
+          r={radio}
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.2)"
+          strokeWidth="5"
+        />
+        <circle
+          cx="32"
+          cy="32"
+          r={radio}
+          fill="none"
+          stroke="#4ade80"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeDasharray={circunferencia}
+          strokeDashoffset={circunferencia * (1 - avance)}
+          className="transition-all duration-300 ease-out"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black uppercase tracking-wide">
+        {fase}
+      </span>
+    </div>
+  );
+}
 
 export default function WorkoutUI() {
   const {
@@ -14,8 +53,14 @@ export default function WorkoutUI() {
     pausado,
     pausadoPor,
     vozActiva,
+    faseRepeticion,
+    flashPerfecta,
+    demoAbierta,
+    demoEjercicio,
     togglePausa,
     setVozActiva,
+    abrirDemo,
+    cerrarDemo,
   } = useWorkoutStore();
 
   if (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO') return null;
@@ -25,6 +70,12 @@ export default function WorkoutUI() {
   const siguiente = EJERCICIOS[indice + 1];
   const texto = subtitulo || mensajeForma;
   const esCorreccion = Boolean(mensajeForma) && (!subtitulo || subtitulo === mensajeForma);
+  const ejercicioDemo = demoEjercicio || (faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
+  const demoVisible = obtenerDemo(ejercicioDemo);
+
+  const abrirDemoActual = () => {
+    abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
+  };
 
   return (
     <div className="absolute inset-0 z-10 text-white">
@@ -42,9 +93,10 @@ export default function WorkoutUI() {
             style={{ width: `${progreso * 100}%` }}
           />
         </div>
+        <MapaCircuito />
       </div>
 
-      <div className="absolute top-24 right-4 flex flex-col items-end gap-2">
+      <div className="absolute top-32 right-4 flex flex-col items-end gap-2">
         <button
           onClick={togglePausa}
           className="rounded-lg bg-white/20 px-4 py-2 text-sm font-bold backdrop-blur hover:bg-white/30"
@@ -57,6 +109,12 @@ export default function WorkoutUI() {
         >
           {vozActiva ? 'Voz on' : 'Voz off'}
         </button>
+        <button
+          onClick={abrirDemoActual}
+          className="rounded-lg bg-green-500/90 px-4 py-2 text-sm font-bold backdrop-blur hover:bg-green-500"
+        >
+          ¿Cómo se hace?
+        </button>
       </div>
 
       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
@@ -64,7 +122,7 @@ export default function WorkoutUI() {
           {ejercicioActual.replace('_', ' ')}
         </p>
         <h1
-          className={`text-8xl font-black md:text-9xl ${
+          className={`text-7xl font-black md:text-9xl ${
             faseActual === 'DESCANSO' ? 'text-yellow-400' : 'text-white'
           }`}
         >
@@ -72,28 +130,42 @@ export default function WorkoutUI() {
         </h1>
 
         {faseActual === 'TRABAJO' ? (
-          <div className="mt-4 flex items-center gap-4">
-            <p className="text-3xl">Reps: {repeticiones}</p>
-            {combo >= 3 && (
-              <span className="rounded-full bg-orange-500 px-3 py-1 text-lg font-black">
-                Combo x{combo}
-              </span>
-            )}
+          <div className="mt-3 flex items-center gap-4">
+            <div className="text-left">
+              <p className="text-3xl">Reps: {repeticiones}</p>
+              <div className="mt-1 flex items-center gap-2">
+                {combo >= 3 && (
+                  <span className="rounded-full bg-orange-500 px-3 py-1 text-sm font-black">
+                    Combo x{combo}
+                  </span>
+                )}
+                {flashPerfecta > 0 && (
+                  <span
+                    key={flashPerfecta}
+                    className="perfecta-flash rounded-full bg-green-400 px-3 py-1 text-sm font-black text-black"
+                  >
+                    ¡PERFECTA!
+                  </span>
+                )}
+              </div>
+            </div>
+            <AnilloRep fase={faseRepeticion} />
           </div>
         ) : (
-          <div className="mt-4">
+          <div className="mt-2 flex flex-col items-center">
             <p className="text-3xl text-yellow-300">¡Descansa!</p>
             {siguiente && (
-              <p className="mt-2 text-lg text-white/70">
-                Sigue: {siguiente.replace('_', ' ')}
-              </p>
+              <div className="mt-1 flex flex-col items-center">
+                <DemoEjercicio ejercicio={siguiente} compacto />
+                <p className="text-lg text-white/70">Sigue: {siguiente.replace('_', ' ')}</p>
+              </div>
             )}
           </div>
         )}
 
         {texto && (
           <p
-            className={`mt-6 max-w-xl rounded-lg px-4 py-2 text-lg font-semibold ${
+            className={`mt-4 max-w-xl rounded-lg px-4 py-2 text-lg font-semibold ${
               esCorreccion ? 'bg-yellow-500/90 text-black' : 'bg-black/60 text-white'
             }`}
           >
@@ -102,7 +174,7 @@ export default function WorkoutUI() {
         )}
       </div>
 
-      {pausado && (
+      {pausado && !demoAbierta && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/75 px-6 text-center">
           <p className="text-6xl font-black">PAUSA</p>
           <p className="text-xl text-white/80">
@@ -115,6 +187,27 @@ export default function WorkoutUI() {
             className="rounded-lg bg-green-500 px-8 py-3 text-2xl font-bold hover:bg-green-600"
           >
             Seguir
+          </button>
+        </div>
+      )}
+
+      {demoAbierta && (
+        <div className="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3 bg-black/90 px-6 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.3em] text-green-400">Así se hace</p>
+          <p className="text-3xl font-black">{demoVisible.nombre}</p>
+          <DemoEjercicio ejercicio={ejercicioDemo} />
+          <ul className="space-y-1">
+            {demoVisible.pistas.map((pista) => (
+              <li key={pista} className="text-base text-white/80">
+                {pista}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={cerrarDemo}
+            className="mt-2 rounded-lg bg-green-500 px-8 py-3 text-xl font-bold hover:bg-green-600"
+          >
+            Listo, sigo
           </button>
         </div>
       )}

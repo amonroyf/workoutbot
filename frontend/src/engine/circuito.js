@@ -24,6 +24,33 @@ export function progresoCircuito(estado) {
   return Math.min(1, Math.max(0, transcurrido / DURACION_TOTAL));
 }
 
+export function estacionesCircuito(estado) {
+  if (estado.faseActual === 'FIN') {
+    return EJERCICIOS.map((ejercicio) => ({ ejercicio, estado: 'completado' }));
+  }
+
+  if (estado.faseActual === 'CALIBRACION') {
+    return EJERCICIOS.map((ejercicio) => ({ ejercicio, estado: 'pendiente' }));
+  }
+
+  const indice = EJERCICIOS.indexOf(estado.ejercicioActual);
+  if (indice < 0) {
+    return EJERCICIOS.map((ejercicio) => ({ ejercicio, estado: 'pendiente' }));
+  }
+
+  return EJERCICIOS.map((ejercicio, i) => {
+    if (estado.faseActual === 'DESCANSO') {
+      if (i <= indice) return { ejercicio, estado: 'completado' };
+      if (i === indice + 1) return { ejercicio, estado: 'actual' };
+      return { ejercicio, estado: 'pendiente' };
+    }
+
+    if (i < indice) return { ejercicio, estado: 'completado' };
+    if (i === indice) return { ejercicio, estado: 'actual' };
+    return { ejercicio, estado: 'pendiente' };
+  });
+}
+
 export function estadoInicialCircuito(ahoraMs) {
   return {
     faseActual: 'TRABAJO',

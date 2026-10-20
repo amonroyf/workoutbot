@@ -164,14 +164,18 @@ cd frontend
 npm test
 ```
 
-Resultado: **4 archivos, 30 tests, todos en verde.**
+Resultado: **6 archivos, 53 tests, todos en verde.**
 
 Cobertura de lógica:
 - `angles.test.js`: ángulos 0/90/180, visibilidad, distancia.
 - `detectors.test.js`: calibración de cadera, conteo único por ejercicio, gate
   de visibilidad, rechazo de silla, plancha en flexiones, piernas en JJ, EMA.
 - `circuito.test.js`: estado inicial, descuento por tiempo real, transición a
-  descanso, cambio de ejercicio, recorrido completo hasta `FIN` y acumulado.
+  descanso, cambio de ejercicio, recorrido completo hasta `FIN`, acumulado y
+  estaciones del mapa.
+- `demos.test.js`: keyframes de la demo, articulaciones válidas, interpolación
+  y guion de voz.
+- `voz.test.js`: bancos de frases y rotación.
 - `score.test.js`: suma y casos nulos/vacíos.
 
 ---
@@ -229,6 +233,6 @@ Cuándo **no** es fiable (limitación conocida):
 
 ## 8. Verificación final
 
-- `npm test` → 30/30 OK
+- `npm test` → 53/53 OK
 - `npm run build` → OK
 - Despliegue a Firebase Hosting tras las correcciones y mejoras.

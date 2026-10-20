@@ -82,6 +82,7 @@ export default function App() {
             <p className="text-lg font-semibold text-white">Clase de hoy</p>
             <p>3 ejercicios · 40s de trabajo · 20s de descanso</p>
             <p>El entrenador te guía por voz y corrige tu postura.</p>
+            <p>Toca "¿Cómo se hace?" para ver la demostración.</p>
           </div>
           <button
             onClick={iniciarRutina}

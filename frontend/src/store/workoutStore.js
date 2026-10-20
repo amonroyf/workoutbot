@@ -28,6 +28,13 @@ export const useWorkoutStore = create((set, get) => ({
   pausado: false,
   pausadoPor: null,
   pausadoEn: null,
+  faseRepeticion: 'ARRIBA',
+  perfectas: 0,
+  flashPerfecta: 0,
+  demoAbierta: false,
+  demoEjercicio: null,
+  pausadoAntesDemo: false,
+  pausadoPorAntesDemo: null,
 
   iniciarRutina: () => {
     clearInterval(get().timerRef);
@@ -41,6 +48,13 @@ export const useWorkoutStore = create((set, get) => ({
       pausado: false,
       pausadoPor: null,
       pausadoEn: null,
+      faseRepeticion: 'ARRIBA',
+      perfectas: 0,
+      flashPerfecta: 0,
+      demoAbierta: false,
+      demoEjercicio: null,
+      pausadoAntesDemo: false,
+      pausadoPorAntesDemo: null,
     });
 
     const interval = setInterval(() => {
@@ -51,6 +65,7 @@ export const useWorkoutStore = create((set, get) => ({
       if (!resultado) return;
 
       set(resultado.estado);
+      if (resultado.estado.faseActual) set({ faseRepeticion: 'ARRIBA' });
       reproducirSonido(resultado.sonido);
 
       if (resultado.estado.faseActual === 'FIN') {
@@ -61,9 +76,43 @@ export const useWorkoutStore = create((set, get) => ({
     set({ timerRef: interval });
   },
 
-  registrarRepeticion: () => {
+  registrarRepeticion: (perfecta = false) => {
     playCoin();
-    set({ repeticiones: get().repeticiones + 1, combo: get().combo + 1 });
+    set((estado) => ({
+      repeticiones: estado.repeticiones + 1,
+      combo: estado.combo + 1,
+      perfectas: estado.perfectas + (perfecta ? 1 : 0),
+      flashPerfecta: estado.flashPerfecta + (perfecta ? 1 : 0),
+    }));
+  },
+
+  setFaseRepeticion: (faseRepeticion) => set({ faseRepeticion }),
+
+  abrirDemo: (ejercicio) => {
+    const { faseActual, ejercicioActual, pausado, pausadoPor, pausadoEn } = get();
+    if (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO') return;
+    set({
+      demoAbierta: true,
+      demoEjercicio: ejercicio || ejercicioActual,
+      pausadoAntesDemo: pausado,
+      pausadoPorAntesDemo: pausadoPor,
+      pausado: true,
+      pausadoPor: 'demo',
+      pausadoEn: pausadoEn ?? Date.now(),
+      faseRepeticion: 'ARRIBA',
+    });
+  },
+
+  cerrarDemo: () => {
+    const { pausadoAntesDemo, pausadoPorAntesDemo } = get();
+    set({
+      demoAbierta: false,
+      demoEjercicio: null,
+      pausadoAntesDemo: false,
+      pausadoPorAntesDemo: null,
+      pausadoPor: pausadoAntesDemo ? pausadoPorAntesDemo : 'demo',
+    });
+    if (!pausadoAntesDemo) get().reanudar();
   },
 
   setMensajeForma: (mensaje) => set({ mensajeForma: mensaje }),
@@ -111,6 +160,13 @@ export const useWorkoutStore = create((set, get) => ({
       pausado: false,
       pausadoPor: null,
       pausadoEn: null,
+      faseRepeticion: 'ARRIBA',
+      perfectas: 0,
+      flashPerfecta: 0,
+      demoAbierta: false,
+      demoEjercicio: null,
+      pausadoAntesDemo: false,
+      pausadoPorAntesDemo: null,
     });
   },
 }));

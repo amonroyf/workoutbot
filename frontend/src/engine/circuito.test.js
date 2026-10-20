@@ -4,6 +4,7 @@ import {
   avanzarCircuito,
   totalesVacios,
   progresoCircuito,
+  estacionesCircuito,
   EJERCICIOS,
   TIEMPO_TRABAJO,
   TIEMPO_DESCANSO,
@@ -43,6 +44,45 @@ describe('progresoCircuito', () => {
       progresoCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'JUMPING_JACKS', tiempoRestante: 0 })
     ).toBe(1);
     expect(progresoCircuito({ faseActual: 'FIN' })).toBe(1);
+  });
+});
+
+describe('estacionesCircuito', () => {
+  it('marca el primer ejercicio como actual al empezar', () => {
+    expect(estacionesCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'SENTADILLAS' })).toEqual([
+      { ejercicio: 'SENTADILLAS', estado: 'actual' },
+      { ejercicio: 'FLEXIONES', estado: 'pendiente' },
+      { ejercicio: 'JUMPING_JACKS', estado: 'pendiente' },
+    ]);
+  });
+
+  it('marca completados los anteriores y actual el que va', () => {
+    expect(estacionesCircuito({ faseActual: 'TRABAJO', ejercicioActual: 'FLEXIONES' })).toEqual([
+      { ejercicio: 'SENTADILLAS', estado: 'completado' },
+      { ejercicio: 'FLEXIONES', estado: 'actual' },
+      { ejercicio: 'JUMPING_JACKS', estado: 'pendiente' },
+    ]);
+  });
+
+  it('en descanso marca el siguiente como actual', () => {
+    expect(estacionesCircuito({ faseActual: 'DESCANSO', ejercicioActual: 'SENTADILLAS' })).toEqual([
+      { ejercicio: 'SENTADILLAS', estado: 'completado' },
+      { ejercicio: 'FLEXIONES', estado: 'actual' },
+      { ejercicio: 'JUMPING_JACKS', estado: 'pendiente' },
+    ]);
+  });
+
+  it('marca todo completado al terminar', () => {
+    expect(estacionesCircuito({ faseActual: 'FIN', ejercicioActual: 'JUMPING_JACKS' })).toEqual([
+      { ejercicio: 'SENTADILLAS', estado: 'completado' },
+      { ejercicio: 'FLEXIONES', estado: 'completado' },
+      { ejercicio: 'JUMPING_JACKS', estado: 'completado' },
+    ]);
+  });
+
+  it('deja todo pendiente en calibración', () => {
+    const estaciones = estacionesCircuito({ faseActual: 'CALIBRACION', ejercicioActual: 'SENTADILLAS' });
+    expect(estaciones.every((e) => e.estado === 'pendiente')).toBe(true);
   });
 });
 

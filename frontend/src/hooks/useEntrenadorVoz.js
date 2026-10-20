@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { obtenerFrase } from '../engine/voz';
+import { guionDemo } from '../engine/demos';
 
 const MS_ENTRE_ANIMO = 9000;
 const MS_ENTRE_CORRECCION = 3500;
@@ -28,6 +29,8 @@ export function useEntrenadorVoz() {
   const mensajeForma = useWorkoutStore((s) => s.mensajeForma);
   const pausado = useWorkoutStore((s) => s.pausado);
   const vozActiva = useWorkoutStore((s) => s.vozActiva);
+  const demoAbierta = useWorkoutStore((s) => s.demoAbierta);
+  const demoEjercicio = useWorkoutStore((s) => s.demoEjercicio);
 
   const rotacion = useRef(0);
   const ultimaCorreccion = useRef(0);
@@ -41,6 +44,7 @@ export function useEntrenadorVoz() {
     restante: tiempoRestante,
     mensaje: mensajeForma,
     pausado,
+    demo: demoAbierta,
   });
 
   const hablar = useCallback((texto, { interrumpir = false, rate = 1, pitch = 1 } = {}) => {
@@ -76,9 +80,19 @@ export function useEntrenadorVoz() {
       restante: tiempoRestante,
       mensaje: mensajeForma,
       pausado,
+      demo: demoAbierta,
     };
 
     if (!vozActiva) return;
+
+    if (antes.demo !== demoAbierta) {
+      if (demoAbierta) {
+        hablar(guionDemo(demoEjercicio || ejercicioActual), { interrumpir: true, rate: 0.95 });
+      } else if (!pausado) {
+        hablar(obtenerFrase('REANUDA', rotacion.current++));
+      }
+      return;
+    }
 
     if (antes.fase !== faseActual) {
       if (faseActual === 'TRABAJO') {
@@ -139,6 +153,8 @@ export function useEntrenadorVoz() {
     mensajeForma,
     pausado,
     vozActiva,
+    demoAbierta,
+    demoEjercicio,
     hablar,
   ]);
 

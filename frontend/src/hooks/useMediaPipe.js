@@ -87,11 +87,12 @@ export function useMediaPipe(videoRef, canvasRef) {
       const resultado = detector(landmarks, estadoDetector.current, ahoraMs);
       estadoDetector.current = resultado.estado;
 
+      useWorkoutStore.getState().setFaseRepeticion(resultado.estado.fase);
       actualizarMensaje(resultado.estado.mensaje);
 
       if (resultado.repeticion && ahoraMs - ultimaRepMs.current >= COOLDOWN_REP_MS) {
         ultimaRepMs.current = ahoraMs;
-        registrarRepeticion();
+        registrarRepeticion(!resultado.estado.mensaje);
       }
     },
     [registrarRepeticion, actualizarMensaje]
@@ -142,6 +143,7 @@ export function useMediaPipe(videoRef, canvasRef) {
         ejercicioEnCurso.current = null;
         estadoDetector.current = crearEstadoDetector();
         actualizarMensaje(null);
+        actual.setFaseRepeticion('ARRIBA');
       }
     }
 
