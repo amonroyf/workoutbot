@@ -4,6 +4,7 @@ import { obtenerFrase } from '../engine/voz';
 import { guionDemo } from '../engine/demos';
 import { nombreEjercicio } from '../engine/ejercicios';
 import { textoNarrado } from '../engine/progreso';
+import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
 
 const MS_ENTRE_ANIMO = 16000;
 const MS_ENTRE_CORRECCION = 3500;
@@ -24,6 +25,8 @@ function elegirVoz() {
 }
 
 export function useEntrenadorVoz(resumen = null) {
+  const combo = useWorkoutStore((s) => s.combo);
+  const scoreForma = useWorkoutStore((s) => s.scoreForma);
   const faseActual = useWorkoutStore((s) => s.faseActual);
   const ejercicioActual = useWorkoutStore((s) => s.ejercicioActual);
   const repeticiones = useWorkoutStore((s) => s.repeticiones);
@@ -42,6 +45,10 @@ export function useEntrenadorVoz(resumen = null) {
   const ultimaRep = useRef(Date.now());
   const avisoAtasco = useRef(false);
   const narradoRef = useRef(false);
+  const comboRef = useRef(combo);
+  const scoreRef = useRef(scoreForma);
+  comboRef.current = combo;
+  scoreRef.current = scoreForma;
   const bloque = claseActual.bloques?.[bloqueActual] || null;
   const prev = useRef({
     fase: faseActual,
@@ -54,31 +61,46 @@ export function useEntrenadorVoz(resumen = null) {
     bloque: bloqueActual,
     seccion: bloque?.seccionId ?? null,
     ronda: bloque?.ronda ?? null,
+    combo: 0,
+    score: null,
   });
 
-  const hablar = useCallback((texto, { interrumpir = false, rate = 1, pitch = 1 } = {}) => {
-    if (!texto || !puedeHablar() || !useWorkoutStore.getState().vozActiva) return;
+  const hablar = useCallback(
+    (texto, { interrumpir = false, rate = 1, pitch = 1, climax = false } = {}) => {
+      if (!texto || !puedeHablar() || !useWorkoutStore.getState().vozActiva) return;
 
-    const sintesis = window.speechSynthesis;
-    if (interrumpir) sintesis.cancel();
+      const sintesis = window.speechSynthesis;
+      if (interrumpir) sintesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(texto);
-    utterance.lang = 'es-CO';
-    utterance.rate = rate;
-    utterance.pitch = pitch;
-    const voz = elegirVoz();
-    if (voz) utterance.voice = voz;
+      // On Fire mode: when combo >= 5, heighten vocal intensity (rate + pitch)
+      const comboActual = comboRef.current;
+      const enFuego = comboActual >= 5;
+      const rateFuego = enFuego ? Math.min(rate + 0.05, 1.3) : rate;
+      const pitchFuego = enFuego ? Math.min(pitch + 0.1, 1.4) : pitch;
+      // Climax: el instructor levanta la voz en los últimos segundos
+      const rateClimax = climax ? Math.min(rateFuego + 0.08, 1.35) : rateFuego;
+      const pitchClimax = climax ? Math.min(pitchFuego + 0.15, 1.5) : pitchFuego;
 
-    utterance.onstart = () => useWorkoutStore.getState().setSubtitulo(texto);
-    utterance.onend = () => {
-      const estado = useWorkoutStore.getState();
-      if (estado.subtitulo === texto) estado.setSubtitulo(null);
-    };
-    utterance.onerror = utterance.onend;
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = 'es-CO';
+      utterance.rate = rateClimax;
+      utterance.pitch = pitchClimax;
+      const voz = elegirVoz();
+      if (voz) utterance.voice = voz;
 
-    ultimaVoz.current = Date.now();
-    sintesis.speak(utterance);
-  }, []);
+      utterance.onstart = () => useWorkoutStore.getState().setSubtitulo(texto);
+      utterance.onend = () => {
+        const estado = useWorkoutStore.getState();
+        if (estado.subtitulo === texto) estado.setSubtitulo(null);
+      };
+      utterance.onerror = utterance.onend;
+
+      ultimaVoz.current = Date.now();
+      sintesis.speak(utterance);
+      return enFuego;
+    },
+    []
+  );
 
   useEffect(() => {
     const antes = prev.current;
@@ -93,6 +115,8 @@ export function useEntrenadorVoz(resumen = null) {
       bloque: bloqueActual,
       seccion: bloque?.seccionId ?? null,
       ronda: bloque?.ronda ?? null,
+      combo: comboRef.current,
+      score: scoreRef.current,
     };
 
     if (!vozActiva) return;
@@ -151,7 +175,7 @@ export function useEntrenadorVoz(resumen = null) {
       } else if (faseActual === 'DESCANSO') {
         const siguiente = claseActual.bloques[bloqueActual + 1];
         const pistaSiguiente = siguiente
-          ? `Sigue ${nombreEjercicio(siguiente.ejercicio)}.`
+          ? `Sigue ${nombreEjercicio(siguiente.ejercicio)}. ${siguiente.pistaVoz || ''}`.trim()
           : '';
         hablar(`${obtenerFrase('DESCANSO', rotacion.current++)} ${pistaSiguiente}`.trim());
       } else if (faseActual === 'FIN') {
@@ -180,7 +204,19 @@ export function useEntrenadorVoz(resumen = null) {
       avisoAtasco.current = false;
       if (repeticiones > 0 && repeticiones % 10 === 0) {
         hablar(obtenerFrase('HITO', rotacion.current++));
+      } else if (
+        scoreRef.current != null &&
+        scoreRef.current >= UMBRAL_SCORE_PERFECTO &&
+        comboRef.current >= 5
+      ) {
+        // Repetición perfecta durante racha: activar modo On Fire
+        hablar(obtenerFrase('ON_FIRE', rotacion.current++), { interrumpir: true });
       }
+    }
+
+    // Anunciar On Fire cuando el combo cruza el umbral de 5
+    if (antes.combo < 5 && comboRef.current >= 5) {
+      hablar(obtenerFrase('ON_FIRE', rotacion.current++), { interrumpir: true });
     }
 
     if (
@@ -194,7 +230,8 @@ export function useEntrenadorVoz(resumen = null) {
     }
 
     if (tiempoRestante === 3 && antes.restante !== 3) {
-      hablar(obtenerFrase('ULTIMOS_SEGUNDOS', rotacion.current++), { interrumpir: true });
+      // Euforia final: el instructor levanta la voz cuando quedar solo 3 segundos
+      hablar(obtenerFrase('ULTIMOS_SEGUNDOS', rotacion.current++), { interrumpir: true, climax: true });
       return;
     }
 

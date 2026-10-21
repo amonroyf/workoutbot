@@ -136,6 +136,12 @@ const ATASCADO = [
   'No pasa nada, ajustamos. Apóyate en la pared y continúa.',
 ];
 
+const ON_FIRE = [
+  '¡Estás en fuego! ¡No pares!',
+  '¡Qué racha! ¡Sigue así, máquina!',
+  '¡Imparable! ¡Así se hace!',
+];
+
 const SEGURIDAD = [
   'Si sientes dolor, detente. La técnica primero.',
   'Cuida tus rodillas, no fuerces si algo molesta.',
@@ -206,9 +212,10 @@ const BANCOS = {
   HITO,
   ULTIMOS_SEGUNDOS,
   ANIMO,
-  ATASCADO,
-  SEGURIDAD,
-};
+   ATASCADO,
+   ON_FIRE,
+   SEGURIDAD,
+ };
 
 function elegirDe(lista, indice) {
   if (!Array.isArray(lista) || lista.length === 0) return '';
@@ -246,5 +253,6 @@ export const EVENTOS_VOZ = Object.freeze([
   'ULTIMOS_SEGUNDOS',
   'ANIMO',
   'ATASCADO',
+  'ON_FIRE',
   'SEGURIDAD',
 ]);
