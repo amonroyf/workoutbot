@@ -7,6 +7,11 @@ import { CLASES, duracionClase, formatearDuracion, resumenSecciones } from './en
 import { nombreEjercicio } from './engine/ejercicios';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
 import { esPrimeraVez, guiaVista, marcarGuiaVista } from './engine/primeraVez';
+import {
+  esIos,
+  puedeEntrarEnPantallaCompleta,
+  solicitarPantallaCompleta,
+} from './engine/pantallaCompleta';
 import CameraFeed from './components/CameraFeed';
 import WorkoutUI from './components/WorkoutUI';
 import SummaryScreen from './components/SummaryScreen';
@@ -35,6 +40,7 @@ export default function App() {
   const reintentoCamara = useWorkoutStore((state) => state.reintentoCamara);
   const setReintentoCamara = useWorkoutStore((state) => state.setReintentoCamara);
   const resumenClase = resumenSecciones(claseActual);
+  const soportaPantallaCompleta = puedeEntrarEnPantallaCompleta() && !esIos();
   const seleccionarClase = useWorkoutStore((state) => state.seleccionarClase);
   const enviadoRef = useRef(false);
 
@@ -159,6 +165,11 @@ export default function App() {
     );
   }
 
+  const handleEmpezarClase = () => {
+    solicitarPantallaCompleta();
+    iniciarRutina(claseSeleccionadaId);
+  };
+
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
       <CameraFeed />
@@ -242,8 +253,7 @@ export default function App() {
           <div className="mt-3 flex w-full max-w-md snap-x gap-2 overflow-x-auto pb-1">
             {CLASES.map((clase) => {
               const activa = clase.id === claseSeleccionadaId;
-              return (
-                <button
+              return (                <button
                   key={clase.id}
                   onClick={() => seleccionarClase(clase.id)}
                   aria-pressed={activa}
@@ -343,12 +353,18 @@ export default function App() {
           </p>
 
           <button
-            onClick={() => iniciarRutina(claseSeleccionadaId)}
+            onClick={handleEmpezarClase}
             className="mt-4 flex min-h-14 w-full max-w-md items-center justify-center gap-2 rounded-ficha bg-marca-500 px-8 text-2xl font-black text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
           >
             <Icono nombre="reproducir" tamano={22} />
             Empezar clase
           </button>
+          <p className="mt-1.5 flex items-center gap-1.5 text-xs text-tinta-500">
+            <Icono nombre="expandir" tamano={14} />
+            {soportaPantallaCompleta
+              ? 'La clase se abre en pantalla completa'
+              : 'En iPhone: agrega la app a la pantalla de inicio para verla completa'}
+          </p>
           </div>
         </>
       )}

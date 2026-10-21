@@ -207,7 +207,21 @@ En el bundle ya no queda ninguna clase de la paleta anterior
 6. **Guion de la clase** como token de datos, para que el guion viva en la clase
    y no en el motor.
 
-## 6. Revisión móvil (safe areas y uso del espacio)
+## 6. Pantalla completa real
+
+`engine/pantallaCompleta.js` centraliza el pedido de pantalla completa:
+
+- Se solicita **desde el gesto del usuario** en "Empezar clase" (requisito de los
+  navegadores: la API solo funciona dentro de un clic).
+- Se aplica sobre `document.documentElement`, con fallback `webkitRequestFullscreen`.
+- Si el navegador lo rechaza o no lo soporta, la app **no se rompe**: la clase
+  arranca igual y se avisa con `console.warn`.
+- "Volver" del resumen sale de pantalla completa; "Repetir clase" la reentra si
+  el usuario la había cerrado con ESC.
+- En iOS no existe esa API: el texto de ayuda cambia a "agrega la app a la
+  pantalla de inicio" (el `manifest`/`apple-mobile-web-app-capable` ya está puesto).
+
+## 7. Revisión móvil (safe areas y uso del espacio)
 
 Verificado con capturas reales en Chrome headless a 360×780 y 390×844.
 
@@ -223,9 +237,9 @@ Verificado con capturas reales en Chrome headless a 360×780 y 390×844.
 | Decía "Sostén" en ejercicios que no son isométricos (marchar, estirar) | Campo `consigna` y `consignaAyuda` por ejercicio: Muévete, Sostén, Estira, Levanta, Controla, Respira |
 | El error de cámara y el estado "Activando cámara" flotaban sobre el saludo | Estado de cámara en el store (`errorCamara`, `camaraActiva`, `reintentoCamara`) y aviso en línea |
 
-## 7. Cómo se verifica
+## 8. Cómo se verifica
 
-- `npm test` en `frontend/` (174 tests).
+- `npm test` en `frontend/` (181 tests).
 - `npm run build` en `frontend/`.
 - Capturas reales en móvil con Chrome headless a 360 y 390 px de ancho.
 - Prueba manual en un teléfono real: notch, barra de gestos y barra del navegador.

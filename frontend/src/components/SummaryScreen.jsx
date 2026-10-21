@@ -4,6 +4,11 @@ import { calcularTotal, calcularSegundos, separarTotales } from '../engine/score
 import { esDeTiempo, nombreEjercicio } from '../engine/ejercicios';
 import { formatearDuracion } from '../engine/clases';
 import { diferenciaReps, textoComparacion } from '../engine/progreso';
+import {
+  esPantallaCompleta,
+  salirDePantallaCompleta,
+  solicitarPantallaCompleta,
+} from '../engine/pantallaCompleta';
 import { Esqueleto, EsqueletoTarjeta } from './Esqueleto';
 import Icono from './Icono';
 
@@ -50,6 +55,16 @@ export default function SummaryScreen({ resumen, cargando = false }) {
           ejercicios: [...new Set(claseActual.bloques.map((bloque) => bloque.ejercicio))],
         },
       ];
+
+  const handleRepetir = () => {
+    if (!esPantallaCompleta()) solicitarPantallaCompleta();
+    iniciarRutina(claseActual.id);
+  };
+
+  const handleVolver = () => {
+    salirDePantallaCompleta();
+    detenerRutina();
+  };
 
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-fondo/80 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center text-tinta-100">
@@ -149,14 +164,14 @@ export default function SummaryScreen({ resumen, cargando = false }) {
 
       <div className="mt-5 flex w-full max-w-sm gap-3">
         <button
-          onClick={() => iniciarRutina(claseActual.id)}
+          onClick={handleRepetir}
           className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-ficha bg-marca-500 px-5 text-lg font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
           <Icono nombre="reproducir" tamano={18} />
           Repetir clase
         </button>
         <button
-          onClick={detenerRutina}
+          onClick={handleVolver}
           className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-ficha border border-linea bg-tinta-800/60 px-5 text-lg font-bold text-tinta-100 transition hover:bg-tinta-700/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
           <Icono nombre="casa" tamano={18} />

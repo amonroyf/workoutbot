@@ -17,6 +17,7 @@ const CONTORNO = {
   casa: ['M4 11l8-7 8 7v9H4z'],
   rayo: ['M13 3L5 14h6l-1 7 8-11h-6z'],
   cerrar: ['M6 6l12 12', 'M18 6L6 18'],
+  expandir: ['M8 3H5a2 2 0 00-2 2v3', 'M16 3h3a2 2 0 012 2v3', 'M8 21H5a2 2 0 01-2-2v-3', 'M16 21h3a2 2 0 002-2v-3'],
 };
 
 const RELLENO = {
