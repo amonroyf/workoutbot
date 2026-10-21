@@ -4,6 +4,7 @@ import {
   MODIFICACIONES,
   consignaEjercicio,
   modificacionesEjercicio,
+  intensidadEjercicio,
 } from './ejercicios';
 
 describe('modificacionesEjercicio', () => {
@@ -43,5 +44,17 @@ describe('consignaEjercicio', () => {
       consigna: 'Sostén',
       consignaAyuda: 'Mantén la posición',
     });
+  });
+});
+
+describe('intensidadEjercicio', () => {
+  it('infiere la intensidad por grupo muscular', () => {
+    expect(intensidadEjercicio('JUMPING_JACKS')).toBe('alta');
+    expect(intensidadEjercicio('SENTADILLAS')).toBe('media');
+    expect(intensidadEjercicio('ESTIRAMIENTO_GENERAL')).toBe('suave');
+  });
+
+  it('devuelve media para ejercicios desconocidos', () => {
+    expect(intensidadEjercicio('NO_EXISTE')).toBe('media');
   });
 });

@@ -34,4 +34,12 @@ describe('obtenerFrase', () => {
   it('devuelve vacio para un evento desconocido', () => {
     expect(obtenerFrase('NO_EXISTE', 0)).toBe('');
   });
+
+  it('tiene frases propias para el modo On Fire', () => {
+    const frases = [0, 1, 2].map((i) => obtenerFrase('ON_FIRE', i));
+    for (const frase of frases) {
+      expect(frase.length).toBeGreaterThan(0);
+    }
+    expect(new Set(frases).size).toBe(3);
+  });
 });

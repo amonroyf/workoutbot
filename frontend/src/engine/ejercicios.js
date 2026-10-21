@@ -314,3 +314,24 @@ export function consignaEjercicio(id) {
     consignaAyuda: ejercicio.consignaAyuda || 'Mantén la posición',
   };
 }
+
+// Intensidad inferida por grupo muscular, usada por el motor de música en
+// el formato 'express' (clases sin secciones ni campo intensidad).
+const INTENSIDAD_POR_GRUPO = Object.freeze({
+  cardio: 'alta',
+  piernas: 'media',
+  pecho: 'media',
+  core: 'media',
+  espalda: 'media',
+  glúteos: 'media',
+  movilidad: 'suave',
+});
+
+export function intensidadEjercicio(id) {
+  const ejercicio = obtenerEjercicio(id);
+  if (!ejercicio) return 'media';
+  const porGrupo = INTENSIDAD_POR_GRUPO[ejercicio.grupo];
+  if (porGrupo) return porGrupo;
+  if (ejercicio.modo === 'tiempo') return 'media';
+  return 'media';
+}

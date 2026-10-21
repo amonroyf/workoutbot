@@ -6,8 +6,20 @@ export const BPM_POR_SECCION = Object.freeze({
   enfriamiento: 92,
 });
 
-export function bpmSeccion(seccionId) {
-  return BPM_POR_SECCION[seccionId] || 126;
+// BPM por intensidad para el formato 'express' (clases sin secciones)
+export const BPM_POR_INTENCIDAD = Object.freeze({
+  suave: 104,
+  media: 126,
+  alta: 152,
+});
+
+export const BPM_POR_DEFECTO = 126;
+
+export function bpmSeccion(seccionId, intensidad = '') {
+  const porSeccion = BPM_POR_SECCION[seccionId];
+  if (porSeccion) return porSeccion;
+  const porIntensidad = BPM_POR_INTENCIDAD[intensidad];
+  return porIntensidad || BPM_POR_DEFECTO;
 }
 
 export class MotorMusica {

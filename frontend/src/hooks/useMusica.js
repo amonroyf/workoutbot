@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { MotorMusica, bpmSeccion } from '../engine/musica';
+import { intensidadEjercicio } from '../engine/ejercicios';
 
 export function useMusica() {
   const musicaActiva = useWorkoutStore((s) => s.musicaActiva);
@@ -10,6 +11,7 @@ export function useMusica() {
   const motorRef = useRef(null);
   const bloque = claseActual.bloques?.[bloqueActual];
   const seccionId = bloque?.seccionId;
+  const intensidad = bloque?.intensidad || intensidadEjercicio(bloque?.ejercicio);
 
   useEffect(() => {
     if (!motorRef.current) motorRef.current = new MotorMusica();
@@ -20,7 +22,7 @@ export function useMusica() {
       return undefined;
     }
 
-    const bpm = bpmSeccion(seccionId);
+    const bpm = bpmSeccion(seccionId, intensidad);
     if (motor.contexto) {
       motor.cambiarBpm(bpm);
     } else {
@@ -30,7 +32,7 @@ export function useMusica() {
         .setAvisoMusica(ok ? null : 'No se pudo activar la música en este navegador.');
     }
     return undefined;
-  }, [musicaActiva, faseActual, seccionId, claseActual]);
+  }, [musicaActiva, faseActual, seccionId, intensidad, claseActual]);
 
   useEffect(
     () => () => {

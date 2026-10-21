@@ -2,9 +2,15 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { obtenerFrase } from '../engine/voz';
 import { guionDemo } from '../engine/demos';
-import { nombreEjercicio } from '../engine/ejercicios';
+import { modificacionesEjercicio, nombreEjercicio } from '../engine/ejercicios';
 import { textoNarrado } from '../engine/progreso';
 import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
+import {
+  ajustarVoz,
+  esEnFuego,
+  mereceEuforia,
+  UMBRAL_COMBO_FUEGO,
+} from '../engine/personalidad';
 
 const MS_ENTRE_ANIMO = 16000;
 const MS_ENTRE_CORRECCION = 3500;
@@ -73,18 +79,17 @@ export function useEntrenadorVoz(resumen = null) {
       if (interrumpir) sintesis.cancel();
 
       // On Fire mode: when combo >= 5, heighten vocal intensity (rate + pitch)
-      const comboActual = comboRef.current;
-      const enFuego = comboActual >= 5;
-      const rateFuego = enFuego ? Math.min(rate + 0.05, 1.3) : rate;
-      const pitchFuego = enFuego ? Math.min(pitch + 0.1, 1.4) : pitch;
-      // Climax: el instructor levanta la voz en los últimos segundos
-      const rateClimax = climax ? Math.min(rateFuego + 0.08, 1.35) : rateFuego;
-      const pitchClimax = climax ? Math.min(pitchFuego + 0.15, 1.5) : pitchFuego;
+      const { enFuego, rate: rateFinal, pitch: pitchFinal } = ajustarVoz({
+        rate,
+        pitch,
+        combo: comboRef.current,
+        climax,
+      });
 
       const utterance = new SpeechSynthesisUtterance(texto);
       utterance.lang = 'es-CO';
-      utterance.rate = rateClimax;
-      utterance.pitch = pitchClimax;
+      utterance.rate = rateFinal;
+      utterance.pitch = pitchFinal;
       const voz = elegirVoz();
       if (voz) utterance.voice = voz;
 
@@ -205,17 +210,19 @@ export function useEntrenadorVoz(resumen = null) {
       if (repeticiones > 0 && repeticiones % 10 === 0) {
         hablar(obtenerFrase('HITO', rotacion.current++));
       } else if (
-        scoreRef.current != null &&
-        scoreRef.current >= UMBRAL_SCORE_PERFECTO &&
-        comboRef.current >= 5
+        mereceEuforia({
+          score: scoreRef.current,
+          combo: comboRef.current,
+          umbralPerfecto: UMBRAL_SCORE_PERFECTO,
+        })
       ) {
         // Repetición perfecta durante racha: activar modo On Fire
         hablar(obtenerFrase('ON_FIRE', rotacion.current++), { interrumpir: true });
       }
     }
 
-    // Anunciar On Fire cuando el combo cruza el umbral de 5
-    if (antes.combo < 5 && comboRef.current >= 5) {
+    // Anunciar On Fire cuando el combo cruza el umbral
+    if (antes.combo < UMBRAL_COMBO_FUEGO && esEnFuego(comboRef.current)) {
       hablar(obtenerFrase('ON_FIRE', rotacion.current++), { interrumpir: true });
     }
 
@@ -271,7 +278,9 @@ export function useEntrenadorVoz(resumen = null) {
       const ahora = Date.now();
       if (!avisoAtasco.current && ahora - ultimaRep.current >= MS_ATASCADO) {
         avisoAtasco.current = true;
-        hablar(obtenerFrase('ATASCADO', rotacion.current++));
+        // Alternativa concreta del ejercicio actual, no solo una frase genérica
+        const facil = modificacionesEjercicio(estado.ejercicioActual).facil;
+        hablar(`${obtenerFrase('ATASCADO', rotacion.current++)} Versión fácil: ${facil}.`);
         return;
       }
 

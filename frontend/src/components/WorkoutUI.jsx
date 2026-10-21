@@ -264,6 +264,12 @@ export default function WorkoutUI() {
                       Combo x{combo}
                     </span>
                   )}
+                  {combo >= 5 && (
+                    <span className="flex items-center gap-1 rounded-full bg-racha-500 px-3 py-1 text-sm font-black text-black">
+                      <Icono nombre="fuego" tamano={14} />
+                      On Fire
+                    </span>
+                  )}
                   {flashPerfecta > 0 && (
                     <span
                       key={flashPerfecta}
