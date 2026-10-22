@@ -35,6 +35,20 @@ export const UMBRAL_RODILLA_ESCALADOR = 120;
 export const UMBRAL_PIERNA_EXTENDIDA = 150;
 export const UMBRAL_SUPERMAN = 0.03;
 
+// Escritorio: la cámara solo necesita ver hombros y cabeza; las piernas
+// pueden quedar debajo del escritorio.
+export const UMBRAL_BRAZOS_ARRIBA = 0.05;
+export const UMBRAL_BRAZOS_NIVEL = 0.01;
+export const UMBRAL_BRAZOS_ABAJO = 0.06;
+export const UMBRAL_APERTURA_ABIERTO = 1.3;
+export const UMBRAL_APERTURA_CERRADO = 0.95;
+export const UMBRAL_ROTACION_TORSO = 0.3;
+export const UMBRAL_ROTACION_TORSO_NEUTRO = 0.1;
+export const UMBRAL_INCLINACION_CUELLO = 0.02;
+export const UMBRAL_INCLINACION_CUELLO_NEUTRO = 0.008;
+export const UMBRAL_DESVIO_NARIZ = 0.3;
+export const UMBRAL_NARIZ_BAJA = 0.15;
+
 export function crearEstadoDetector() {
   return {
     fase: 'ARRIBA',
@@ -496,6 +510,163 @@ export function detectarSuperman(landmarks, estado) {
   return resultado(estado, { mensaje }, false);
 }
 
+function centroY(landmarks, indices) {
+  return indices.reduce((total, i) => total + landmarks[i].y, 0) / indices.length;
+}
+
+// Círculos de brazos: cuenta cuando las muñecas pasan por encima de los
+// hombros y regresan (una vuelta completa).
+export function detectarCirculosBrazos(landmarks, estado) {
+  const visibles = [11, 12, 15, 16];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
+  }
+
+  const hombroY = centroY(landmarks, [11, 12]);
+  const munecaY = centroY(landmarks, [15, 16]);
+
+  let { fase } = estado;
+  let repeticion = false;
+
+  if (munecaY < hombroY - UMBRAL_BRAZOS_ARRIBA) {
+    if (fase === 'ABAJO') repeticion = true;
+    fase = 'ARRIBA';
+  } else if (munecaY > hombroY + UMBRAL_BRAZOS_NIVEL) {
+    fase = 'ABAJO';
+  }
+
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+// Elevaciones laterales: cuenta cuando las muñecas suben al nivel de los
+// hombros. Solo tren superior, no exige piernas.
+export function detectarElevacionBrazos(landmarks, estado) {
+  const visibles = [11, 12, 15, 16];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
+  }
+
+  const hombroY = centroY(landmarks, [11, 12]);
+  const munecaY = centroY(landmarks, [15, 16]);
+
+  let { fase } = estado;
+  let repeticion = false;
+
+  if (munecaY < hombroY + UMBRAL_BRAZOS_NIVEL) {
+    if (fase === 'ABAJO') repeticion = true;
+    fase = 'ARRIBA';
+  } else if (munecaY > hombroY + UMBRAL_BRAZOS_ABAJO) {
+    fase = 'ABAJO';
+  }
+
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+// Apertura de pecho: compara la separación de muñecas contra el ancho de
+// hombros. Abre y cierra; una rep por abertura.
+export function detectarAperturaPecho(landmarks, estado) {
+  const visibles = [11, 12, 15, 16];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
+  }
+
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const separacionMuñecas =
+    Math.abs(landmarks[16].x - landmarks[15].x) / anchoHombros;
+
+  let { fase } = estado;
+  let repeticion = false;
+
+  if (separacionMuñecas > UMBRAL_APERTURA_ABIERTO) {
+    if (fase === 'CERRADO') repeticion = true;
+    fase = 'ABIERTO';
+  } else if (separacionMuñecas < UMBRAL_APERTURA_CERRADO) {
+    fase = 'CERRADO';
+  }
+
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+// Rotación de torso: alterna la nariz a cada lado del centro de hombros.
+// Sentado frente a la cámara, la pierna no entra en juego.
+export function detectarRotacionTorso(landmarks, estado) {
+  const visibles = [0, 11, 12];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra tu rostro y hombros en la cámara' }, false);
+  }
+
+  const centroX = (landmarks[11].x + landmarks[12].x) / 2;
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const desvio = (landmarks[0].x - centroX) / anchoHombros;
+
+  let { ladoActivo } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (desvio < -UMBRAL_ROTACION_TORSO) {
+    if (ladoActivo !== 'IZQ') {
+      repeticion = ladoActivo === 'DER';
+      ladoActivo = 'IZQ';
+    }
+  } else if (desvio > UMBRAL_ROTACION_TORSO) {
+    if (ladoActivo !== 'DER') {
+      repeticion = ladoActivo === 'IZQ';
+      ladoActivo = 'DER';
+    }
+  } else if (Math.abs(desvio) < UMBRAL_ROTACION_TORSO_NEUTRO) {
+    ladoActivo = null;
+  } else {
+    mensaje = 'Vuelve al centro entre cada giro';
+  }
+
+  return resultado(estado, { ladoActivo, mensaje }, repeticion);
+}
+
+// Estiramiento de cuello: alterna inclinaciones hacia cada hombro.
+// Usa el desnivel entre orejas; si no se ven, recurre a la nariz.
+export function detectarEstiramientoCuello(landmarks, estado) {
+  if (!esVisible(landmarks, [11, 12], UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra tus hombros en la cámara' }, false);
+  }
+
+  const hombroY = centroY(landmarks, [11, 12]);
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const orejaI = landmarks[7];
+  const orejaD = landmarks[8];
+  const orejasVisibles =
+    (orejaI?.visibility ?? 0) > UMBRAL_VISIBILIDAD &&
+    (orejaD?.visibility ?? 0) > UMBRAL_VISIBILIDAD;
+
+  let lado = null;
+  if (orejasVisibles) {
+    const desnivel = orejaI.y - orejaD.y;
+    if (desnivel > UMBRAL_INCLINACION_CUELLO) lado = 'IZQ';
+    else if (desnivel < -UMBRAL_INCLINACION_CUELLO) lado = 'DER';
+  } else {
+    const nariz = landmarks[0];
+    if (nariz && (nariz.visibility ?? 1) > UMBRAL_VISIBILIDAD) {
+      const desvio = (nariz.x - (landmarks[11].x + landmarks[12].x) / 2) / anchoHombros;
+      const baja = nariz.y > hombroY - UMBRAL_NARIZ_BAJA;
+      if (baja && desvio < -UMBRAL_DESVIO_NARIZ) lado = 'IZQ';
+      else if (baja && desvio > UMBRAL_DESVIO_NARIZ) lado = 'DER';
+    }
+  }
+
+  let { ladoActivo } = estado;
+  let repeticion = false;
+
+  if (lado) {
+    if (ladoActivo !== lado) {
+      repeticion = ladoActivo != null;
+      ladoActivo = lado;
+    }
+  } else {
+    ladoActivo = null;
+  }
+
+  return resultado(estado, { ladoActivo, mensaje: null }, repeticion);
+}
+
 export const DETECTORES = {
   SENTADILLAS: detectarSentadilla,
   FLEXIONES: detectarFlexion,
@@ -508,4 +679,9 @@ export const DETECTORES = {
   MOUNTAIN_CLIMBER: detectarMountainClimber,
   PLANCHA_LATERAL: detectarPlanchaLateral,
   SUPERMAN: detectarSuperman,
+  CIRCULOS_BRAZOS: detectarCirculosBrazos,
+  ELEVACIONES_LATERALES: detectarElevacionBrazos,
+  APERTURA_PECHO: detectarAperturaPecho,
+  ROTACION_TORSO: detectarRotacionTorso,
+  ESTIRAMIENTO_CUELLO: detectarEstiramientoCuello,
 };

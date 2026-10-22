@@ -143,6 +143,20 @@ const CLASES_EXPRESS_BASE = Object.freeze([
       Object.freeze({ ejercicio: 'BIRD_DOG', trabajo: 30, descanso: 0 }),
     ]),
   }),
+  // Rutina de la pereza: todo sentado frente a la cámara, solo tren
+  // superior. Sin ropa de gimnasio ni salir de la silla del escritorio.
+  Object.freeze({
+    id: 'pausa-activa',
+    nombre: 'Pausa de Escritorio',
+    descripcion: 'El método perezoso. Suelta la tensión del teletrabajo sin levantarte de tu silla.',
+    nivel: 'principiante',
+    bloques: Object.freeze([
+      Object.freeze({ ejercicio: 'CIRCULOS_BRAZOS', trabajo: 20, descanso: 10 }),
+      Object.freeze({ ejercicio: 'ELEVACIONES_LATERALES', trabajo: 20, descanso: 10 }),
+      Object.freeze({ ejercicio: 'ROTACION_TORSO', trabajo: 30, descanso: 10 }),
+      Object.freeze({ ejercicio: 'ESTIRAMIENTO_CUELLO', trabajo: 20, descanso: 0 }),
+    ]),
+  }),
 ]);
 
 function congelarLista(lista) {

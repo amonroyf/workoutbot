@@ -31,7 +31,7 @@ describe('CLASES', () => {
   });
 
   it('incluye las clases nuevas', () => {
-    expect(CLASES).toHaveLength(13);
+    expect(CLASES).toHaveLength(14);
     expect(obtenerClase('funcional-45')).toBeTruthy();
     expect(obtenerClase('fuerza-total')).toBeTruthy();
     expect(obtenerClase('cardio-express')).toBeTruthy();
@@ -42,6 +42,7 @@ describe('CLASES', () => {
     expect(obtenerClase('core-fuerte')).toBeTruthy();
     expect(obtenerClase('full-body')).toBeTruthy();
     expect(obtenerClase('piernas-express')).toBeTruthy();
+    expect(obtenerClase('pausa-activa')).toBeTruthy();
   });
 
   it('incluye la clase completa Funcional 45', () => {
@@ -83,6 +84,7 @@ describe('CLASES', () => {
     expect(duracionClase(obtenerClase('core-fuerte'))).toBe(190);
     expect(duracionClase(obtenerClase('full-body'))).toBe(210);
     expect(duracionClase(obtenerClase('piernas-express'))).toBe(195);
+    expect(duracionClase(obtenerClase('pausa-activa'))).toBe(120);
   });
 
   it('busca clases por id', () => {

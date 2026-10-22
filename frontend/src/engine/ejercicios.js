@@ -264,6 +264,89 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
     demo: 'stick',
     pistas: ['Manos y rodillas en el piso', 'Estira brazo y pierna opuestos', 'No gires la cadera'],
   }),
+
+  // --- Rutinas de escritorio: solo tren superior, se pueden hacer sentado
+  // frente a la cámara sin alejarse ni cambiar de ropa.
+  CIRCULOS_BRAZOS: Object.freeze({
+    id: 'CIRCULOS_BRAZOS',
+    nombre: 'Círculos de brazos',
+    grupo: 'brazos',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    detector: 'circulos_brazos',
+    modo: 'reps',
+    demo: 'stick',
+    pistas: [
+      'Brazos extendidos',
+      'Dibuja círculos grandes',
+      'Alterna la dirección',
+    ],
+  }),
+  ELEVACIONES_LATERALES: Object.freeze({
+    id: 'ELEVACIONES_LATERALES',
+    nombre: 'Elevaciones laterales',
+    grupo: 'brazos',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    detector: 'elevacion_brazos',
+    modo: 'reps',
+    demo: 'stick',
+    pistas: [
+      'Sube los brazos a los lados',
+      'Hasta la altura de los hombros',
+      'Baja despacio, no con golpe',
+    ],
+  }),
+  APERTURA_PECHO: Object.freeze({
+    id: 'APERTURA_PECHO',
+    nombre: 'Apertura de pecho',
+    grupo: 'pecho',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    detector: 'apertura_pecho',
+    modo: 'reps',
+    demo: 'stick',
+    pistas: [
+      'Abre los brazos a los lados',
+      'Lleva los omóplatos atrás',
+      'Respira y abre más',
+    ],
+  }),
+  ROTACION_TORSO: Object.freeze({
+    id: 'ROTACION_TORSO',
+    nombre: 'Rotación de torso',
+    grupo: 'core',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    detector: 'rotacion_torso',
+    modo: 'reps',
+    demo: 'stick',
+    pistas: [
+      'Gira el torso a un lado',
+      'Lleva la mano al hombro contrario',
+      'Vuelve al centro y alterna',
+    ],
+  }),
+  ESTIRAMIENTO_CUELLO: Object.freeze({
+    id: 'ESTIRAMIENTO_CUELLO',
+    nombre: 'Estiramiento de cuello',
+    grupo: 'cuello',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    detector: 'estiramiento_cuello',
+    modo: 'reps',
+    demo: 'stick',
+    pistas: [
+      'Inclina la oreja hacia el hombro',
+      'Sin forzar el hombro',
+      'Cambia de lado y mantén',
+    ],
+  }),
 });
 
 export const MODIFICACIONES = Object.freeze({
@@ -288,6 +371,11 @@ export const MODIFICACIONES = Object.freeze({
   MARCHA_SUAVE: Object.freeze({ facil: 'Respira y camina lento', fuerte: 'Añade respiración profunda' }),
   ESTIRAMIENTO_GENERAL: Object.freeze({ facil: 'Estira sin llegar al límite', fuerte: 'Sostén más tiempo sin rebotar' }),
   BIRD_DOG: Object.freeze({ facil: 'Rango menor y apoyo firme', fuerte: 'Pausa en cada extensión' }),
+  CIRCULOS_BRAZOS: Object.freeze({ facil: 'Círculos más pequeños y codos semiflexionados', fuerte: 'Círculos más grandes, sostén arriba un momento' }),
+  ELEVACIONES_LATERALES: Object.freeze({ facil: 'Sube solo hasta donde no duela', fuerte: 'Pausa arriba o hazlo con botellas de agua' }),
+  APERTURA_PECHO: Object.freeze({ facil: 'Rango menor, sin llegar al límite', fuerte: 'Pausa abierta y hombros hacia atrás' }),
+  ROTACION_TORSO: Object.freeze({ facil: 'Gira sin forzar, la cabeza acompaña', fuerte: 'Gira más y sostén cada lado un momento' }),
+  ESTIRAMIENTO_CUELLO: Object.freeze({ facil: 'Menos inclinación, sin jalar', fuerte: 'Sostén más tiempo, apoya la mano suavemente' }),
 });
 
 export function obtenerEjercicio(id) {
@@ -325,6 +413,8 @@ const INTENSIDAD_POR_GRUPO = Object.freeze({
   espalda: 'media',
   glúteos: 'media',
   movilidad: 'suave',
+  brazos: 'media',
+  cuello: 'suave',
 });
 
 export function intensidadEjercicio(id) {

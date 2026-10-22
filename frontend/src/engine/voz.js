@@ -81,6 +81,31 @@ const TRABAJO = {
     'Abdominales. Sube con el abdomen y baja con control.',
     'Abdominales. Exhala al subir y mantén el ombligo adentro.',
   ],
+  CIRCULOS_BRAZOS: [
+    'Círculos de brazos. Suelta las piernas, solo mueve los hombros.',
+    'Círculos amplios. Deja que la tensión del escritorio se vaya.',
+    'Círculos de brazos, sin prisa. Respira profundo.',
+  ],
+  ELEVACIONES_LATERALES: [
+    'Elevaciones. Brazos arriba del escritorio y baja suave.',
+    'Elevaciones laterales. Hasta la altura de los hombros, sin golpe.',
+    'Elevaciones. Exhala al subir y baja despacio.',
+  ],
+  APERTURA_PECHO: [
+    'Apertura de pecho. Abre los omóplatos y suelta la espalda.',
+    'Apertura de pecho. Abre los brazos y respira amplio.',
+    'Apertura de pecho. Desarma la postura del teclado.',
+  ],
+  ROTACION_TORSO: [
+    'Rotación de torso. Gira suave, la espalda de la silla lo agradece.',
+    'Rotación de torso. Mano al hombro contrario y vuelve al centro.',
+    'Rotación de torso. Sin prisa, gira hasta donde llegue.',
+  ],
+  ESTIRAMIENTO_CUELLO: [
+    'Estiramiento de cuello. Suave, sin forzar.',
+    'Oreja hacia el hombro. Suelta la tensión del cuello.',
+    'Cierra los ojos un momento y respira profundo.',
+  ],
 };
 
 const TRABAJO_GENERAL = [

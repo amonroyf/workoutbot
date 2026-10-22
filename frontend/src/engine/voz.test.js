@@ -35,6 +35,22 @@ describe('obtenerFrase', () => {
     expect(obtenerFrase('NO_EXISTE', 0)).toBe('');
   });
 
+  it('tiene frases suaves propias para la pausa de escritorio', () => {
+    const general = obtenerFrase('TRABAJO', 0, 'BAILE');
+    const frases = [
+      'CIRCULOS_BRAZOS',
+      'ELEVACIONES_LATERALES',
+      'APERTURA_PECHO',
+      'ROTACION_TORSO',
+      'ESTIRAMIENTO_CUELLO',
+    ].map((ejercicio) => obtenerFrase('TRABAJO', 0, ejercicio));
+    expect(new Set(frases).size).toBe(frases.length);
+    for (const frase of frases) {
+      expect(frase.length).toBeGreaterThan(0);
+      expect(frase).not.toBe(general);
+    }
+  });
+
   it('tiene frases propias para el modo On Fire', () => {
     const frases = [0, 1, 2].map((i) => obtenerFrase('ON_FIRE', i));
     for (const frase of frases) {
