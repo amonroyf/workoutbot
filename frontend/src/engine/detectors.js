@@ -49,6 +49,11 @@ export const UMBRAL_INCLINACION_CUELLO_NEUTRO = 0.008;
 export const UMBRAL_DESVIO_NARIZ = 0.3;
 export const UMBRAL_NARIZ_BAJA = 0.15;
 
+// Wall sit: torso vertical y rodillas cerca de 90 grados.
+export const UMBRAL_TORSO_VERTICAL = 0.1;
+export const UMBRAL_RODILLA_90_ALTA = 110;
+export const UMBRAL_RODILLA_90_BAJA = 70;
+
 export function crearEstadoDetector() {
   return {
     fase: 'ARRIBA',
@@ -667,7 +672,44 @@ export function detectarEstiramientoCuello(landmarks, estado) {
   return resultado(estado, { ladoActivo, mensaje: null }, repeticion);
 }
 
+// Wall sit: ejercicio de sostén. No cuenta repeticiones; califica la
+// postura cada frame para energan el minijuego del techo.
+export function detectarWallSit(landmarks, estado) {
+  const scoreForma = calcularScoreForma('WALL_SIT', landmarks);
+  const lado = mejorLado(landmarks, LADOS_SENTADILLA);
+
+  if (!lado || scoreForma == null) {
+    return resultado(
+      estado,
+      { mensaje: 'Ponte de perfil con todo el cuerpo visible', scoreForma },
+      false
+    );
+  }
+
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [caderaN, rodillaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(caderaN, rodillaN, tobilloN);
+  // La verticalidad se mide en coordenadas brutas: la normalización
+  // recentra la cadera y desplaza el eje x.
+  const indiceHombro = lado.indices[0] === 23 ? 11 : 12;
+  const torsoVertical =
+    Math.abs(landmarks[indiceHombro].x - landmarks[lado.indices[0]].x) <
+    UMBRAL_TORSO_VERTICAL;
+
+  let mensaje = null;
+  if (angulo > UMBRAL_RODILLA_90_ALTA) {
+    mensaje = 'Baja más: rodillas a 90 grados';
+  } else if (angulo < UMBRAL_RODILLA_90_BAJA) {
+    mensaje = 'Sube un poco: rodillas a 90 grados';
+  } else if (!torsoVertical) {
+    mensaje = 'Ponte de perfil con la espalda pegada a la pared';
+  }
+
+  return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
+}
+
 export const DETECTORES = {
+  WALL_SIT: detectarWallSit,
   SENTADILLAS: detectarSentadilla,
   FLEXIONES: detectarFlexion,
   JUMPING_JACKS: detectarJumpingJack,

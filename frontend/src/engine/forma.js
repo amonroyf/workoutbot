@@ -11,6 +11,7 @@ const INDICES = Object.freeze({
   sumo: [11, 12, 23, 24, 25, 26, 27, 28],
   flexion: [11, 12, 13, 14, 15, 16, 23, 24, 27, 28],
   plancha: [11, 12, 23, 24, 27, 28],
+  pared: [11, 12, 23, 24, 25, 26, 27, 28],
 });
 
 const TIPOS = Object.freeze({
@@ -20,6 +21,7 @@ const TIPOS = Object.freeze({
   FLEXION_DIAMANTE: 'flexion',
   PLANCHA: 'plancha',
   PLANCHA_LATERAL: 'plancha',
+  WALL_SIT: 'pared',
 });
 
 function puntoMedio(a, b) {
@@ -145,6 +147,26 @@ function scorePlancha(n) {
   return porcentaje(0.55 * linea + 0.3 * horizontal + 0.15 * simetria);
 }
 
+// Wall sit: rodillas a 90 grados, torso vertical y piernas simétricas.
+function scorePared(n) {
+  const hombro = puntoMedio(n[11], n[12]);
+  const cadera = puntoMedio(n[23], n[24]);
+  const torso = vector(hombro, cadera);
+
+  const rodillas = scoreAngulo(
+    promedio([
+      calculateAngle(n[23], n[25], n[27]),
+      calculateAngle(n[24], n[26], n[28]),
+    ]),
+    90,
+    30
+  );
+  const torsoVertical = scoreParalelo(torso, { x: 0, y: 1 });
+  const simetria = scoreParalelo(vector(n[23], n[25]), vector(n[24], n[26]));
+
+  return porcentaje(0.5 * rodillas + 0.35 * torsoVertical + 0.15 * simetria);
+}
+
 export function calcularScoreForma(ejercicio, landmarks) {
   const tipo = TIPOS[ejercicio];
   if (!tipo) return null;
@@ -158,5 +180,6 @@ export function calcularScoreForma(ejercicio, landmarks) {
   if (tipo === 'sentadilla') return scoreSentadilla(normalizados);
   if (tipo === 'sumo') return scoreSentadilla(normalizados, true);
   if (tipo === 'flexion') return scoreFlexion(normalizados);
+  if (tipo === 'pared') return scorePared(normalizados);
   return scorePlancha(normalizados);
 }

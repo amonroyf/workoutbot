@@ -14,6 +14,7 @@ import { useMusica } from '../hooks/useMusica';
 import Icono from './Icono';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
+import MinijuegoTecho from './MinijuegoTecho';
 
 function AnilloRep({ fase }) {
   const radio = 24;
@@ -111,6 +112,11 @@ export default function WorkoutUI() {
   const abrirDemoActual = () => {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   };
+
+  // Minijuego somatosensorial: el wall sit se juega sosteniendo un techo
+  // virtual con la postura.
+  const mostrarTecho =
+    faseActual === 'TRABAJO' && !pausado && !demoAbierta && ejercicioActual === 'WALL_SIT';
 
   return (
     <div className="absolute inset-0 z-10 text-tinta-100">
@@ -239,7 +245,14 @@ export default function WorkoutUI() {
         )}
 
         {faseActual === 'TRABAJO' ? (
-          esTiempo ? (
+          mostrarTecho ? (
+            <div className="mt-3 w-full max-w-sm">
+              <MinijuegoTecho />
+              <p className="mt-1 text-xs font-semibold text-tinta-400">
+                Mantén rodillas a 90° para frenar el techo
+              </p>
+            </div>
+          ) : esTiempo ? (
             <div className="mt-3 flex flex-col items-center gap-2">
               <p className="text-3xl font-black text-marca-300">{consigna.consigna}</p>
               <p className="text-sm text-tinta-300">{consigna.consignaAyuda}</p>

@@ -11,6 +11,7 @@ import {
   detectarMountainClimber,
   detectarPlanchaLateral,
   detectarSuperman,
+  detectarWallSit,
   detectarCirculosBrazos,
   detectarElevacionBrazos,
   detectarAperturaPecho,
@@ -704,9 +705,65 @@ describe('detectarEstiramientoCuello', () => {
   });
 });
 
+// --- Wall sit: sostén el minijuego del techo con la postura.
+const WALL_SIT_PERFECTO = {
+  11: { x: 0.5, y: 0.2 },
+  12: { x: 0.5, y: 0.2 },
+  23: { x: 0.5, y: 0.5 },
+  24: { x: 0.5, y: 0.5 },
+  25: { x: 0.5, y: 0.65 },
+  26: { x: 0.5, y: 0.65 },
+  27: { x: 0.65, y: 0.65 },
+  28: { x: 0.65, y: 0.65 },
+};
+const WALL_SIT_DE_PIE = {
+  ...WALL_SIT_PERFECTO,
+  27: { x: 0.5, y: 0.85 },
+  28: { x: 0.5, y: 0.85 },
+};
+const WALL_SIT_INCLINADO = {
+  ...WALL_SIT_PERFECTO,
+  11: { x: 0.68, y: 0.25 },
+  12: { x: 0.68, y: 0.25 },
+};
+
+describe('detectarWallSit', () => {
+  it('califica 90 grados con torso vertical sin mensaje', () => {
+    const r = alimentar(detectarWallSit, conPuntos(WALL_SIT_PERFECTO), crearEstadoDetector(), 3);
+    expect(r.estado.scoreForma).toBeGreaterThanOrEqual(85);
+    expect(r.estado.mensaje).toBeNull();
+    expect(r.repeticiones).toBe(0);
+  });
+
+  it('pide bajar si las rodillas van rectas', () => {
+    const r = alimentar(detectarWallSit, conPuntos(WALL_SIT_DE_PIE), crearEstadoDetector(), 3);
+    expect(r.estado.mensaje).toBe('Baja más: rodillas a 90 grados');
+    expect(r.estado.scoreForma).toBeLessThan(60);
+  });
+
+  it('pide pegar la espalda a la pared si el torso se inclina', () => {
+    const r = alimentar(detectarWallSit, conPuntos(WALL_SIT_INCLINADO), crearEstadoDetector(), 3);
+    expect(r.estado.mensaje).toBe('Ponte de perfil con la espalda pegada a la pared');
+  });
+
+  it('no cuenta repeticiones (es ejercicio de tiempo)', () => {
+    const r = alimentar(detectarWallSit, conPuntos(WALL_SIT_PERFECTO), crearEstadoDetector(), 10);
+    expect(r.repeticiones).toBe(0);
+  });
+
+  it('avisa si no ve el cuerpo entero de perfil', () => {
+    const base = conPuntos(WALL_SIT_PERFECTO);
+    const oculto = base.map((p, i) => (i === 27 ? { ...p, visibility: 0 } : p));
+    const r = alimentar(detectarWallSit, oculto, crearEstadoDetector(), 2);
+    expect(r.estado.mensaje).toContain('de perfil');
+    expect(r.estado.scoreForma).toBeNull();
+  });
+});
+
 describe('DETECTORES', () => {
   it('mapea los ejercicios del catalogo', () => {
     expect(Object.keys(DETECTORES)).toEqual([
+      'WALL_SIT',
       'SENTADILLAS',
       'FLEXIONES',
       'JUMPING_JACKS',
