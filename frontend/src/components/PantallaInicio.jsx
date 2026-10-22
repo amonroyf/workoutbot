@@ -21,6 +21,7 @@ import PlanSemanal from './PlanSemanal';
 import GuiaPrimeraVez from './GuiaPrimeraVez';
 import { Esqueleto } from './Esqueleto';
 import { useInstalarApp } from '../hooks/useInstalarApp';
+import EliminarCuenta from './EliminarCuenta';
 
 const NIVELES = {
   principiante: 'Principiante',
@@ -84,7 +85,10 @@ export default function PantallaInicio({
   claseActual,
   errorCamara,
   camaraActiva,
+  camaraHabilitada,
   onReintentarCamara,
+  onActivarCamara,
+  onDesactivarCamara,
   onEmpezar,
   onSeleccionarClase,
   onGuardarPlan,
@@ -97,6 +101,7 @@ export default function PantallaInicio({
   const [hojaAbierta, setHojaAbierta] = useState(false);
   const [verDetalle, setVerDetalle] = useState(false);
   const [instruccionesIos, setInstruccionesIos] = useState(false);
+  const [eliminarCuentaAbierto, setEliminarCuentaAbierto] = useState(false);
   const {
     puedeInstalar,
     instalada,
@@ -163,27 +168,64 @@ export default function PantallaInicio({
           </div>
         </header>
 
-        {errorCamara && (
-          <div className="mt-3 flex items-start gap-2 rounded-panel border border-error-500/40 bg-tinta-900 p-3 text-left">
-            <Icono nombre="alerta" tamano={16} className="mt-0.5 shrink-0 text-error-300" />
-            <p className="flex-1 text-xs text-tinta-200">{errorCamara}</p>
+        {!camaraHabilitada ? (
+          <div className="mt-3 flex items-start gap-2 rounded-panel border border-aviso-400/30 bg-aviso-500/10 p-3 text-left">
+            <Icono nombre="camara" tamano={16} className="mt-0.5 shrink-0 text-aviso-300" />
+            <div className="flex-1">
+              <p className="text-xs font-bold text-aviso-200">Modo sin cámara</p>
+              <p className="mt-0.5 text-[11px] text-tinta-400">
+                Temporizador y voz guían la clase. Usa +1 o −1 para las repeticiones.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={onReintentarCamara}
-              className="flex min-h-9 shrink-0 items-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
+              onClick={onActivarCamara}
+              className="min-h-9 shrink-0 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
             >
-              <Icono nombre="reproducir" tamano={14} />
-              Reintentar
+              Activar
             </button>
           </div>
-        )}
+        ) : (
+          <>
+            {errorCamara && (
+              <div className="mt-3 flex items-start gap-2 rounded-panel border border-error-500/40 bg-tinta-900 p-3 text-left">
+                <Icono nombre="alerta" tamano={16} className="mt-0.5 shrink-0 text-error-300" />
+                <p className="flex-1 text-xs text-tinta-200">{errorCamara}</p>
+                <div className="flex shrink-0 flex-col gap-1">
+                  <button
+                    type="button"
+                    onClick={onReintentarCamara}
+                    className="flex min-h-9 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
+                  >
+                    <Icono nombre="reproducir" tamano={14} />
+                    Reintentar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onDesactivarCamara}
+                    className="min-h-8 rounded-boton border border-linea px-2 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800"
+                  >
+                    Sin cámara
+                  </button>
+                </div>
+              </div>
+            )}
 
-        {!camaraActiva && !errorCamara && (
-          <div className="mt-3 flex items-center gap-2 rounded-panel border border-linea bg-tinta-900/80 p-2.5 text-[11px] text-tinta-400">
-            <Icono nombre="camara" tamano={14} className="text-marca-400" />
-            Preparando la cámara
-            <Esqueleto className="h-1.5 w-10" redondeado="rounded-chip" />
-          </div>
+            {!camaraActiva && !errorCamara && (
+              <div className="mt-3 flex items-center gap-2 rounded-panel border border-linea bg-tinta-900/80 p-2.5 text-[11px] text-tinta-400">
+                <Icono nombre="camara" tamano={14} className="text-marca-400" />
+                Preparando la cámara
+                <Esqueleto className="h-1.5 w-10" redondeado="rounded-chip" />
+                <button
+                  type="button"
+                  onClick={onDesactivarCamara}
+                  className="ml-auto min-h-7 rounded-boton px-1.5 text-[10px] font-bold text-tinta-400 hover:text-tinta-200"
+                >
+                  Sin cámara
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         <section className="relative mt-3 overflow-hidden rounded-ficha border border-linea bg-panel p-4">
@@ -399,12 +441,24 @@ export default function PantallaInicio({
             >
               Cerrar sesión
             </button>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              onClick={() => setEliminarCuentaAbierto(true)}
+              className="min-h-8 font-bold text-error-400 hover:text-error-300"
+            >
+              Eliminar cuenta
+            </button>
           </div>
           <p className="text-center">
             Tu video no se sube. La pose se procesa en tu dispositivo.
           </p>
         </footer>
       </main>
+
+      {eliminarCuentaAbierto && (
+        <EliminarCuenta onCerrar={() => setEliminarCuentaAbierto(false)} />
+      )}
 
       {instruccionesIos && (
         <div

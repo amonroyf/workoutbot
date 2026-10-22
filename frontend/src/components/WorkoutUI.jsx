@@ -15,6 +15,7 @@ import Icono from './Icono';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
 import MinijuegoTecho from './MinijuegoTecho';
+import MarcoEncuadre from './MarcoEncuadre';
 
 function AnilloRep({ fase }) {
   const radio = 24;
@@ -78,6 +79,10 @@ export default function WorkoutUI() {
     setMusicaActiva,
     abrirDemo,
     cerrarDemo,
+    registrarRepeticion,
+    quitarRepeticion,
+    camaraHabilitada,
+    setCamaraHabilitada,
   } = useWorkoutStore();
 
   useMusica();
@@ -116,7 +121,11 @@ export default function WorkoutUI() {
   // Minijuego somatosensorial: el wall sit se juega sosteniendo un techo
   // virtual con la postura.
   const mostrarTecho =
-    faseActual === 'TRABAJO' && !pausado && !demoAbierta && ejercicioActual === 'WALL_SIT';
+    faseActual === 'TRABAJO' &&
+    !pausado &&
+    !demoAbierta &&
+    camaraHabilitada &&
+    ejercicioActual === 'WALL_SIT';
 
   return (
     <div className="absolute inset-0 z-10 text-tinta-100">
@@ -182,6 +191,16 @@ export default function WorkoutUI() {
           </div>
         )}
         <MapaCircuito />
+        {!camaraHabilitada && (
+          <button
+            type="button"
+            onClick={() => setCamaraHabilitada(true)}
+            className="mt-1 flex min-h-8 items-center gap-1 rounded-chip border border-aviso-400/40 bg-aviso-500/15 px-2.5 text-[10px] font-bold text-aviso-300"
+          >
+            <Icono nombre="camara" tamano={12} />
+            Modo sin cámara · Toca para activar
+          </button>
+        )}
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2 border-t border-linea bg-tinta-950/85 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-md">
@@ -266,6 +285,25 @@ export default function WorkoutUI() {
             <div className="mt-3 flex items-center gap-4">
               <div className="text-left">
                 <p className="text-2xl font-bold">Repeticiones: {repeticiones}</p>
+                <div className="mt-2 flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={quitarRepeticion}
+                    aria-label="Quitar una repetición"
+                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-linea bg-tinta-900/80 text-lg font-black text-tinta-200 transition hover:bg-tinta-800"
+                  >
+                    −1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => registrarRepeticion(false)}
+                    aria-label="Sumar una repetición"
+                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-marca-400/40 bg-marca-500/15 text-lg font-black text-marca-300 transition hover:bg-marca-500/25"
+                  >
+                    +1
+                  </button>
+                  <span className="text-[10px] text-tinta-500">Ajuste manual</span>
+                </div>
                 <div className="mt-1 flex flex-wrap items-center gap-2">
                   {scoreForma != null && (
                     <span className={`rounded-full px-3 py-1 text-sm font-black ${colorScore}`}>
@@ -330,15 +368,36 @@ export default function WorkoutUI() {
           <p className="text-6xl font-black">PAUSA</p>
           <p className="text-xl text-tinta-200">
             {pausadoPor === 'faltaPose'
-              ? 'No te veo. Vuelve al cuadro de la cámara.'
+              ? 'No te veo. Ajusta el encuadre para seguir.'
               : 'Respira. Sigue cuando estés listo.'}
           </p>
+
+          {pausadoPor === 'faltaPose' && (
+            <>
+              <MarcoEncuadre className="h-36 w-full max-w-xs" />
+              <p className="max-w-xs text-xs text-tinta-300">
+                Que se vean cabeza, manos y pies. Deja unos 2 metros y pon luz
+                de frente.
+              </p>
+            </>
+          )}
+
           <button
             onClick={togglePausa}
             className="rounded-boton bg-marca-500 px-8 py-3 text-2xl font-bold hover:bg-marca-600"
           >
             Seguir
           </button>
+
+          {pausadoPor === 'faltaPose' && (
+            <button
+              type="button"
+              onClick={() => setCamaraHabilitada(false)}
+              className="min-h-11 rounded-boton border border-linea px-5 text-sm font-bold text-tinta-300 hover:bg-tinta-900"
+            >
+              Seguir sin cámara
+            </button>
+          )}
         </div>
       )}
 

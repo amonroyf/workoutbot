@@ -6,6 +6,10 @@ import {
   totalesVacios,
 } from '../engine/circuito';
 import { CLASE_INICIAL, obtenerClase } from '../engine/clases';
+import {
+  guardarCamaraHabilitada,
+  leerCamaraHabilitada,
+} from '../engine/camara';
 
 const INTERVALO_TICK_MS = 250;
 
@@ -46,12 +50,24 @@ export const useWorkoutStore = create((set, get) => ({
   errorCamara: null,
   reintentoCamara: 0,
   camaraActiva: false,
+  camaraHabilitada: leerCamaraHabilitada(),
 
   setCamaraActiva: (camaraActiva) => set({ camaraActiva }),
 
   setErrorCamara: (errorCamara) => set({ errorCamara }),
 
   setReintentoCamara: (reintentoCamara) => set({ reintentoCamara }),
+
+  setCamaraHabilitada: (valor) => {
+    const habilitada = Boolean(valor);
+    guardarCamaraHabilitada(habilitada);
+    set({
+      camaraHabilitada: habilitada,
+      camaraActiva: habilitada ? get().camaraActiva : false,
+      errorCamara: null,
+    });
+    if (!habilitada && get().pausadoPor === 'faltaPose') get().reanudar();
+  },
 
   seleccionarClase: (claseId) => {
     if (get().faseActual !== 'CALIBRACION') return;
@@ -124,6 +140,12 @@ export const useWorkoutStore = create((set, get) => ({
       };
     });
   },
+
+  quitarRepeticion: () =>
+    set((estado) => ({
+      repeticiones: Math.max(0, estado.repeticiones - 1),
+      combo: 0,
+    })),
 
   setFaseRepeticion: (faseRepeticion) => set({ faseRepeticion }),
 

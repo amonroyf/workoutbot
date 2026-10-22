@@ -71,6 +71,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/workout/finish", chainMiddleware(finishWorkoutHandler, apiLimiter))
 	mux.HandleFunc("/api/v1/stats", chainMiddleware(statsHandler, apiLimiter))
+	mux.HandleFunc("/api/v1/account", chainMiddleware(deleteAccountHandler, apiLimiter))
 	mux.HandleFunc("/health", healthHandler)
 
 	port := os.Getenv("PORT")
@@ -205,6 +206,70 @@ func finishWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 		respuesta["resumen"] = resumen
 	}
 	json.NewEncoder(w).Encode(respuesta)
+}
+
+func deleteAccountHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Método no permitido", http.StatusMethodNotAllowed)
+		return
+	}
+
+	uid, err := verificarToken(r)
+	if err != nil {
+		responderError(w, "unauthorized", "Token inválido o expirado", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
+	defer cancel()
+
+	for _, coleccion := range []string{"checkins", "workout_logs"} {
+		if err := borrarDocumentosPorUID(ctx, coleccion, uid); err != nil {
+			log.Printf("Error borrando %s de uid=%s: %v", coleccion, uid, err)
+			responderError(w, "internal_error", "No se pudieron borrar los datos", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err := firebaseAuth.DeleteUser(ctx, uid); err != nil && !auth.IsUserNotFound(err) {
+		log.Printf("Error borrando usuario uid=%s: %v", uid, err)
+		responderError(w, "internal_error", "No se pudo borrar la cuenta", http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("Cuenta eliminada: uid=%s", uid)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"message": "Cuenta eliminada",
+	})
+}
+
+func borrarDocumentosPorUID(ctx context.Context, coleccion, uid string) error {
+	for {
+		iter := firestoreClient.Collection(coleccion).Where("uid", "==", uid).Limit(400).Documents(ctx)
+		batch := firestoreClient.Batch()
+		total := 0
+
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return err
+			}
+			batch.Delete(doc.Ref)
+			total++
+		}
+
+		if total == 0 {
+			return nil
+		}
+		if _, err := batch.Commit(ctx); err != nil {
+			return err
+		}
+	}
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {

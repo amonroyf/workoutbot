@@ -26,7 +26,7 @@ const POSE_CONNECTIONS = [
 
 export const COOLDOWN_REP_MS = 300;
 
-export function useMediaPipe(videoRef, canvasRef) {
+export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [modeloPose] = useState(() => elegirModeloPose());
   const [modeloActivo, setModeloActivo] = useState(null);
@@ -44,6 +44,13 @@ export function useMediaPipe(videoRef, canvasRef) {
   const setScoreForma = useWorkoutStore((state) => state.setScoreForma);
 
   useEffect(() => {
+    if (!habilitada) {
+      setIsLoaded(false);
+      poseLandmarker.current?.close();
+      poseLandmarker.current = null;
+      return undefined;
+    }
+
     let cancelado = false;
 
     const initModel = async () => {
@@ -90,7 +97,7 @@ export function useMediaPipe(videoRef, canvasRef) {
       poseLandmarker.current?.close();
       poseLandmarker.current = null;
     };
-  }, [modeloPose]);
+  }, [modeloPose, habilitada]);
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height) => {
     ctx.clearRect(0, 0, width, height);
@@ -151,6 +158,8 @@ export function useMediaPipe(videoRef, canvasRef) {
   );
 
   const detectFrame = useCallback(() => {
+    if (!habilitada) return;
+
     if (!poseLandmarker.current || !videoRef.current || !canvasRef.current) {
       animFrameRef.current = requestAnimationFrame(detectFrame);
       return;
@@ -205,12 +214,26 @@ export function useMediaPipe(videoRef, canvasRef) {
       }
     }
 
-    if (activo && !estado.pausado && ultimaPoseMs.current > 0 && sinPoseMs > 2000) {
+    if (
+      activo &&
+      !estado.pausado &&
+      estado.camaraHabilitada &&
+      ultimaPoseMs.current > 0 &&
+      sinPoseMs > 2000
+    ) {
       estado.pausar('faltaPose');
     }
 
     animFrameRef.current = requestAnimationFrame(detectFrame);
-  }, [videoRef, canvasRef, drawSkeleton, procesarEjercicio, actualizarMensaje, setScoreForma]);
+  }, [
+    videoRef,
+    canvasRef,
+    habilitada,
+    drawSkeleton,
+    procesarEjercicio,
+    actualizarMensaje,
+    setScoreForma,
+  ]);
 
   useEffect(() => {
     if (isLoaded) {

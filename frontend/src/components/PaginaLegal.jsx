@@ -221,6 +221,16 @@ export default function PaginaLegal({ ruta }) {
               </p>
             </Bloque>
 
+            <Bloque titulo="Eliminar tu cuenta">
+              <p>
+                En la pantalla de inicio, toca “Eliminar cuenta” en el pie de
+                página. Confirma escribiendo ELIMINAR y vuelve a entrar con
+                Google. Borramos tu perfil, tu historial y tus preferencias
+                guardadas en este dispositivo. Si no puedes iniciar sesión, abre
+                un caso en <Enlace href={CONTACTO}>el repositorio del proyecto</Enlace>.
+              </p>
+            </Bloque>
+
             <Bloque titulo="Tus derechos">
               <p>
                 Puedes conocer, actualizar, corregir y solicitar la eliminación

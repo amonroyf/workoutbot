@@ -1,4 +1,5 @@
 export const CLAVE_GUIA = 'workoutbot:guia:v1';
+export const CLAVE_ONBOARDING = 'workoutbot:onboarding:v1';
 
 export const PASOS_PRIMERA_VEZ = Object.freeze([
   Object.freeze({
@@ -45,6 +46,25 @@ export function marcarGuiaVista(storage = almacenamientoPorDefecto()) {
   if (!storage) return false;
   try {
     storage.setItem(CLAVE_GUIA, '1');
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+export function onboardingVisto(storage = almacenamientoPorDefecto()) {
+  if (!storage) return false;
+  try {
+    return storage.getItem(CLAVE_ONBOARDING) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function marcarOnboardingVisto(storage = almacenamientoPorDefecto()) {
+  if (!storage) return false;
+  try {
+    storage.setItem(CLAVE_ONBOARDING, '1');
   } catch {
     return false;
   }

@@ -20,7 +20,6 @@ function mensajeDeError(err) {
 export default function CameraFeed() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const { isLoaded } = useMediaPipe(videoRef, canvasRef);
   const faseActual = useWorkoutStore((s) => s.faseActual);
   const errorCamara = useWorkoutStore((s) => s.errorCamara);
   const reintento = useWorkoutStore((s) => s.reintentoCamara);
@@ -28,6 +27,9 @@ export default function CameraFeed() {
   const setReintento = useWorkoutStore((s) => s.setReintentoCamara);
   const activa = useWorkoutStore((s) => s.camaraActiva);
   const setActiva = useWorkoutStore((s) => s.setCamaraActiva);
+  const camaraHabilitada = useWorkoutStore((s) => s.camaraHabilitada);
+  const setCamaraHabilitada = useWorkoutStore((s) => s.setCamaraHabilitada);
+  const { isLoaded } = useMediaPipe(videoRef, canvasRef, camaraHabilitada);
   const enClase = faseActual === 'TRABAJO' || faseActual === 'DESCANSO';
 
   useEffect(() => {
@@ -35,6 +37,11 @@ export default function CameraFeed() {
     let activo = true;
     setErrorCamara(null);
     setActiva(false);
+
+    if (!camaraHabilitada) {
+      if (videoRef.current) videoRef.current.srcObject = null;
+      return undefined;
+    }
 
     const video = videoRef.current;
     if (!video) return undefined;
@@ -77,7 +84,7 @@ export default function CameraFeed() {
       if (stream) stream.getTracks().forEach((t) => t.stop());
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, [reintento]);
+  }, [reintento, camaraHabilitada]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -102,32 +109,47 @@ export default function CameraFeed() {
     <>
       <video
         ref={videoRef}
-        className="absolute inset-0 w-full h-full object-cover opacity-60"
+        className={`absolute inset-0 h-full w-full object-cover ${
+          camaraHabilitada ? 'opacity-60' : 'opacity-0'
+        }`}
         autoPlay
         playsInline
         muted
       />
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full object-cover" />
-      {!activa && !errorCamara && enClase && (
+      <canvas
+        ref={canvasRef}
+        className={`absolute inset-0 h-full w-full object-cover ${
+          camaraHabilitada ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+      {camaraHabilitada && !activa && !errorCamara && enClase && (
         <div className="absolute left-1/2 top-[calc(1rem+env(safe-area-inset-top))] z-20 flex -translate-x-1/2 items-center gap-2 rounded-chip border border-linea bg-tinta-950/85 px-4 py-2 text-sm text-tinta-200 backdrop-blur">
           <Icono nombre="camara" tamano={16} className="text-marca-400" />
           Activando cámara
           <Esqueleto className="h-2 w-12" redondeado="rounded-chip" />
         </div>
       )}
-      {errorCamara && enClase && (
+      {camaraHabilitada && errorCamara && enClase && (
         <div
           className="absolute bottom-[calc(6.5rem+env(safe-area-inset-bottom))] left-3 z-20 flex max-w-[calc(100%-7.5rem)] items-center gap-2 rounded-panel border border-error-500/40 bg-tinta-950/95 px-3 py-2 text-left text-xs text-tinta-100"
         >
           <Icono nombre="alerta" tamano={16} className="shrink-0 text-error-300" />
-          <span className="line-clamp-2">{errorCamara}</span>
-          <button
-            onClick={() => setReintento(reintento + 1)}
-            className="flex min-h-9 shrink-0 items-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
-          >
-            <Icono nombre="reproducir" tamano={14} />
-            Reintentar
-          </button>
+          <span className="line-clamp-2 flex-1">{errorCamara}</span>
+          <div className="flex shrink-0 flex-col gap-1">
+            <button
+              onClick={() => setReintento(reintento + 1)}
+              className="flex min-h-9 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+            >
+              <Icono nombre="reproducir" tamano={14} />
+              Reintentar
+            </button>
+            <button
+              onClick={() => setCamaraHabilitada(false)}
+              className="min-h-8 rounded-boton border border-linea px-2 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800"
+            >
+              Sin cámara
+            </button>
+          </div>
         </div>
       )}
     </>

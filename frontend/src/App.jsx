@@ -5,7 +5,13 @@ import { useWorkoutStore } from './store/workoutStore';
 import { calcularTotal } from './engine/score';
 import { duracionClase } from './engine/clases';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
-import { esPrimeraVez, guiaVista, marcarGuiaVista } from './engine/primeraVez';
+import {
+  esPrimeraVez,
+  guiaVista,
+  marcarGuiaVista,
+  marcarOnboardingVisto,
+  onboardingVisto,
+} from './engine/primeraVez';
 import {
   esIos,
   puedeEntrarEnPantallaCompleta,
@@ -16,6 +22,7 @@ import WorkoutUI from './components/WorkoutUI';
 import SummaryScreen from './components/SummaryScreen';
 import LoginScreen from './components/LoginScreen';
 import PantallaInicio from './components/PantallaInicio';
+import Onboarding from './components/Onboarding';
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
 import { useEntrenadorVoz } from './hooks/useEntrenadorVoz';
 import { track } from './engine/analytics';
@@ -31,12 +38,16 @@ export default function App() {
   const [resumenActual, setResumenActual] = useState(null);
   const [cargandoResumen, setCargandoResumen] = useState(false);
   const [guiaVisible, setGuiaVisible] = useState(() => !guiaVista());
+  const [onboardingVisible, setOnboardingVisible] = useState(() => !onboardingVisto());
+  const [resumenIntentado, setResumenIntentado] = useState(false);
   const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
   const claseActual = useWorkoutStore((state) => state.claseActual);
   const errorCamara = useWorkoutStore((state) => state.errorCamara);
   const camaraActiva = useWorkoutStore((state) => state.camaraActiva);
+  const camaraHabilitada = useWorkoutStore((state) => state.camaraHabilitada);
+  const setCamaraHabilitada = useWorkoutStore((state) => state.setCamaraHabilitada);
   const reintentoCamara = useWorkoutStore((state) => state.reintentoCamara);
   const setReintentoCamara = useWorkoutStore((state) => state.setReintentoCamara);
   const seleccionarClase = useWorkoutStore((state) => state.seleccionarClase);
@@ -64,6 +75,7 @@ export default function App() {
       track('stats_load_error', { detalle: resumirError(err) });
     } finally {
       setCargandoResumen(false);
+      setResumenIntentado(true);
     }
   }, []);
 
@@ -146,16 +158,39 @@ export default function App() {
       clase_nombre: clase.nombre,
       duracion_sec: duracionClase(clase),
       formato: clase.formato,
+      con_camara: camaraHabilitada,
     });
     solicitarPantallaCompleta();
     iniciarRutina(clase.id);
-  }, [iniciarRutina]);
+  }, [iniciarRutina, camaraHabilitada]);
 
   const handleSalir = useCallback(async () => {
     track('logout');
     useWorkoutStore.getState().detenerRutina();
     await signOut(auth);
   }, []);
+
+  const completarOnboarding = useCallback(() => {
+    marcarOnboardingVisto();
+    marcarGuiaVista();
+    setGuiaVisible(false);
+    setOnboardingVisible(false);
+  }, []);
+
+  const saltarOnboarding = useCallback(() => {
+    marcarOnboardingVisto();
+    setOnboardingVisible(false);
+  }, []);
+
+  const activarCamara = useCallback(() => {
+    track('camera_on');
+    setCamaraHabilitada(true);
+  }, [setCamaraHabilitada]);
+
+  const desactivarCamara = useCallback(() => {
+    track('camera_off');
+    setCamaraHabilitada(false);
+  }, [setCamaraHabilitada]);
 
   const alAceptarAnalitica = useCallback(() => {
     track('app_open', { pantalla: 'inicio' });
@@ -236,6 +271,11 @@ export default function App() {
   }
 
   const mostrarGuia = guiaVisible && esPrimeraVez(resumen);
+  const mostrarOnboarding =
+    faseActual === 'CALIBRACION' &&
+    onboardingVisible &&
+    resumenIntentado &&
+    esPrimeraVez(resumen);
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
@@ -249,7 +289,10 @@ export default function App() {
           claseActual={claseActual}
           errorCamara={errorCamara}
           camaraActiva={camaraActiva}
+          camaraHabilitada={camaraHabilitada}
           onReintentarCamara={() => setReintentoCamara(reintentoCamara + 1)}
+          onActivarCamara={activarCamara}
+          onDesactivarCamara={desactivarCamara}
           onEmpezar={handleEmpezarClase}
           onSeleccionarClase={elegirClase}
           onGuardarPlan={guardarPlanSemanal}
@@ -260,6 +303,15 @@ export default function App() {
             setGuiaVisible(false);
           }}
           soportaPantallaCompleta={soportaPantallaCompleta}
+        />
+      )}
+      {mostrarOnboarding && (
+        <Onboarding
+          plan={plan}
+          onGuardarPlan={guardarPlanSemanal}
+          onTerminar={completarOnboarding}
+          onSaltar={saltarOnboarding}
+          onSinCamara={desactivarCamara}
         />
       )}
       <WorkoutUI />

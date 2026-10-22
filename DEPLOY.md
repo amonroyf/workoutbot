@@ -138,6 +138,7 @@ firebase deploy --only hosting --project <tu-proyecto-id>
 | `/health` | GET | Health check |
 | `POST /api/v1/workout/finish` | POST | Guarda resultado y check-in (requiere Bearer token) |
 | `GET /api/v1/stats` | GET | Racha, semana y últimas sesiones (requiere Bearer token) |
+| `DELETE /api/v1/account` | DELETE | Borra datos y cuenta del usuario (requiere Bearer token reciente) |
 
 ## 6. Monitoreo
 
@@ -160,6 +161,40 @@ curl https://workoutbot-849959121166.us-central1.run.app/health
 | Backend API | https://workoutbot-849959121166.us-central1.run.app |
 | Firebase Console | https://console.firebase.google.com/project/workoutbot-fit |
 | GCP Console | https://console.cloud.google.com/project/workoutbot-fit |
+
+## Dominio personalizado (pendiente)
+
+La app vive hoy en `https://workoutbot-web.web.app`. Si registras un dominio
+propio (por ejemplo `workoutbot.app`), estos son los pasos:
+
+1. **Comprar el dominio** en un registrador (Cloud Domains, Namecheap, etc.).
+   No inventes ni anuncies un dominio que no exista.
+
+2. **Conectar Firebase Hosting:**
+   ```bash
+   firebase hosting:sites:list --project workoutbot-fit
+   ```
+   En Firebase Console > Hosting > Agregar dominio personalizado, escribe el
+   dominio y sigue las instrucciones de verificación (TXT) y los registros A /
+   AAAA que Firebase te indique.
+
+3. **Agregar el dominio al backend** para CORS. En el despliegue de Cloud Run
+   suma el dominio a `FRONTEND_URL` separado por comas, o usa una variable
+   distinta si tu middleware lo soporta:
+   ```yaml
+   FRONTEND_URL: https://workoutbot-web.web.app,https://workoutbot.app
+   ```
+
+4. **Autorizar el dominio en Firebase Auth** (Login > Dominios autorizados)
+   para que Google Sign-In funcione.
+
+5. **Actualizar metadatos** cuando ya responda:
+   - `frontend/index.html`: `og:url`, `og:image` y `canonical` al dominio final.
+   - `frontend/public/og-image.png` si el nombre visible cambia.
+   - `VITE_BACKEND_URL` / rutas de API si dejan de ser relativas.
+
+6. **HTTPS**: Firebase Hosting emite el certificado automáticamente cuando el
+   DNS queda bien configurado (puede tardar hasta 24 h).
 
 ## Paso manual pendiente: habilitar Google Sign-In
 

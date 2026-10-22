@@ -5,6 +5,9 @@ import {
   marcarGuiaVista,
   PASOS_PRIMERA_VEZ,
   CLAVE_GUIA,
+  CLAVE_ONBOARDING,
+  marcarOnboardingVisto,
+  onboardingVisto,
 } from './primeraVez';
 
 function memoria() {
@@ -51,5 +54,20 @@ describe('PASOS_PRIMERA_VEZ', () => {
       expect(paso.titulo.length).toBeGreaterThan(0);
       expect(paso.texto.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('onboardingVisto', () => {
+  it('recuerda que el onboarding ya se vio', () => {
+    const storage = memoria();
+    expect(onboardingVisto(storage)).toBe(false);
+    marcarOnboardingVisto(storage);
+    expect(onboardingVisto(storage)).toBe(true);
+    expect(storage.getItem(CLAVE_ONBOARDING)).toBe('1');
+  });
+
+  it('no falla si el almacenamiento no existe', () => {
+    expect(onboardingVisto(null)).toBe(false);
+    expect(marcarOnboardingVisto(null)).toBe(false);
   });
 });

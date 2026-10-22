@@ -12,16 +12,16 @@ import (
 )
 
 type rateLimiter struct {
-	mu       sync.Mutex
-	clients  map[string]*clientLimit
-	limit    int
-	window   time.Duration
-	cleanup  time.Duration
+	mu      sync.Mutex
+	clients map[string]*clientLimit
+	limit   int
+	window  time.Duration
+	cleanup time.Duration
 }
 
 type clientLimit struct {
-	tokens    int
-	lastSeen  time.Time
+	tokens   int
+	lastSeen time.Time
 }
 
 func newRateLimiter(limit int, window, cleanup time.Duration) *rateLimiter {
@@ -143,7 +143,7 @@ func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		if allowed {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
-			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 			w.Header().Set("Access-Control-Max-Age", "86400")
 		}

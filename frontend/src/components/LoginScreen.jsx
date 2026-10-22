@@ -100,7 +100,7 @@ export default function LoginScreen() {
             </li>
             <li className="flex items-center gap-2">
               <Icono nombre="camara" tamano={16} className="text-marca-400" />
-              La cámara procesa todo en tu dispositivo
+              Cámara opcional; todo se procesa en tu dispositivo
             </li>
             <li className="flex items-center gap-2">
               <Icono nombre="check" tamano={16} className="text-marca-400" />
@@ -160,6 +160,90 @@ export default function LoginScreen() {
               Solo usamos la cámara para la pose. Tu video no se guarda.
             </p>
           )}
+
+          <section className="mt-8 border-t border-linea pt-5">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-marca-400">
+              Cómo funciona
+            </p>
+            <ol className="mt-3 space-y-3">
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-marca-500/15 text-[11px] font-black text-marca-300">
+                  1
+                </span>
+                <p className="text-xs leading-relaxed text-tinta-300">
+                  <strong className="text-tinta-100">Elige una clase corta.</strong>{' '}
+                  De 2 a 15 minutos, sin equipo.
+                </p>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-marca-500/15 text-[11px] font-black text-marca-300">
+                  2
+                </span>
+                <p className="text-xs leading-relaxed text-tinta-300">
+                  <strong className="text-tinta-100">Activa la cámara si quieres.</strong>{' '}
+                  Te cuenta repeticiones y corrige la postura. Si no, la voz y el
+                  temporizador te guían igual.
+                </p>
+              </li>
+              <li className="flex gap-3">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-marca-500/15 text-[11px] font-black text-marca-300">
+                  3
+                </span>
+                <p className="text-xs leading-relaxed text-tinta-300">
+                  <strong className="text-tinta-100">Sigue y guarda tu racha.</strong>{' '}
+                  El progreso queda en tu cuenta para volver mañana.
+                </p>
+              </li>
+            </ol>
+          </section>
+
+          <section className="mt-6">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-marca-400">
+              Preguntas rápidas
+            </p>
+            <div className="mt-2 divide-y divide-linea border-y border-linea">
+              <details className="group py-2.5">
+                <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-xs font-bold text-tinta-200">
+                  ¿Necesito cámara?
+                  <Icono nombre="chevronAbajo" tamano={14} className="shrink-0 text-tinta-500 transition group-open:rotate-180" />
+                </summary>
+                <p className="pb-1 text-xs leading-relaxed text-tinta-400">
+                  No. Sin cámara entrenas con temporizador y voz, y puedes sumar
+                  o restar repeticiones a mano.
+                </p>
+              </details>
+              <details className="group py-2.5">
+                <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-xs font-bold text-tinta-200">
+                  ¿Se guarda mi video?
+                  <Icono nombre="chevronAbajo" tamano={14} className="shrink-0 text-tinta-500 transition group-open:rotate-180" />
+                </summary>
+                <p className="pb-1 text-xs leading-relaxed text-tinta-400">
+                  No. La pose se procesa en tu dispositivo y el video nunca se
+                  sube ni se comparte.
+                </p>
+              </details>
+              <details className="group py-2.5">
+                <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-xs font-bold text-tinta-200">
+                  ¿Cuánto cuesta?
+                  <Icono nombre="chevronAbajo" tamano={14} className="shrink-0 text-tinta-500 transition group-open:rotate-180" />
+                </summary>
+                <p className="pb-1 text-xs leading-relaxed text-tinta-400">
+                  Es gratis por ahora. Si más adelante hay un plan pago, te lo
+                  contaremos antes de cobrarte.
+                </p>
+              </details>
+              <details className="group py-2.5">
+                <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between gap-2 text-xs font-bold text-tinta-200">
+                  ¿Necesito equipo?
+                  <Icono nombre="chevronAbajo" tamano={14} className="shrink-0 text-tinta-500 transition group-open:rotate-180" />
+                </summary>
+                <p className="pb-1 text-xs leading-relaxed text-tinta-400">
+                  No. Todas las clases usan peso corporal. Solo necesitas un
+                  espacio con un poco de luz.
+                </p>
+              </details>
+            </div>
+          </section>
         </div>
 
         <footer className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-tinta-500">
