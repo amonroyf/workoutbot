@@ -80,7 +80,12 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
+VITE_FIREBASE_MEASUREMENT_ID=
 ```
+
+`VITE_FIREBASE_MEASUREMENT_ID` es opcional. Si lo omites, la app funciona
+igual pero no envía analítica. Puedes encontrarlo en Firebase Console >
+Configuración del proyecto > Tus apps > Configuración del SDK.
 
 ## 4. Despliegue
 

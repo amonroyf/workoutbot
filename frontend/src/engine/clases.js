@@ -476,6 +476,12 @@ export const CLASES = Object.freeze([...CLASES_COMPLETAS, ...CLASES_EXPRESS]);
 
 export const CLASE_POR_DEFECTO = CLASES[0];
 
+// La primera clase que ve alguien nuevo debe ser corta y amable. La clase
+// completa de 45 minutos sigue disponible en el catálogo, pero no es la puerta
+// de entrada.
+export const CLASE_INICIAL =
+  CLASES.find((clase) => clase.id === 'principiante') || CLASE_POR_DEFECTO;
+
 export function obtenerClase(id) {
   return CLASES.find((clase) => clase.id === id) || null;
 }

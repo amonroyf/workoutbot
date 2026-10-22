@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   CLASES,
+  CLASE_INICIAL,
   CLASE_POR_DEFECTO,
   obtenerClase,
   duracionClase,
@@ -15,6 +16,11 @@ describe('CLASES', () => {
     const ids = CLASES.map((clase) => clase.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(CLASE_POR_DEFECTO).toBe(CLASES[0]);
+  });
+
+  it('abre con una clase corta para personas nuevas', () => {
+    expect(CLASE_INICIAL.formato).toBe('express');
+    expect(duracionClase(CLASE_INICIAL)).toBeLessThanOrEqual(300);
   });
 
   it('usa ejercicios del catálogo y bloques válidos', () => {
