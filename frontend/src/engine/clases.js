@@ -457,7 +457,371 @@ const FUNCIONAL_45_BASE = {
   ],
 };
 
+const RAPIDA_5_BASE = {
+  id: 'rapida-5',
+  nombre: 'Corta 5',
+  descripcion:
+    'Cinco minutos: calentamiento, circuito de fuerza y vuelta a la calma.',
+  nivel: 'principiante',
+  tipo: 'funcional',
+  formato: 'completa',
+  duracionMin: 5,
+  equipamiento: 'ninguno',
+  etiqueta: 'Corta',
+  secciones: [
+    {
+      id: 'calentamiento',
+      nombre: 'Calentamiento',
+      nombreCorto: 'Calent.',
+      tipo: 'calentamiento',
+      rondas: 1,
+      pistaVoz: 'Calentamiento corto. Preparamos el cuerpo en un minuto.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA',
+          trabajo: 25,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Camina en el lugar y suelta los hombros.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 15,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Sentadillas suaves para activar las piernas.',
+        },
+      ],
+    },
+    {
+      id: 'circuito',
+      nombre: 'Circuito',
+      nombreCorto: 'Circuito',
+      tipo: 'principal',
+      rondas: 2,
+      descansoRonda: 15,
+      pistaVoz: 'Dos rondas de circuito. Técnica antes que velocidad.',
+      bloques: [
+        {
+          ejercicio: 'FLEXIONES',
+          trabajo: 25,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Flexiones, cuerpo en plancha y codos a cuarenta y cinco grados.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 25,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Sentadilla, cadera atrás y pecho arriba.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 25,
+          descanso: 15,
+          intensidad: 'media',
+          pistaVoz: 'Zancadas alternas, paso corto y controlado.',
+        },
+      ],
+    },
+    {
+      id: 'enfriamiento',
+      nombre: 'Vuelta a la calma',
+      nombreCorto: 'Calma',
+      tipo: 'enfriamiento',
+      rondas: 1,
+      pistaVoz: 'Bajamos el pulso y estiramos.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA_SUAVE',
+          trabajo: 20,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Camina suave y respira profundo.',
+        },
+        {
+          ejercicio: 'ESTIRAMIENTO_GENERAL',
+          trabajo: 20,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Estiramiento general, sin rebotar.',
+        },
+      ],
+    },
+  ],
+};
+
+const MEDIA_10_BASE = {
+  id: 'media-10',
+  nombre: 'Media 10',
+  descripcion:
+    'Diez minutos con bloques de fuerza, core y vuelta a la calma.',
+  nivel: 'intermedio',
+  tipo: 'funcional',
+  formato: 'completa',
+  duracionMin: 10,
+  equipamiento: 'ninguno',
+  etiqueta: 'Media',
+  secciones: [
+    {
+      id: 'calentamiento',
+      nombre: 'Calentamiento',
+      nombreCorto: 'Calent.',
+      tipo: 'calentamiento',
+      rondas: 1,
+      pistaVoz: 'Calentamiento de dos minutos para preparar el cuerpo.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA',
+          trabajo: 50,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Camina en el lugar y suelta los hombros.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Sentadillas sin peso, baja hasta donde estés cómodo.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Zancadas alternas, paso corto y controlado.',
+        },
+      ],
+    },
+    {
+      id: 'fuerza',
+      nombre: 'Fuerza',
+      nombreCorto: 'Fuerza',
+      tipo: 'principal',
+      rondas: 3,
+      descansoRonda: 20,
+      pistaVoz: 'Bloque de fuerza, tres rondas.',
+      bloques: [
+        {
+          ejercicio: 'FLEXIONES',
+          trabajo: 30,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Flexión, cuerpo en plancha y codos a cuarenta y cinco grados.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 30,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Sentadilla, cadera atrás y pecho arriba.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 30,
+          descanso: 20,
+          intensidad: 'media',
+          pistaVoz: 'Zancada, baja la rodilla de atrás con control.',
+        },
+      ],
+    },
+    {
+      id: 'core',
+      nombre: 'Core',
+      nombreCorto: 'Core',
+      tipo: 'principal',
+      rondas: 1,
+      pistaVoz: 'Bloque de core. Calidad antes que velocidad.',
+      bloques: [
+        {
+          ejercicio: 'PLANCHA',
+          trabajo: 30,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Plancha, cuerpo en línea y abdomen firme.',
+        },
+        {
+          ejercicio: 'ABDOMINALES',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'media',
+          pistaVoz: 'Abdominales, sube con la espalda, no con el cuello.',
+        },
+      ],
+    },
+    {
+      id: 'enfriamiento',
+      nombre: 'Vuelta a la calma',
+      nombreCorto: 'Calma',
+      tipo: 'enfriamiento',
+      rondas: 1,
+      pistaVoz: 'Bajamos el pulso y estiramos.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA_SUAVE',
+          trabajo: 15,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Camina suave y respira profundo.',
+        },
+        {
+          ejercicio: 'ESTIRAMIENTO_GENERAL',
+          trabajo: 15,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Estiramiento general, sin rebotar.',
+        },
+      ],
+    },
+  ],
+};
+
+const LARGA_15_BASE = {
+  id: 'larga-15',
+  nombre: 'Larga 15',
+  descripcion:
+    'Quince minutos de fuerza, piernas y core con progresión.',
+  nivel: 'avanzado',
+  tipo: 'funcional',
+  formato: 'completa',
+  duracionMin: 15,
+  equipamiento: 'ninguno',
+  etiqueta: 'Larga',
+  secciones: [
+    {
+      id: 'calentamiento',
+      nombre: 'Calentamiento',
+      nombreCorto: 'Calent.',
+      tipo: 'calentamiento',
+      rondas: 1,
+      pistaVoz: 'Calentamiento de dos minutos y medio.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA',
+          trabajo: 60,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Empezamos suave, camina en el lugar y suelta los hombros.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Sentadillas sin peso, baja hasta donde estés cómodo.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Zancadas alternas, paso corto y controlado.',
+        },
+        {
+          ejercicio: 'BIRD_DOG',
+          trabajo: 30,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Bird dog para activar core y espalda.',
+        },
+      ],
+    },
+    {
+      id: 'fuerza',
+      nombre: 'Fuerza',
+      nombreCorto: 'Fuerza',
+      tipo: 'principal',
+      rondas: 3,
+      descansoRonda: 20,
+      pistaVoz: 'Bloque de fuerza, tres rondas. Mantén la técnica.',
+      bloques: [
+        {
+          ejercicio: 'FLEXIONES',
+          trabajo: 40,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Flexión, cuerpo en plancha y codos a cuarenta y cinco grados.',
+        },
+        {
+          ejercicio: 'SENTADILLAS',
+          trabajo: 40,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Sentadilla, cadera atrás y pecho arriba.',
+        },
+        {
+          ejercicio: 'PUENTE_GLUTEO',
+          trabajo: 40,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Puente, empuja con los talones y aprieta los glúteos.',
+        },
+        {
+          ejercicio: 'ZANCADAS',
+          trabajo: 40,
+          descanso: 20,
+          intensidad: 'media',
+          pistaVoz: 'Zancada, baja la rodilla de atrás con control.',
+        },
+      ],
+    },
+    {
+      id: 'core',
+      nombre: 'Core y control',
+      nombreCorto: 'Core',
+      tipo: 'principal',
+      rondas: 1,
+      pistaVoz: 'Bloque de core. Calidad antes que velocidad.',
+      bloques: [
+        {
+          ejercicio: 'PLANCHA',
+          trabajo: 30,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Plancha, cuerpo en línea y abdomen firme.',
+        },
+        {
+          ejercicio: 'ABDOMINALES',
+          trabajo: 30,
+          descanso: 10,
+          intensidad: 'media',
+          pistaVoz: 'Abdominales, sube con la espalda, no con el cuello.',
+        },
+      ],
+    },
+    {
+      id: 'enfriamiento',
+      nombre: 'Vuelta a la calma',
+      nombreCorto: 'Calma',
+      tipo: 'enfriamiento',
+      rondas: 1,
+      pistaVoz: 'Vuelta a la calma. Baja el pulso y estira.',
+      bloques: [
+        {
+          ejercicio: 'MARCHA_SUAVE',
+          trabajo: 20,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Bajamos el ritmo, camina suave y respira.',
+        },
+        {
+          ejercicio: 'ESTIRAMIENTO_GENERAL',
+          trabajo: 20,
+          descanso: 0,
+          intensidad: 'suave',
+          pistaVoz: 'Estiramiento general, sin rebotar.',
+        },
+      ],
+    },
+  ],
+};
+
 export const FUNCIONAL_45 = compilarClase(FUNCIONAL_45_BASE);
+export const RAPIDA_5 = compilarClase(RAPIDA_5_BASE);
+export const MEDIA_10 = compilarClase(MEDIA_10_BASE);
+export const LARGA_15 = compilarClase(LARGA_15_BASE);
 
 export const CLASES_EXPRESS = Object.freeze(
   CLASES_EXPRESS_BASE.map((clase) =>
@@ -469,7 +833,12 @@ export const CLASES_EXPRESS = Object.freeze(
   )
 );
 
-export const CLASES_COMPLETAS = Object.freeze([FUNCIONAL_45]);
+export const CLASES_COMPLETAS = Object.freeze([
+  FUNCIONAL_45,
+  RAPIDA_5,
+  MEDIA_10,
+  LARGA_15,
+]);
 
 export const CLASES = Object.freeze([...CLASES_COMPLETAS, ...CLASES_EXPRESS]);
 
@@ -499,6 +868,11 @@ export function formatearDuracion(segundos) {
   if (minutos === 0) return `${resto}s`;
   if (resto === 0) return `${minutos} min`;
   return `${minutos} min ${resto}s`;
+}
+
+export function etiquetaFormato(clase) {
+  if (clase?.etiqueta) return clase.etiqueta;
+  return clase?.formato === 'express' ? 'Exprés' : 'Completa';
 }
 
 export function formatearReloj(segundos) {

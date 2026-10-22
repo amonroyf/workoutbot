@@ -68,6 +68,13 @@ describe('claseParaDia', () => {
     expect(claseParaDia(plan, 1)?.id).toBe('fuerza-total');
     expect(claseParaDia(plan, 4)?.id).toBe('fuerza-total');
   });
+
+  it('progresa de 5 a 15 minutos con el objetivo progresión', () => {
+    const plan = { dias: [1, 3, 5], objetivo: 'progresion' };
+    expect(claseParaDia(plan, 1)?.id).toBe('rapida-5');
+    expect(claseParaDia(plan, 3)?.id).toBe('media-10');
+    expect(claseParaDia(plan, 5)?.id).toBe('larga-15');
+  });
 });
 
 describe('diaIso y claseParaFecha', () => {

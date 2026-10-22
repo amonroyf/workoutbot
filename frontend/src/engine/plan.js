@@ -37,6 +37,12 @@ export const OBJETIVOS = Object.freeze([
     descripcion: 'Para arrancar sin miedo',
     clases: Object.freeze(['principiante', 'clasico', 'core']),
   }),
+  Object.freeze({
+    id: 'progresion',
+    nombre: 'Progresión',
+    descripcion: 'De 5 a 15 minutos',
+    clases: Object.freeze(['rapida-5', 'media-10', 'larga-15']),
+  }),
 ]);
 
 export const PLAN_POR_DEFECTO = Object.freeze({

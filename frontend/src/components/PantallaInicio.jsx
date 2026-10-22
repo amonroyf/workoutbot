@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import {
   CLASES,
   duracionClase,
+  etiquetaFormato,
   formatearDuracion,
   obtenerClase,
   resumenSecciones,
@@ -57,7 +58,7 @@ function TarjetaClase({ clase, activa, onClick }) {
     >
       <span className="flex items-center justify-between gap-2">
         <span className="text-[10px] font-black uppercase tracking-[0.12em] text-marca-400">
-          {clase.formato === 'completa' ? 'Completa' : 'Exprés'}
+          {etiquetaFormato(clase)}
         </span>
         <span className="flex items-center gap-1 text-[10px] font-bold text-tinta-400">
           <Icono nombre="reloj" tamano={12} />
@@ -255,7 +256,7 @@ export default function PantallaInicio({
             <div className="mt-3 flex flex-wrap gap-1.5">
               <Chip>{formatearDuracion(duracionClase(claseActual))}</Chip>
               <Chip>{NIVELES[claseActual.nivel] || claseActual.nivel}</Chip>
-              <Chip>{claseActual.formato === 'completa' ? 'Completa' : 'Exprés'}</Chip>
+              <Chip>{etiquetaFormato(claseActual)}</Chip>
               <Chip>Sin equipo</Chip>
             </div>
 
@@ -570,7 +571,7 @@ export default function PantallaInicio({
                       </span>
                       <span className="mt-1 block text-[10px] text-tinta-400">
                         {formatearDuracion(duracionClase(clase))} ·{' '}
-                        {clase.formato === 'completa' ? 'Completa' : 'Exprés'}
+                        {etiquetaFormato(clase)}
                       </span>
                       <span className="block text-[10px] text-tinta-500">
                         {NIVELES[clase.nivel] || clase.nivel}

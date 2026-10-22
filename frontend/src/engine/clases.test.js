@@ -5,6 +5,7 @@ import {
   CLASE_POR_DEFECTO,
   obtenerClase,
   duracionClase,
+  etiquetaFormato,
   formatearDuracion,
   formatearReloj,
   resumenSecciones,
@@ -37,7 +38,7 @@ describe('CLASES', () => {
   });
 
   it('incluye las clases nuevas', () => {
-    expect(CLASES).toHaveLength(14);
+    expect(CLASES).toHaveLength(17);
     expect(obtenerClase('funcional-45')).toBeTruthy();
     expect(obtenerClase('fuerza-total')).toBeTruthy();
     expect(obtenerClase('cardio-express')).toBeTruthy();
@@ -49,6 +50,9 @@ describe('CLASES', () => {
     expect(obtenerClase('full-body')).toBeTruthy();
     expect(obtenerClase('piernas-express')).toBeTruthy();
     expect(obtenerClase('pausa-activa')).toBeTruthy();
+    expect(obtenerClase('rapida-5')).toBeTruthy();
+    expect(obtenerClase('media-10')).toBeTruthy();
+    expect(obtenerClase('larga-15')).toBeTruthy();
   });
 
   it('incluye la clase completa Funcional 45', () => {
@@ -91,11 +95,48 @@ describe('CLASES', () => {
     expect(duracionClase(obtenerClase('full-body'))).toBe(210);
     expect(duracionClase(obtenerClase('piernas-express'))).toBe(195);
     expect(duracionClase(obtenerClase('pausa-activa'))).toBe(120);
+    expect(duracionClase(obtenerClase('rapida-5'))).toBe(300);
+    expect(duracionClase(obtenerClase('media-10'))).toBe(600);
+    expect(duracionClase(obtenerClase('larga-15'))).toBe(900);
+  });
+
+  it('incluye clases de 5, 10 y 15 minutos con progresión', () => {
+    const rapida = obtenerClase('rapida-5');
+    expect(rapida.formato).toBe('completa');
+    expect(rapida.secciones.map((seccion) => seccion.tipo)).toEqual([
+      'calentamiento',
+      'principal',
+      'enfriamiento',
+    ]);
+    expect(rapida.bloques[rapida.bloques.length - 1].descanso).toBe(0);
+
+    const media = obtenerClase('media-10');
+    expect(media.secciones.map((seccion) => seccion.tipo)).toEqual([
+      'calentamiento',
+      'principal',
+      'principal',
+      'enfriamiento',
+    ]);
+    expect(media.secciones.some((seccion) => seccion.rondas === 3)).toBe(true);
+
+    const larga = obtenerClase('larga-15');
+    expect(larga.secciones).toHaveLength(4);
+    expect(resumenSecciones(larga)).toHaveLength(4);
   });
 
   it('busca clases por id', () => {
     expect(obtenerClase('explosivo').nombre).toBe('Explosivo');
     expect(obtenerClase('no-existe')).toBeNull();
+  });
+});
+
+describe('etiquetaFormato', () => {
+  it('distingue exprés, completa y las clases por duración', () => {
+    expect(etiquetaFormato(obtenerClase('clasico'))).toBe('Exprés');
+    expect(etiquetaFormato(obtenerClase('funcional-45'))).toBe('Completa');
+    expect(etiquetaFormato(obtenerClase('rapida-5'))).toBe('Corta');
+    expect(etiquetaFormato(obtenerClase('media-10'))).toBe('Media');
+    expect(etiquetaFormato(obtenerClase('larga-15'))).toBe('Larga');
   });
 });
 
