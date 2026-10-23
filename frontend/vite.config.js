@@ -57,6 +57,18 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
+            urlPattern: /\/musica\/.*\.mp3$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'musica-cc0-v1',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 180,
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@mediapipe\/tasks-vision.*/i,
             handler: 'CacheFirst',
             options: {

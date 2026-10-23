@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-marca-300: #86efac;
-  --color-marca-400: #4ade80;
-  --color-marca-500: #22c55e;
-  --color-marca-600: #16a34a;
-  --color-marca-700: #15803d;
+  /* Acento "Ember": la acción. Encender, empezar, seguir. */
+  --color-marca-300: #ffb27a;
+  --color-marca-400: #ff8a4c;
+  --color-marca-500: #ff6a2b;
+  --color-marca-600: #f04e12;
+  --color-marca-700: #c23b0c;
 
   --color-aviso-300: #fcd34d;
   --color-aviso-400: #fbbf24;
   --color-aviso-500: #f59e0b;
   --color-aviso-600: #d97706;
 
-  --color-racha-300: #fdba74;
-  --color-racha-400: #fb923c;
-  --color-racha-500: #f97316;
+  /* Racha: oro de medalla. */
+  --color-racha-300: #fde68a;
+  --color-racha-400: #fcd34d;
+  --color-racha-500: #f59e0b;
 
   --color-error-300: #fca5a5;
   --color-error-400: #f87171;
@@ -25,21 +27,22 @@
   --color-info-400: #60a5fa;
   --color-info-500: #3b82f6;
 
-  --color-tinta-100: #fafafa;
-  --color-tinta-200: #e4e4e7;
-  --color-tinta-300: #d4d4d8;
-  --color-tinta-400: #a1a1aa;
-  --color-tinta-500: #71717a;
-  --color-tinta-600: #52525b;
-  --color-tinta-700: #3f3f46;
-  --color-tinta-800: #27272a;
-  --color-tinta-900: #18181b;
-  --color-tinta-950: #09090b;
+  /* "Studio Night": carbón cálido y tiza. */
+  --color-tinta-100: #f6f1ea;
+  --color-tinta-200: #e7ded2;
+  --color-tinta-300: #cfc4b4;
+  --color-tinta-400: #a89c8b;
+  --color-tinta-500: #82776a;
+  --color-tinta-600: #5f564c;
+  --color-tinta-700: #443d35;
+  --color-tinta-800: #2b2620;
+  --color-tinta-900: #1b1713;
+  --color-tinta-950: #0f0c0a;
 
-  --color-fondo: #000000;
-  --color-panel: #131316;
-  --color-panel-alto: #1c1c21;
-  --color-linea: #2a2a30;
+  --color-fondo: #0b0908;
+  --color-panel: #16120f;
+  --color-panel-alto: #201a15;
+  --color-linea: #2f2720;
 
   --radius-boton: 0.75rem;
   --radius-panel: 1rem;
@@ -47,7 +50,48 @@
   --radius-chip: 999px;
 
   --shadow-flotante: 0 18px 40px rgba(0, 0, 0, 0.55);
-  --shadow-foco: 0 0 0 2px rgba(255, 255, 255, 0.9);
+  --shadow-foco: 0 0 0 2px rgba(246, 241, 234, 0.9);
+  --font-display: 'Bricolage Grotesque', 'Archivo', system-ui, sans-serif;
+}
+
+/* Geles de luz por arquetipo. Cada elemento define --gel con su color. */
+.gel {
+  background: radial-gradient(
+    120% 130% at 50% 0%,
+    color-mix(in srgb, var(--gel, #ff6a2b) 30%, transparent),
+    transparent 62%
+  );
+}
+
+.gel-lateral {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--gel, #ff6a2b) 55%, transparent),
+    color-mix(in srgb, var(--gel, #ff6a2b) 8%, transparent)
+  );
+}
+
+.texto-gel {
+  color: var(--gel, #ff6a2b);
+}
+
+.fondo-gel {
+  background-color: color-mix(in srgb, var(--gel, #ff6a2b) 16%, transparent);
+}
+
+.borde-gel {
+  border-color: color-mix(in srgb, var(--gel, #ff6a2b) 50%, transparent);
+}
+
+.foco-gel {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--gel, #ff6a2b) 55%, transparent),
+    0 0 34px -8px var(--gel, #ff6a2b);
+}
+
+.fuente-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 @keyframes perfecta {

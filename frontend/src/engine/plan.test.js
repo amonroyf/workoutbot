@@ -43,6 +43,13 @@ describe('normalizarPlan', () => {
     expect(plan.objetivo).toBe('fuerza');
   });
 
+  it('reinicia el plan por defecto si el objetivo ya no existe', () => {
+    expect(normalizarPlan({ dias: [2, 4], objetivo: 'progresion' })).toEqual({
+      dias: [2, 4],
+      objetivo: PLAN_POR_DEFECTO.objetivo,
+    });
+  });
+
   it('cae al objetivo y días por defecto si vienen inválidos', () => {
     expect(normalizarPlan({ dias: [], objetivo: 'inventado' })).toEqual({
       dias: [...PLAN_POR_DEFECTO.dias],
@@ -54,9 +61,9 @@ describe('normalizarPlan', () => {
 describe('claseParaDia', () => {
   it('asigna las clases del objetivo en orden de día', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
-    expect(claseParaDia(plan, 1)?.id).toBe('clasico');
-    expect(claseParaDia(plan, 3)?.id).toBe('fuerza-total');
-    expect(claseParaDia(plan, 5)?.id).toBe('cardio-express');
+    expect(claseParaDia(plan, 1)?.id).toBe('fuerza-30');
+    expect(claseParaDia(plan, 3)?.id).toBe('danza-30');
+    expect(claseParaDia(plan, 5)?.id).toBe('core-20');
   });
 
   it('devuelve null en días no planeados', () => {
@@ -65,15 +72,15 @@ describe('claseParaDia', () => {
 
   it('rota las clases si hay más días que clases', () => {
     const plan = { dias: [1, 2, 3, 4], objetivo: 'fuerza' };
-    expect(claseParaDia(plan, 1)?.id).toBe('fuerza-total');
-    expect(claseParaDia(plan, 4)?.id).toBe('fuerza-total');
+    expect(claseParaDia(plan, 1)?.id).toBe('fuerza-30');
+    expect(claseParaDia(plan, 4)?.id).toBe('fuerza-30');
   });
 
-  it('progresa de 5 a 15 minutos con el objetivo progresión', () => {
-    const plan = { dias: [1, 3, 5], objetivo: 'progresion' };
-    expect(claseParaDia(plan, 1)?.id).toBe('rapida-5');
-    expect(claseParaDia(plan, 3)?.id).toBe('media-10');
-    expect(claseParaDia(plan, 5)?.id).toBe('larga-15');
+  it('propone sesiones cortas con el objetivo exprés', () => {
+    const plan = { dias: [1, 3, 5], objetivo: 'expreso' };
+    expect(claseParaDia(plan, 1)?.id).toBe('core-5');
+    expect(claseParaDia(plan, 3)?.id).toBe('hiit-10');
+    expect(claseParaDia(plan, 5)?.id).toBe('fuerza-10');
   });
 });
 
@@ -85,7 +92,7 @@ describe('diaIso y claseParaFecha', () => {
 
   it('devuelve la clase que toca en la fecha', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
-    expect(claseParaFecha(plan, fechaLocal(2026, 10, 19))?.id).toBe('clasico');
+    expect(claseParaFecha(plan, fechaLocal(2026, 10, 19))?.id).toBe('fuerza-30');
     expect(claseParaFecha(plan, fechaLocal(2026, 10, 20))).toBeNull();
   });
 });
@@ -93,17 +100,17 @@ describe('diaIso y claseParaFecha', () => {
 describe('siguienteDiaPlan', () => {
   it('encuentra el próximo día planeado y su clase', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
-    expect(siguienteDiaPlan(plan, 2)).toMatchObject({ dia: 3, clase: { id: 'fuerza-total' } });
-    expect(siguienteDiaPlan(plan, 5)).toMatchObject({ dia: 1, clase: { id: 'clasico' } });
+    expect(siguienteDiaPlan(plan, 2)).toMatchObject({ dia: 3, clase: { id: 'danza-30' } });
+    expect(siguienteDiaPlan(plan, 5)).toMatchObject({ dia: 1, clase: { id: 'fuerza-30' } });
   });
 });
 
 describe('textoHoy', () => {
   it('dice qué toca hoy o cuándo es el próximo entreno', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
-    expect(textoHoy(plan, fechaLocal(2026, 10, 19))).toBe('Hoy toca Clásico');
+    expect(textoHoy(plan, fechaLocal(2026, 10, 19))).toBe('Hoy toca Fuerza 30');
     expect(textoHoy(plan, fechaLocal(2026, 10, 20))).toBe(
-      'Hoy descansas. El miércoles toca Fuerza total'
+      'Hoy descansas. El miércoles toca Danza 30'
     );
   });
 });

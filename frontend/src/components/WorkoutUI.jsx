@@ -1,7 +1,8 @@
 import React from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { progresoCircuito, progresoSecciones } from '../engine/circuito';
-import { duracionClase, formatearReloj } from '../engine/clases';
+import { duracionClase, formatearReloj, obtenerArquetipo } from '../engine/clases';
+import { estiloGel } from '../theme';
 import { obtenerDemo } from '../engine/demos';
 import {
   consignaEjercicio,
@@ -17,7 +18,7 @@ import DemoEjercicio from './DemoEjercicio';
 import MinijuegoTecho from './MinijuegoTecho';
 import MarcoEncuadre from './MarcoEncuadre';
 
-function AnilloRep({ fase }) {
+function AnilloRep({ fase, color = '#4ade80' }) {
   const radio = 24;
   const circunferencia = 2 * Math.PI * radio;
   const avance = fase === 'ABAJO' ? 1 : 0;
@@ -38,7 +39,7 @@ function AnilloRep({ fase }) {
           cy="32"
           r={radio}
           fill="none"
-          stroke="#4ade80"
+          stroke={color}
           strokeWidth="5"
           strokeLinecap="round"
           strokeDasharray={circunferencia}
@@ -113,6 +114,8 @@ export default function WorkoutUI() {
       : scoreForma >= 65
         ? 'bg-aviso-400 text-black'
         : 'bg-error-400 text-tinta-100';
+  const arquetipo = obtenerArquetipo(claseActual.arquetipo);
+  const gel = arquetipo?.color || '#ff6a2b';
 
   const abrirDemoActual = () => {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
@@ -128,7 +131,8 @@ export default function WorkoutUI() {
     ejercicioActual === 'WALL_SIT';
 
   return (
-    <div className="absolute inset-0 z-10 text-tinta-100">
+    <div style={estiloGel(claseActual.arquetipo)} className="absolute inset-0 z-10 text-tinta-100">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 gel opacity-70" />
       <div className="absolute top-0 left-0 right-0 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
         <div className="mb-1 flex items-center gap-2 text-xs font-semibold">
           <span
@@ -159,24 +163,24 @@ export default function WorkoutUI() {
             {seccionesProgreso.map((seccion) => {
               const ancho = (seccion.duracion / duracionClase(claseActual)) * 100;
               const avance = seccion.duracion > 0 ? seccion.transcurrido / seccion.duracion : 0;
-              const color =
-                seccion.estado === 'completado'
-                  ? 'bg-marca-400'
-                  : seccion.estado === 'actual'
-                    ? 'bg-marca-500/40'
-                    : 'bg-tinta-800/60';
-              const relleno =
-                seccion.estado === 'actual'
-                  ? 'bg-marca-300'
-                  : seccion.estado === 'completado'
-                    ? 'bg-marca-400'
-                    : 'bg-transparent';
+              const activa = seccion.estado === 'actual';
+              const completada = seccion.estado === 'completado';
               return (
                 <div key={seccion.id} className="relative h-full" style={{ width: `${ancho}%` }}>
-                  <div className={`h-full ${color}`} />
                   <div
-                    className={`absolute inset-y-0 left-0 ${relleno} transition-all duration-300`}
-                    style={{ width: `${avance * 100}%` }}
+                    className="h-full"
+                    style={{
+                      backgroundColor: activa || completada ? gel : 'rgba(68,61,53,0.6)',
+                      opacity: activa ? 0.4 : 1,
+                    }}
+                  />
+                  <div
+                    className="absolute inset-y-0 left-0 transition-all duration-300"
+                    style={{
+                      width: `${avance * 100}%`,
+                      backgroundColor: gel,
+                      opacity: completada ? 0.85 : 1,
+                    }}
                   />
                 </div>
               );
@@ -185,8 +189,8 @@ export default function WorkoutUI() {
         ) : (
           <div className="h-3 w-full overflow-hidden rounded-full bg-tinta-700/60">
             <div
-              className="h-full rounded-full bg-marca-400 transition-all duration-300"
-              style={{ width: `${progreso * 100}%` }}
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${progreso * 100}%`, backgroundColor: gel }}
             />
           </div>
         )}
@@ -331,7 +335,7 @@ export default function WorkoutUI() {
                   )}
                 </div>
               </div>
-              <AnilloRep fase={faseRepeticion} />
+              <AnilloRep fase={faseRepeticion} color={gel} />
             </div>
           )
         ) : (

@@ -1,3 +1,5 @@
+import { EJERCICIOS_CATALOGO } from './ejercicios';
+
 export const ARTICULACIONES = Object.freeze([
   'cabeza',
   'cuello',
@@ -705,7 +707,7 @@ const ESTIRAMIENTO_CUELLO_DER = ajustar(ESCRITORIO_BASE, {
   cuello: { x: 0.54, y: 0.26 },
 });
 
-export const DEMOS = Object.freeze({
+const DEMOS_BASE = Object.freeze({
   SENTADILLAS: Object.freeze({
     nombre: 'Sentadilla',
     vista: 'perfil',
@@ -1029,6 +1031,41 @@ export const DEMOS = Object.freeze({
     ]),
   }),
 });
+
+const BASE_POR_GRUPO = Object.freeze({
+  piernas: 'SENTADILLAS',
+  gluteos: 'PUENTE_GLUTEO',
+  pecho: 'FLEXIONES',
+  brazos: 'ELEVACIONES_LATERALES',
+  hombros: 'ELEVACIONES_LATERALES',
+  espalda: 'SUPERMAN',
+  core: 'PLANCHA',
+  cardio: 'JUMPING_JACKS',
+  combate: 'FLEXIONES',
+  danza: 'CIRCULOS_BRAZOS',
+  movilidad: 'ESTIRAMIENTO_CUELLO',
+  ritmo: 'RODILLAS_ALTAS',
+});
+
+function demoDesdeBase(ejercicio) {
+  const base = DEMOS_BASE[BASE_POR_GRUPO[ejercicio.grupo]] || DEMOS_BASE.SENTADILLAS;
+  return Object.freeze({
+    nombre: ejercicio.nombre,
+    vista: ejercicio.vista || base.vista,
+    cicloMs: base.cicloMs,
+    pistas: Object.freeze([...ejercicio.pistas]),
+    keyframes: base.keyframes,
+  });
+}
+
+export const DEMOS = Object.freeze(
+  Object.fromEntries(
+    Object.keys(EJERCICIOS_CATALOGO).map((id) => [
+      id,
+      DEMOS_BASE[id] || demoDesdeBase(EJERCICIOS_CATALOGO[id]),
+    ])
+  )
+);
 
 export function obtenerDemo(ejercicio) {
   return DEMOS[ejercicio] || DEMOS.SENTADILLAS;

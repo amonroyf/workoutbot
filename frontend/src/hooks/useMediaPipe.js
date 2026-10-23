@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { PoseLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
-import { DETECTORES, crearEstadoDetector } from '../engine/detectors';
+import { obtenerDetector, crearEstadoDetector } from '../engine/detectors';
 import {
   crearFiltrosLandmarks,
   filtrarLandmarks,
@@ -128,7 +128,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
 
   const procesarEjercicio = useCallback(
     (landmarks, ejercicio, ahoraMs) => {
-      const detector = DETECTORES[ejercicio];
+      const detector = obtenerDetector(ejercicio);
       if (!detector) return;
 
       if (ejercicioEnCurso.current !== ejercicio) {

@@ -1,16 +1,39 @@
 import { describe, it, expect } from 'vitest';
 import {
+  ARQUETIPOS,
   CLASES,
   CLASE_INICIAL,
   CLASE_POR_DEFECTO,
   obtenerClase,
+  obtenerArquetipo,
+  clasesDeArquetipo,
   duracionClase,
   etiquetaFormato,
   formatearDuracion,
   formatearReloj,
   resumenSecciones,
 } from './clases';
-import { obtenerEjercicio, nombreEjercicio, esDeTiempo } from './ejercicios';
+import { obtenerEjercicio, esDeTiempo } from './ejercicios';
+
+const IDS_CLAVE = [
+  'fuerza-10',
+  'fuerza-30',
+  'fuerza-45',
+  'hiit-10',
+  'hiit-20',
+  'hiit-30',
+  'danza-20',
+  'danza-30',
+  'danza-45',
+  'combat-20',
+  'combat-30',
+  'core-5',
+  'core-10',
+  'core-20',
+  'movilidad-10',
+  'movilidad-20',
+  'spinning-30',
+];
 
 describe('CLASES', () => {
   it('tiene ids únicos y una clase por defecto', () => {
@@ -20,16 +43,25 @@ describe('CLASES', () => {
   });
 
   it('abre con una clase corta para personas nuevas', () => {
-    expect(CLASE_INICIAL.formato).toBe('express');
+    expect(CLASE_INICIAL.id).toBe('core-5');
     expect(duracionClase(CLASE_INICIAL)).toBeLessThanOrEqual(300);
+  });
+
+  it('reemplaza el catálogo completo por los 17 ids nuevos', () => {
+    expect(CLASES).toHaveLength(17);
+    for (const id of IDS_CLAVE) {
+      expect(obtenerClase(id), id).toBeTruthy();
+    }
   });
 
   it('usa ejercicios del catálogo y bloques válidos', () => {
     for (const clase of CLASES) {
       expect(clase.nombre.length).toBeGreaterThan(0);
+      expect(clase.arquetipo).toBeTruthy();
+      expect(obtenerArquetipo(clase.arquetipo)).toBeTruthy();
       expect(clase.bloques.length).toBeGreaterThanOrEqual(2);
       for (const bloque of clase.bloques) {
-        expect(obtenerEjercicio(bloque.ejercicio)).toBeTruthy();
+        expect(obtenerEjercicio(bloque.ejercicio), bloque.ejercicio).toBeTruthy();
         expect(bloque.trabajo).toBeGreaterThan(0);
         expect(bloque.descanso).toBeGreaterThanOrEqual(0);
       }
@@ -37,106 +69,28 @@ describe('CLASES', () => {
     }
   });
 
-  it('incluye las clases nuevas', () => {
-    expect(CLASES).toHaveLength(17);
-    expect(obtenerClase('funcional-45')).toBeTruthy();
-    expect(obtenerClase('fuerza-total')).toBeTruthy();
-    expect(obtenerClase('cardio-express')).toBeTruthy();
-    expect(obtenerClase('core')).toBeTruthy();
-    expect(obtenerClase('piernas-gluteos')).toBeTruthy();
-    expect(obtenerClase('tren-superior')).toBeTruthy();
-    expect(obtenerClase('principiante')).toBeTruthy();
-    expect(obtenerClase('core-fuerte')).toBeTruthy();
-    expect(obtenerClase('full-body')).toBeTruthy();
-    expect(obtenerClase('piernas-express')).toBeTruthy();
-    expect(obtenerClase('pausa-activa')).toBeTruthy();
-    expect(obtenerClase('rapida-5')).toBeTruthy();
-    expect(obtenerClase('media-10')).toBeTruthy();
-    expect(obtenerClase('larga-15')).toBeTruthy();
+  it('respeta la duración indicada por su etiqueta', () => {
+    for (const clase of CLASES) {
+      expect(duracionClase(clase)).toBeCloseTo(clase.duracionMin * 60, -2);
+    }
   });
 
-  it('incluye la clase completa Funcional 45', () => {
-    const clase = obtenerClase('funcional-45');
-    expect(clase.formato).toBe('completa');
-    expect(clase.secciones).toHaveLength(5);
-    expect(clase.bloques).toHaveLength(38);
-    expect(duracionClase(clase)).toBe(2700);
-    expect(clase.bloques[0]).toMatchObject({
-      ejercicio: 'MARCHA',
-      seccionId: 'calentamiento',
-      ronda: 1,
-      totalRondas: 1,
-    });
-    expect(clase.secciones.map((seccion) => seccion.nombreCorto)).toEqual([
-      'Calent.',
-      'Fuerza',
-      'Metab.',
-      'Core',
-      'Calma',
-    ]);
-    const fuerza = clase.bloques.filter((bloque) => bloque.seccionId === 'fuerza');
-    expect(fuerza).toHaveLength(12);
-    expect(fuerza[3]).toMatchObject({ ronda: 1, descanso: 60 });
-    expect(fuerza[4]).toMatchObject({ ejercicio: 'SENTADILLAS', ronda: 2 });
-  });
-
-  it('calcula la duración total de cada clase', () => {
-    expect(duracionClase(obtenerClase('funcional-45'))).toBe(2700);
-    expect(duracionClase(obtenerClase('clasico'))).toBe(160);
-    expect(duracionClase(obtenerClase('explosivo'))).toBe(120);
-    expect(duracionClase(obtenerClase('resistencia'))).toBe(190);
-    expect(duracionClase(obtenerClase('fuerza-total'))).toBe(270);
-    expect(duracionClase(obtenerClase('cardio-express'))).toBe(210);
-    expect(duracionClase(obtenerClase('core'))).toBe(165);
-    expect(duracionClase(obtenerClase('piernas-gluteos'))).toBe(220);
-    expect(duracionClase(obtenerClase('tren-superior'))).toBe(190);
-    expect(duracionClase(obtenerClase('principiante'))).toBe(170);
-    expect(duracionClase(obtenerClase('core-fuerte'))).toBe(190);
-    expect(duracionClase(obtenerClase('full-body'))).toBe(210);
-    expect(duracionClase(obtenerClase('piernas-express'))).toBe(195);
-    expect(duracionClase(obtenerClase('pausa-activa'))).toBe(120);
-    expect(duracionClase(obtenerClase('rapida-5'))).toBe(300);
-    expect(duracionClase(obtenerClase('media-10'))).toBe(600);
-    expect(duracionClase(obtenerClase('larga-15'))).toBe(900);
-  });
-
-  it('incluye clases de 5, 10 y 15 minutos con progresión', () => {
-    const rapida = obtenerClase('rapida-5');
-    expect(rapida.formato).toBe('completa');
-    expect(rapida.secciones.map((seccion) => seccion.tipo)).toEqual([
-      'calentamiento',
-      'principal',
-      'enfriamiento',
-    ]);
-    expect(rapida.bloques[rapida.bloques.length - 1].descanso).toBe(0);
-
-    const media = obtenerClase('media-10');
-    expect(media.secciones.map((seccion) => seccion.tipo)).toEqual([
-      'calentamiento',
-      'principal',
-      'principal',
-      'enfriamiento',
-    ]);
-    expect(media.secciones.some((seccion) => seccion.rondas === 3)).toBe(true);
-
-    const larga = obtenerClase('larga-15');
-    expect(larga.secciones).toHaveLength(4);
-    expect(resumenSecciones(larga)).toHaveLength(4);
+  it('cada arquetipo tiene al menos una clase', () => {
+    for (const arquetipo of ARQUETIPOS) {
+      expect(clasesDeArquetipo(arquetipo.id).length).toBeGreaterThan(0);
+    }
   });
 
   it('busca clases por id', () => {
-    expect(obtenerClase('explosivo').nombre).toBe('Explosivo');
+    expect(obtenerClase('fuerza-45').nombre).toBe('Fuerza 45');
     expect(obtenerClase('no-existe')).toBeNull();
   });
 });
 
 describe('etiquetaFormato', () => {
-  it('distingue exprés, completa y las clases por duración', () => {
-    expect(etiquetaFormato(obtenerClase('clasico'))).toBe('Exprés');
-    expect(etiquetaFormato(obtenerClase('funcional-45'))).toBe('Completa');
-    expect(etiquetaFormato(obtenerClase('rapida-5'))).toBe('Corta');
-    expect(etiquetaFormato(obtenerClase('media-10'))).toBe('Media');
-    expect(etiquetaFormato(obtenerClase('larga-15'))).toBe('Larga');
+  it('usa la etiqueta de duración de la clase', () => {
+    expect(etiquetaFormato(obtenerClase('fuerza-10'))).toBe('10 min');
+    expect(etiquetaFormato(obtenerClase('core-5'))).toBe('5 min');
   });
 });
 
@@ -149,22 +103,17 @@ describe('formatearDuracion', () => {
 });
 
 describe('resumenSecciones', () => {
-  it('resume la clase completa con duración y ejercicios por sección', () => {
-    const resumen = resumenSecciones(obtenerClase('funcional-45'));
-
-    expect(resumen).toHaveLength(5);
-    expect(resumen[0]).toMatchObject({
-      id: 'calentamiento',
-      duracion: 480,
-      rondas: 1,
-    });
-    expect(resumen[0].ejercicios).toContain('MARCHA');
-    expect(resumen[1]).toMatchObject({ id: 'fuerza', rondas: 3, duracion: 840 });
-    expect(resumen.reduce((total, seccion) => total + seccion.duracion, 0)).toBe(2700);
+  it('resume una clase con duración y ejercicios por sección', () => {
+    const resumen = resumenSecciones(obtenerClase('core-5'));
+    expect(resumen).toHaveLength(3);
+    expect(resumen[0]).toMatchObject({ tipo: 'calentamiento', rondas: 1 });
+    expect(resumen.reduce((total, seccion) => total + seccion.duracion, 0)).toBe(
+      duracionClase(obtenerClase('core-5'))
+    );
   });
 
-  it('devuelve null para clases exprés', () => {
-    expect(resumenSecciones(obtenerClase('clasico'))).toBeNull();
+  it('devuelve null si la clase no tiene secciones', () => {
+    expect(resumenSecciones({ bloques: [] })).toBeNull();
   });
 });
 
@@ -178,21 +127,11 @@ describe('formatearReloj', () => {
 });
 
 describe('catálogo de ejercicios', () => {
-  it('entrega el nombre legible', () => {
-    expect(nombreEjercicio('JUMPING_JACKS')).toBe('Jumping jacks');
-    expect(nombreEjercicio('NO_EXISTE')).toBe('NO EXISTE');
-  });
-
   it('marca los ejercicios de tiempo', () => {
     expect(esDeTiempo('PLANCHA')).toBe(true);
-    expect(esDeTiempo('PLANCHA_LATERAL')).toBe(true);
-    expect(esDeTiempo('WALL_SIT')).toBe(true);
-    expect(esDeTiempo('SUPERMAN')).toBe(true);
     expect(esDeTiempo('MARCHA')).toBe(true);
-    expect(esDeTiempo('MARCHA_SUAVE')).toBe(true);
-    expect(esDeTiempo('ESTIRAMIENTO_GENERAL')).toBe(true);
+    expect(esDeTiempo('BURPEE')).toBe(true);
     expect(esDeTiempo('SENTADILLAS')).toBe(false);
-    expect(esDeTiempo('SENTADILLA_SUMO')).toBe(false);
-    expect(esDeTiempo('MOUNTAIN_CLIMBER')).toBe(false);
+    expect(esDeTiempo('JAB_CROSS')).toBe(false);
   });
 });

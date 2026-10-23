@@ -106,6 +106,181 @@ const TRABAJO = {
     'Oreja hacia el hombro. Suelta la tensión del cuello.',
     'Cierra los ojos un momento y respira profundo.',
   ],
+  PRESS_HOMBRO: [
+    'Press de hombro. Empuja arriba y baja con control.',
+    'Press. Codos bajo las muñecas, no bloquees.',
+    'Press. Respira al empujar y aprieta el abdomen.',
+  ],
+  REMO: [
+    'Remo. Codos cerca del torso y atrás.',
+    'Remo. Aprieta la espalda arriba, un segundo.',
+    'Remo. No uses impulso, tira con la espalda.',
+  ],
+  CURL_BICEPS: [
+    'Curl de bíceps. Codos pegados, sube hasta el hombro.',
+    'Curl. Sube fuerte, baja lento.',
+    'Curl. Nada de balanceo, controla el descenso.',
+  ],
+  EXTENSION_TRICEPS: [
+    'Extensión de tríceps. Codos cerca de la cabeza.',
+    'Tríceps. Estira del todo y vuelve con control.',
+    'Tríceps. Codos quietos, solo mueve el antebrazo.',
+  ],
+  PESO_MUERTO: [
+    'Peso muerto. Cadera atrás y espalda recta.',
+    'Peso muerto. Baja hasta media pierna y sube apretando glúteos.',
+    'Peso muerto. Pecho arriba, no redondees la espalda.',
+  ],
+  SENTADILLA_SALTO: [
+    'Sentadilla con salto. Baja y explota hacia arriba.',
+    'Sentadilla con salto. Aterriza suave, rodillas flexibles.',
+    'Sin salto también vale: sube y ponte de pie con fuerza.',
+  ],
+  BURPEE: [
+    'Burpee. Manos al piso, piernas atrás, flexión y salto.',
+    'Burpee. Mantén el abdomen firme en la plancha.',
+    'Burpee. Versión sin salto: camina los pies.',
+  ],
+  SKATER: [
+    'Skater. Salta de lado a lado y aterriza en una pierna.',
+    'Skater. Rodillas flexibles, aterriza suave.',
+    'Skater. Sin salto: toca el pie al lado y sigue.',
+  ],
+  PLANK_JACK: [
+    'Plank jack. Plancha firme y piernas abren y cierran.',
+    'Plank jack. No muevas la cadera.',
+    'Plank jack. Ritmo constante, abdomen apretado.',
+  ],
+  ESCALADOR: [
+    'Escaladores. Rodillas al pecho y cadera baja.',
+    'Escaladores. Ritmo fuerte, sin rebotar la cadera.',
+    'Escaladores. Manos bajo los hombros.',
+  ],
+  STEP_TOUCH: [
+    'Step touch. Paso al lado, toca y vuelve.',
+    'Step touch. Brazos libres y al ritmo.',
+    'Step touch. No hay paso incorrecto, sigue.',
+  ],
+  MERENGUE: [
+    'Merengue. Paso corto y rápido, cadera al ritmo.',
+    'Merengue. Brazos acompañan, sonríe.',
+    'Merengue. Mantén el ritmo, faltan pocos.',
+  ],
+  SALSA: [
+    'Salsa. Cambia el peso de un pie al otro.',
+    'Salsa. Gira el torso suave, paso al ritmo.',
+    'Salsa. Marca el ritmo, disfruta.',
+  ],
+  CADERA: [
+    'Cadera. Suéltala al ritmo, rodillas suaves.',
+    'Cadera. Brazos arriba y mucha energía.',
+    'Cadera. Mueve libre, es tu momento.',
+  ],
+  GRAPEVINE: [
+    'Grapevine. Paso al lado, cruza atrás y sigue.',
+    'Grapevine. De lado a lado, brazos al ritmo.',
+    'Grapevine. Cambia de dirección a mi señal.',
+  ],
+  JAB_CROSS: [
+    'Jab y cross. Extiende el brazo y vuelve a la guardia.',
+    'Jab y cross. Rota el torso, exhala en el golpe.',
+    'Jab y cross. Puño firme, no hiperextiendas el codo.',
+  ],
+  RODILLAZO: [
+    'Rodillazo. Sube la rodilla al frente y baja.',
+    'Rodillazo. Torso erguido, golpea con la cadera.',
+    'Rodillazo. Alterna y mantén el ritmo.',
+  ],
+  PATADA_FRONTAL: [
+    'Patada frontal. Sube la rodilla y extiende.',
+    'Patada frontal. Baja con control, sin dejarla caer.',
+    'Patada frontal. Golpea al aire, pierna firme.',
+  ],
+  PATADA_LATERAL: [
+    'Patada lateral. Sube la pierna al lado.',
+    'Patada lateral. Torso erguido y equilibrio.',
+    'Patada lateral. Cambia de lado con control.',
+  ],
+  GUARDIA: [
+    'Guardia. Puños cerca del mentón y paso ligero.',
+    'Guardia. Codos abajo, muévete en el sitio.',
+    'Guardia. Pie ligero, no es pelear, es moverse.',
+  ],
+  COMBINACION: [
+    'Combinación. Jab, cross y gancho. Otra vez.',
+    'Combinación. Exhala en cada golpe y vuelve a la guardia.',
+    'Combinación. 3, 2, 1, cambia.',
+  ],
+  CRUNCH_BICICLETA: [
+    'Bicicleta. Codo hacia la rodilla opuesta.',
+    'Bicicleta. Lumbar pegada al piso, lento.',
+    'Bicicleta. Alterna sin prisa, controla.',
+  ],
+  V_UP: [
+    'V-up. Sube brazos y piernas a encontrarse.',
+    'V-up. Lumbar pegada y baja con control.',
+    'V-up. Si es mucho, flexiona las rodillas.',
+  ],
+  ELEVACION_PIERNAS: [
+    'Elevación de piernas. Piernas juntas y lumbar pegada.',
+    'Elevación de piernas. Baja solo hasta donde controles.',
+    'Elevación de piernas. No arquees la espalda.',
+  ],
+  PLANCHA_TOQUE: [
+    'Plancha con toque. Toca el hombro sin mover la cadera.',
+    'Plancha con toque. Cadera estable, abdomen firme.',
+    'Plancha con toque. Lento y controlado.',
+  ],
+  RUSSIAN_TWIST: [
+    'Giro ruso. Torso atrás y gira de lado a lado.',
+    'Giro ruso. Pecho arriba, gira con control.',
+    'Giro ruso. Exhala en cada giro.',
+  ],
+  GATO_CAMELLO: [
+    'Gato y camello. Redondea y arquea la espalda.',
+    'Gato y camello. Sigue la respiración.',
+    'Gato y camello. Movimiento lento y fluido.',
+  ],
+  POSTURA_NINO: [
+    'Postura del niño. Frente al piso y brazos estirados.',
+    'Postura del niño. Respira profundo y suelta.',
+    'Postura del niño. Siéntate en los talones.',
+  ],
+  ESTIRAMIENTO_ISQUIOS: [
+    'Isquios. Pierna estirada y espalda larga.',
+    'Isquios. Sin rebotar, sostén y respira.',
+    'Isquios. Llega hasta donde puedas.',
+  ],
+  ESTIRAMIENTO_CUADRICEPS: [
+    'Cuádriceps. Talón al glúteo y rodillas juntas.',
+    'Cuádriceps. Sostén y respira, sin jalar.',
+    'Cuádriceps. Apóyate en la pared si lo necesitas.',
+  ],
+  RESPIRACION_DIAFRAGMATICA: [
+    'Respira. Inhala por la nariz y exhala largo.',
+    'Respira. Suelta los hombros y el aire.',
+    'Respira. Baja el pulso, lo hiciste bien.',
+  ],
+  SALUDO_SOL: [
+    'Saludo al sol. Encadena con la respiración.',
+    'Saludo al sol. Manos arriba, inhala; al frente, exhala.',
+    'Saludo al sol. Fluido y sin prisa.',
+  ],
+  PEDALEO_SENTADO: [
+    'Pedaleo sentado. Cadencia constante, torso firme.',
+    'Pedaleo. Rodillas al pecho al ritmo.',
+    'Pedaleo. Hombros relajados, respira.',
+  ],
+  PEDALEO_PIE: [
+    'De pie. Rodillas altas y core activo.',
+    'De pie. Mantén la cadencia, no frenes.',
+    'De pie. Torso firme y respiración controlada.',
+  ],
+  SPRINT: [
+    'Sprint. Todo lo que tengas, rodillas a la cadera.',
+    'Sprint. Brazos activos, máximo ritmo.',
+    'Sprint. Aguanta, falta poco.',
+  ],
 };
 
 const TRABAJO_GENERAL = [

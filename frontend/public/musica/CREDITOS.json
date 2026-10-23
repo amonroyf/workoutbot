@@ -1,0 +1,14 @@
+{
+  "fuente": "FreePD (Free Public Domain Music) — https://archive.org/details/freepd",
+  "licencia": "CC0 1.0 Universal (dominio público). Uso comercial permitido, sin atribución obligatoria.",
+  "verificacion": "Espejo con licencia explícita: https://archive.org/details/abook-music-freepd-cc0 (CC0 1.0).",
+  "pistas": [
+    { "archivo": "fuerza.mp3", "titulo": "Bit Bit Loop", "origen": "electronic/Bit Bit Loop.mp3" },
+    { "archivo": "hiit.mp3", "titulo": "Backbeat", "origen": "electronic/Backbeat.mp3" },
+    { "archivo": "danza.mp3", "titulo": "And Just Like That", "origen": "upbeat/And Just Like That.mp3" },
+    { "archivo": "combat.mp3", "titulo": "Battle Ready", "origen": "epic/Battle Ready.mp3" },
+    { "archivo": "core.mp3", "titulo": "Chronos", "origen": "electronic/Chronos.mp3" },
+    { "archivo": "movilidad.mp3", "titulo": "Slice of Life", "origen": "scoring/Slice of Life.mp3" },
+    { "archivo": "spinning.mp3", "titulo": "Motions", "origen": "upbeat/Motions.mp3" }
+  ]
+}

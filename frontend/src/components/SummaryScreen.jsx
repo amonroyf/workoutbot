@@ -2,7 +2,8 @@ import React from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { calcularTotal, calcularSegundos, separarTotales } from '../engine/score';
 import { esDeTiempo, nombreEjercicio } from '../engine/ejercicios';
-import { formatearDuracion } from '../engine/clases';
+import { formatearDuracion, obtenerArquetipo } from '../engine/clases';
+import { estiloGel } from '../theme';
 import { diferenciaReps, textoComparacion } from '../engine/progreso';
 import {
   esPantallaCompleta,
@@ -35,6 +36,7 @@ export default function SummaryScreen({ resumen, cargando = false }) {
   const totalSegundos = calcularSegundos(totales);
   const delta = diferenciaReps(resumen);
   const comparacion = textoComparacion(resumen);
+  const arquetipo = obtenerArquetipo(claseActual.arquetipo);
 
   const grupos = claseActual.secciones
     ? claseActual.secciones.map((seccion, i) => ({
@@ -67,9 +69,16 @@ export default function SummaryScreen({ resumen, cargando = false }) {
   };
 
   return (
-    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-fondo/80 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center text-tinta-100">
-      <p className="text-sm font-semibold text-marca-400">{claseActual.nombre}</p>
-      <h1 className="mb-4 mt-1 text-3xl font-black md:text-4xl">Clase completada</h1>
+    <div
+      style={estiloGel(claseActual.arquetipo)}
+      className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-fondo/80 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center text-tinta-100"
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-56 gel" />
+      <p className="relative text-[10px] font-black uppercase tracking-[0.18em] texto-gel">
+        {arquetipo?.nombre}
+      </p>
+      <p className="relative fuente-display text-sm font-semibold text-tinta-200">{claseActual.nombre}</p>
+      <h1 className="fuente-display mb-4 mt-1 text-3xl font-black md:text-4xl">Clase completada</h1>
 
       {cargando && !resumen && (
         <div className="mb-4 w-full max-w-sm space-y-3 text-left">

@@ -780,6 +780,14 @@ describe('DETECTORES', () => {
       'APERTURA_PECHO',
       'ROTACION_TORSO',
       'ESTIRAMIENTO_CUELLO',
+      'GOLPE_DIRECTO',
+      'RODILLAZO',
+      'PATADA_FRONTAL',
+      'STEP_TOQUE',
+      'PRESS_HOMBRO',
+      'CURL_BICEPS',
+      'REMO',
+      'PESO_MUERTO',
     ]);
   });
 });

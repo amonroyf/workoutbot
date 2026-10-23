@@ -1,9 +1,11 @@
 import React, { useMemo, useRef, useState } from 'react';
 import {
+  ARQUETIPOS,
   CLASES,
   duracionClase,
   etiquetaFormato,
   formatearDuracion,
+  obtenerArquetipo,
   obtenerClase,
   resumenSecciones,
 } from '../engine/clases';
@@ -16,6 +18,7 @@ import {
   siguienteDiaPlan,
 } from '../engine/plan';
 import { nombreEjercicio } from '../engine/ejercicios';
+import { estiloGel } from '../theme';
 import Marca from './Marca';
 import Icono from './Icono';
 import PlanSemanal from './PlanSemanal';
@@ -30,7 +33,32 @@ const NIVELES = {
   avanzado: 'Avanzado',
 };
 
-function Chip({ children, tono = 'neutro' }) {
+const NOMBRES_EQUIPO = {
+  banda: 'Banda elástica',
+  pared: 'Pared',
+  toalla: 'Toalla',
+  silla: 'Silla o banco',
+  botellas: 'Botellas con agua',
+  mochila: 'Mochila con peso',
+};
+
+function textoEquipo(clase) {
+  const equipo = clase.equipamiento || [];
+  if (equipo.length === 0) return 'Sin equipo';
+  return equipo.map((pieza) => NOMBRES_EQUIPO[pieza] || pieza).join(' · ');
+}
+
+function Chip({ children, tono = 'neutro', gel = null }) {
+  if (gel) {
+    return (
+      <span
+        style={estiloGel(gel)}
+        className="rounded-chip border border-white/10 fondo-gel px-2.5 py-1 text-[10px] font-bold texto-gel"
+      >
+        {children}
+      </span>
+    );
+  }
   const clases =
     tono === 'marca'
       ? 'border-marca-400/40 bg-marca-500/15 text-marca-300'
@@ -45,20 +73,23 @@ function Chip({ children, tono = 'neutro' }) {
 }
 
 function TarjetaClase({ clase, activa, onClick }) {
+  const arquetipo = obtenerArquetipo(clase.arquetipo);
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={activa}
-      className={`min-w-[152px] shrink-0 snap-start rounded-ficha border-2 p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100 ${
+      style={estiloGel(clase.arquetipo)}
+      className={`relative min-w-[158px] shrink-0 snap-start overflow-hidden rounded-ficha border-2 p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100 ${
         activa
-          ? 'border-marca-400 bg-marca-500/15'
+          ? 'border-[var(--gel)] bg-panel-alto'
           : 'border-linea bg-panel hover:border-tinta-600 hover:bg-panel-alto'
       }`}
     >
+      <span className="gel-lateral absolute inset-x-0 top-0 h-1" />
       <span className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-black uppercase tracking-[0.12em] text-marca-400">
-          {etiquetaFormato(clase)}
+        <span className="text-[10px] font-black uppercase tracking-[0.12em] texto-gel">
+          {arquetipo?.nombre || etiquetaFormato(clase)}
         </span>
         <span className="flex items-center gap-1 text-[10px] font-bold text-tinta-400">
           <Icono nombre="reloj" tamano={12} />
@@ -72,7 +103,7 @@ function TarjetaClase({ clase, activa, onClick }) {
         {clase.descripcion}
       </span>
       <span className="mt-2 block text-[10px] font-bold text-tinta-500">
-        {NIVELES[clase.nivel] || clase.nivel} · Sin equipo
+        {NIVELES[clase.nivel] || clase.nivel}
       </span>
     </button>
   );
@@ -115,6 +146,7 @@ export default function PantallaInicio({
   const proximo = hoyClase ? null : siguienteDiaPlan(plan, diaIso());
   const objetivo = obtenerObjetivo(plan.objetivo);
   const resumenClase = resumenSecciones(claseActual);
+  const arquetipoActual = obtenerArquetipo(claseActual.arquetipo);
   const nombre = user.displayName?.split(' ')[0] || 'atleta';
   const esClaseDelPlan = hoyClase?.id === claseActual.id;
   const mostrarInstalar = !instalada && (puedeInstalar || esIos);
@@ -122,14 +154,23 @@ export default function PantallaInicio({
   const recomendadas = useMemo(() => {
     const delObjetivo = objetivo.clases.map(obtenerClase).filter(Boolean);
     const cortas = [...CLASES]
-      .filter((clase) => clase.formato === 'express')
+      .filter((clase) => duracionClase(clase) <= 900)
       .sort((a, b) => duracionClase(a) - duracionClase(b));
     const mezcla = [...delObjetivo];
     for (const clase of cortas) {
       if (!mezcla.some((item) => item.id === clase.id)) mezcla.push(clase);
     }
-    return mezcla.filter((clase) => clase.id !== claseActual.id).slice(0, 3);
+    return mezcla.filter((clase) => clase.id !== claseActual.id).slice(0, 4);
   }, [objetivo, claseActual.id]);
+
+  const clasesAgrupadas = useMemo(
+    () =>
+      ARQUETIPOS.map((arquetipo) => ({
+        arquetipo,
+        clases: CLASES.filter((clase) => clase.arquetipo === arquetipo.id),
+      })).filter((grupo) => grupo.clases.length > 0),
+    []
+  );
 
   const elegirClase = (claseId) => {
     onSeleccionarClase(claseId);
@@ -164,7 +205,7 @@ export default function PantallaInicio({
         <header className="flex items-center justify-between gap-3">
           <Marca />
           <div className="min-w-0 text-right">
-            <p className="truncate text-sm font-black text-tinta-100">Hola, {nombre}</p>
+            <p className="fuente-display truncate text-sm font-black text-tinta-100">Hola, {nombre}</p>
             <p className="text-[11px] text-tinta-400">¿Qué entrenamos hoy?</p>
           </div>
         </header>
@@ -229,8 +270,11 @@ export default function PantallaInicio({
           </>
         )}
 
-        <section className="relative mt-3 overflow-hidden rounded-ficha border border-linea bg-panel p-4">
-          <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-marca-500/10 blur-3xl" />
+        <section
+          style={estiloGel(claseActual.arquetipo)}
+          className="relative mt-3 overflow-hidden rounded-ficha border border-linea bg-panel p-4"
+        >
+          <div className="gel pointer-events-none absolute inset-x-0 -top-24 h-56" />
           <div className="relative">
             <div className="flex items-center justify-between gap-2">
               <Chip tono={hoyClase ? 'marca' : 'neutro'}>{etiquetaHeroe}</Chip>
@@ -244,7 +288,10 @@ export default function PantallaInicio({
               )}
             </div>
 
-            <h1 className="mt-3 text-3xl font-black leading-[1.05] text-tinta-100">
+            <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] texto-gel">
+              {arquetipoActual?.nombre} · {arquetipoActual?.descripcion}
+            </p>
+            <h1 className="fuente-display mt-1 text-3xl font-black leading-[1.05] text-tinta-100">
               {claseActual.nombre}
             </h1>
             <p className="mt-1.5 text-sm leading-relaxed text-tinta-300">
@@ -256,8 +303,8 @@ export default function PantallaInicio({
             <div className="mt-3 flex flex-wrap gap-1.5">
               <Chip>{formatearDuracion(duracionClase(claseActual))}</Chip>
               <Chip>{NIVELES[claseActual.nivel] || claseActual.nivel}</Chip>
-              <Chip>{etiquetaFormato(claseActual)}</Chip>
-              <Chip>Sin equipo</Chip>
+              <Chip gel={claseActual.arquetipo}>{arquetipoActual?.nombre}</Chip>
+              <Chip>{textoEquipo(claseActual)}</Chip>
             </div>
 
             {hoyClase && !esClaseDelPlan && (
@@ -368,7 +415,7 @@ export default function PantallaInicio({
         <section className="mt-4">
           <div className="flex items-end justify-between gap-2">
             <div>
-              <h2 className="text-base font-black text-tinta-100">Clases cortas</h2>
+              <h2 className="fuente-display text-base font-black text-tinta-100">Para hoy</h2>
               <p className="text-[11px] text-tinta-400">
                 {proximo
                   ? `El ${nombreDia(proximo.dia)} toca ${proximo.clase.nombre}`
@@ -551,34 +598,47 @@ export default function PantallaInicio({
                   </p>
                 </div>
               </div>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {CLASES.map((clase) => {
-                  const activa = clase.id === claseActual.id;
-                  return (
-                    <button
-                      key={clase.id}
-                      type="button"
-                      onClick={() => elegirClase(clase.id)}
-                      aria-pressed={activa}
-                      className={`rounded-boton border-2 p-2.5 text-left transition ${
-                        activa
-                          ? 'border-marca-400 bg-marca-500/15'
-                          : 'border-linea bg-tinta-900/60 hover:bg-tinta-800/60'
-                      }`}
-                    >
-                      <span className="block text-xs font-black leading-tight text-tinta-100">
-                        {clase.nombre}
-                      </span>
-                      <span className="mt-1 block text-[10px] text-tinta-400">
-                        {formatearDuracion(duracionClase(clase))} ·{' '}
-                        {etiquetaFormato(clase)}
-                      </span>
-                      <span className="block text-[10px] text-tinta-500">
-                        {NIVELES[clase.nivel] || clase.nivel}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="mt-3 space-y-4">
+                {clasesAgrupadas.map(({ arquetipo, clases }) => (
+                  <div key={arquetipo.id} style={estiloGel(arquetipo.id)}>
+                    <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] texto-gel">
+                      <span className="h-1.5 w-1.5 rounded-full fondo-gel borde-gel border" />
+                      {arquetipo.nombre}
+                    </p>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      {clases.map((clase) => {
+                        const activa = clase.id === claseActual.id;
+                        return (
+                          <button
+                            key={clase.id}
+                            type="button"
+                            onClick={() => elegirClase(clase.id)}
+                            aria-pressed={activa}
+                            className={`relative overflow-hidden rounded-boton border-2 p-2.5 text-left transition ${
+                              activa
+                                ? 'border-[var(--gel)] bg-panel-alto'
+                                : 'border-linea bg-tinta-900/60 hover:bg-tinta-800/60'
+                            }`}
+                          >
+                            {activa && (
+                              <span className="gel-lateral absolute inset-y-0 left-0 w-1" />
+                            )}
+                            <span className="block text-xs font-black leading-tight text-tinta-100">
+                              {clase.nombre}
+                            </span>
+                            <span className="mt-1 block text-[10px] text-tinta-400">
+                              {formatearDuracion(duracionClase(clase))} ·{' '}
+                              {NIVELES[clase.nivel] || clase.nivel}
+                            </span>
+                            <span className="block text-[10px] text-tinta-500">
+                              {textoEquipo(clase)}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -592,7 +652,7 @@ export default function PantallaInicio({
               <p className="text-xs text-tinta-300">{claseActual.descripcion}</p>
               <p className="mt-1 text-[11px] text-tinta-400">
                 {formatearDuracion(duracionClase(claseActual))} ·{' '}
-                {NIVELES[claseActual.nivel] || claseActual.nivel} · Sin equipo
+                {NIVELES[claseActual.nivel] || claseActual.nivel} · {textoEquipo(claseActual)}
               </p>
               <button
                 type="button"
