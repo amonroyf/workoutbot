@@ -16,26 +16,26 @@ export const OBJETIVOS = Object.freeze([
   Object.freeze({
     id: 'equilibrio',
     nombre: 'Equilibrio',
-    descripcion: 'Fuerza, baile y core',
-    clases: Object.freeze(['fuerza-30', 'danza-30', 'core-20']),
+    descripcion: 'Fuerza, HIIT y core',
+    clases: Object.freeze(['fuerza-30', 'hiit-20', 'core-20']),
   }),
   Object.freeze({
     id: 'fuerza',
     nombre: 'Fuerza',
-    descripcion: 'Carga ligera y repeticiones',
+    descripcion: 'Fuerza total en tres sesiones',
     clases: Object.freeze(['fuerza-30', 'fuerza-45', 'fuerza-10']),
   }),
   Object.freeze({
     id: 'cardio',
     nombre: 'Cardio',
-    descripcion: 'HIIT, baile y combat',
-    clases: Object.freeze(['hiit-20', 'danza-30', 'combat-30']),
+    descripcion: 'HIIT y combat',
+    clases: Object.freeze(['hiit-20', 'hiit-30', 'combat-30']),
   }),
   Object.freeze({
     id: 'suave',
     nombre: 'Suave',
-    descripcion: 'Movilidad y core sin impacto',
-    clases: Object.freeze(['movilidad-10', 'core-10', 'movilidad-20']),
+    descripcion: 'Core y fuerza sin impacto',
+    clases: Object.freeze(['core-10', 'core-20', 'fuerza-10']),
   }),
   Object.freeze({
     id: 'expreso',
@@ -46,8 +46,8 @@ export const OBJETIVOS = Object.freeze([
   Object.freeze({
     id: 'combate',
     nombre: 'Combat',
-    descripcion: 'Golpes, patadas y ritmo',
-    clases: Object.freeze(['combat-20', 'danza-30', 'combat-30']),
+    descripcion: 'Golpes, patadas y acondicionamiento',
+    clases: Object.freeze(['combat-20', 'combat-30', 'hiit-20']),
   }),
 ]);
 

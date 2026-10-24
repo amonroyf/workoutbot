@@ -1,24 +1,18 @@
 export const BPM_POR_SECCION = Object.freeze({
-  calentamiento: 116,
+  activacion: 116,
   bloque: 128,
   pico: 152,
   recuperacion: 112,
   core: 118,
   enfriamiento: 92,
-  // compatibilidad con secciones del catálogo anterior
-  fuerza: 128,
-  metabolico: 150,
 });
 
 // BPM de referencia por arquetipo (cuando no hay sección específica).
 export const BPM_POR_ARQUETIPO = Object.freeze({
   fuerza: 128,
   hiit: 156,
-  danza: 138,
   combat: 144,
   core: 118,
-  movilidad: 92,
-  spinning: 132,
 });
 
 // BPM por intensidad para clases sin secciones.
@@ -43,7 +37,6 @@ export function bpmSeccion(seccionId, intensidad = '', arquetipo = '') {
 const MENOR = [0, 2, 3, 5, 7, 8, 10];
 const MENOR_PENTA = [0, 3, 5, 7, 10];
 const DORICO = [0, 2, 3, 5, 7, 9, 10];
-const MAYOR = [0, 2, 4, 5, 7, 9, 11];
 
 // Patrones de 16 pasos por compás (4/4, semicorcheas). '-' es silencio.
 const _ = null;
@@ -77,17 +70,6 @@ export const MUSICA_POR_ARQUETIPO = Object.freeze({
     bajo: [0, _, 0, 0, 3, _, 3, 3, 5, _, 5, 5, 7, _, 7, 7],
     lead: [12, _, 7, 3, 12, _, 7, 3, 15, _, 10, 7, 12, _, 10, 7],
   },
-  danza: {
-    onda: 'triangle',
-    escala: MENOR,
-    raiz: 65.41,
-    corte: 1800,
-    bombo: pasos(0, 4, 8, 12),
-    caja: pasos(4, 12),
-    charles: pasos(2, 6, 10, 14),
-    bajo: [0, 0, _, 0, 5, 5, _, 5, 3, 3, _, 3, 7, 7, _, 7],
-    lead: [7, _, 7, 10, _, 7, 5, _, 3, _, 3, 5, _, 7, 10, _],
-  },
   combat: {
     onda: 'sawtooth',
     escala: DORICO,
@@ -110,28 +92,6 @@ export const MUSICA_POR_ARQUETIPO = Object.freeze({
     bajo: [0, _, _, _, 5, _, _, _, 3, _, _, _, 5, _, _, _],
     lead: [7, _, _, _, 10, _, _, _, 7, _, 5, _, 3, _, _, _],
   },
-  movilidad: {
-    onda: 'sine',
-    escala: MAYOR,
-    raiz: 65.41,
-    corte: 700,
-    bombo: pasos(),
-    caja: pasos(),
-    charles: pasos(8),
-    bajo: [0, _, _, _, _, _, 4, _, _, _, _, _, 2, _, _, _],
-    lead: [7, _, 9, _, 11, _, 12, _, 11, _, 9, _, 7, _, 4, _],
-  },
-  spinning: {
-    onda: 'sawtooth',
-    escala: MENOR,
-    raiz: 73.42,
-    corte: 1500,
-    bombo: pasos(0, 4, 8, 12),
-    caja: pasos(8),
-    charles: pasos(2, 6, 10, 14),
-    bajo: [0, _, 0, _, 5, _, 5, _, 3, _, 3, _, 7, _, 7, _],
-    lead: [0, 7, 5, 7, 3, 7, 5, 7, 5, 12, 10, 12, 7, 12, 10, 12],
-  },
 });
 
 // Pistas instrumentales CC0 (dominio público) empaquetadas en /public/musica.
@@ -139,11 +99,8 @@ export const MUSICA_POR_ARQUETIPO = Object.freeze({
 export const PISTAS_POR_ARQUETIPO = Object.freeze({
   fuerza: '/musica/fuerza.mp3',
   hiit: '/musica/hiit.mp3',
-  danza: '/musica/danza.mp3',
   combat: '/musica/combat.mp3',
   core: '/musica/core.mp3',
-  movilidad: '/musica/movilidad.mp3',
-  spinning: '/musica/spinning.mp3',
 });
 
 function frecuencia(raiz, escala, grado, octava = 0) {

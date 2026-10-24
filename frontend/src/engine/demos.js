@@ -635,44 +635,6 @@ const ESCRITORIO_BASE = pose(
   p(0.53, 0.9)
 );
 
-// Círculos de brazos: brazos al frente, subiendo por encima de la cabeza.
-const CIRCULOS_BRAZOS_ARRIBA = ajustar(ESCRITORIO_BASE, {
-  codoI: { x: 0.4, y: 0.28 },
-  codoD: { x: 0.6, y: 0.28 },
-  munecaI: { x: 0.38, y: 0.14 },
-  munecaD: { x: 0.62, y: 0.14 },
-});
-
-const CIRCULOS_BRAZOS_ABAJO = ajustar(ESCRITORIO_BASE, {
-  codoI: { x: 0.44, y: 0.34 },
-  codoD: { x: 0.56, y: 0.34 },
-  munecaI: { x: 0.43, y: 0.22 },
-  munecaD: { x: 0.57, y: 0.22 },
-});
-
-// Elevaciones laterales: brazos a la altura de los hombros.
-const ELEVACION_BRAZOS_ALTO = ajustar(ESCRITORIO_BASE, {
-  codoI: { x: 0.32, y: 0.3 },
-  codoD: { x: 0.68, y: 0.3 },
-  munecaI: { x: 0.2, y: 0.3 },
-  munecaD: { x: 0.8, y: 0.3 },
-});
-
-// Apertura de pecho: brazos atrás, cerrando el pecho.
-const APERTURA_PECHO_CERRADO = ajustar(ESCRITORIO_BASE, {
-  codoI: { x: 0.4, y: 0.36 },
-  codoD: { x: 0.6, y: 0.36 },
-  munecaI: { x: 0.46, y: 0.3 },
-  munecaD: { x: 0.54, y: 0.3 },
-});
-
-const APERTURA_PECHO_ABIERTO = ajustar(ESCRITORIO_BASE, {
-  codoI: { x: 0.3, y: 0.32 },
-  codoD: { x: 0.7, y: 0.32 },
-  munecaI: { x: 0.18, y: 0.28 },
-  munecaD: { x: 0.82, y: 0.28 },
-});
-
 // Rotación de torso: hombros girados a cada lado.
 const ROTACION_TORSO_IZQ = ajustar(ESCRITORIO_BASE, {
   cabeza: { x: 0.44, y: 0.16 },
@@ -696,16 +658,6 @@ const ROTACION_TORSO_DER = ajustar(ESCRITORIO_BASE, {
   munecaD: { x: 0.7, y: 0.48 },
 });
 
-// Estiramiento de cuello: cabeza inclinada hacia cada hombro.
-const ESTIRAMIENTO_CUELLO_IZQ = ajustar(ESCRITORIO_BASE, {
-  cabeza: { x: 0.4, y: 0.2 },
-  cuello: { x: 0.46, y: 0.26 },
-});
-
-const ESTIRAMIENTO_CUELLO_DER = ajustar(ESCRITORIO_BASE, {
-  cabeza: { x: 0.6, y: 0.2 },
-  cuello: { x: 0.54, y: 0.26 },
-});
 
 const DEMOS_BASE = Object.freeze({
   SENTADILLAS: Object.freeze({
@@ -785,19 +737,6 @@ const DEMOS_BASE = Object.freeze({
       { t: 1, pose: RODILLAS_NEUTRO },
     ]),
   }),
-  MARCHA: Object.freeze({
-    nombre: 'Marcha en el lugar',
-    vista: 'frontal',
-    cicloMs: 1600,
-    pistas: ['Camina en el lugar', 'Brazos relajados', 'Sube la temperatura poco a poco'],
-    keyframes: Object.freeze([
-      { t: 0, pose: RODILLAS_NEUTRO },
-      { t: 0.25, pose: RODILLA_IZQ_ARRIBA },
-      { t: 0.5, pose: RODILLAS_NEUTRO },
-      { t: 0.75, pose: RODILLA_DER_ARRIBA },
-      { t: 1, pose: RODILLAS_NEUTRO },
-    ]),
-  }),
   MARCHA_SUAVE: Object.freeze({
     nombre: 'Marcha suave',
     vista: 'frontal',
@@ -872,19 +811,6 @@ const DEMOS_BASE = Object.freeze({
       { t: 0.5, pose: DIAMANTE_ABAJO },
       { t: 0.85, pose: DIAMANTE_ARRIBA },
       { t: 1, pose: DIAMANTE_ARRIBA },
-    ]),
-  }),
-  PUENTE_UNA_PIERNA: Object.freeze({
-    nombre: 'Puente a una pierna',
-    vista: 'perfil',
-    cicloMs: 2600,
-    pistas: ['Una planta firme en el piso', 'La otra pierna estirada', 'Sube sin arquear la espalda'],
-    keyframes: Object.freeze([
-      { t: 0, pose: PUENTE_UNA_ABAJO },
-      { t: 0.35, pose: PUENTE_UNA_ARRIBA },
-      { t: 0.55, pose: PUENTE_UNA_ARRIBA },
-      { t: 0.9, pose: PUENTE_UNA_ABAJO },
-      { t: 1, pose: PUENTE_UNA_ABAJO },
     ]),
   }),
   MOUNTAIN_CLIMBER: Object.freeze({
@@ -969,42 +895,6 @@ const DEMOS_BASE = Object.freeze({
       { t: 1, pose: BIRD_DOG_A },
     ]),
   }),
-  CIRCULOS_BRAZOS: Object.freeze({
-    nombre: 'Círculos de brazos',
-    vista: 'frontal',
-    cicloMs: 1600,
-    pistas: ['Brazos extendidos', 'Dibuja círculos grandes', 'Alterna la dirección'],
-    keyframes: Object.freeze([
-      { t: 0, pose: CIRCULOS_BRAZOS_ABAJO },
-      { t: 0.35, pose: CIRCULOS_BRAZOS_ARRIBA },
-      { t: 0.65, pose: CIRCULOS_BRAZOS_ABAJO },
-      { t: 1, pose: CIRCULOS_BRAZOS_ABAJO },
-    ]),
-  }),
-  ELEVACIONES_LATERALES: Object.freeze({
-    nombre: 'Elevaciones laterales',
-    vista: 'frontal',
-    cicloMs: 1800,
-    pistas: ['Sube los brazos a los lados', 'Hasta la altura de los hombros', 'Baja despacio'],
-    keyframes: Object.freeze([
-      { t: 0, pose: ESCRITORIO_BASE },
-      { t: 0.4, pose: ELEVACION_BRAZOS_ALTO },
-      { t: 0.6, pose: ELEVACION_BRAZOS_ALTO },
-      { t: 1, pose: ESCRITORIO_BASE },
-    ]),
-  }),
-  APERTURA_PECHO: Object.freeze({
-    nombre: 'Apertura de pecho',
-    vista: 'frontal',
-    cicloMs: 2000,
-    pistas: ['Abre los brazos a los lados', 'Lleva los omóplatos atrás', 'Respira y abre más'],
-    keyframes: Object.freeze([
-      { t: 0, pose: APERTURA_PECHO_CERRADO },
-      { t: 0.4, pose: APERTURA_PECHO_ABIERTO },
-      { t: 0.6, pose: APERTURA_PECHO_ABIERTO },
-      { t: 1, pose: APERTURA_PECHO_CERRADO },
-    ]),
-  }),
   ROTACION_TORSO: Object.freeze({
     nombre: 'Rotación de torso',
     vista: 'frontal',
@@ -1018,33 +908,18 @@ const DEMOS_BASE = Object.freeze({
       { t: 1, pose: ROTACION_TORSO_IZQ },
     ]),
   }),
-  ESTIRAMIENTO_CUELLO: Object.freeze({
-    nombre: 'Estiramiento de cuello',
-    vista: 'frontal',
-    cicloMs: 2600,
-    pistas: ['Inclina la oreja hacia el hombro', 'Sin forzar el hombro', 'Cambia de lado y mantén'],
-    keyframes: Object.freeze([
-      { t: 0, pose: ESTIRAMIENTO_CUELLO_IZQ },
-      { t: 0.4, pose: ESCRITORIO_BASE },
-      { t: 0.7, pose: ESTIRAMIENTO_CUELLO_DER },
-      { t: 1, pose: ESTIRAMIENTO_CUELLO_IZQ },
-    ]),
-  }),
 });
 
 const BASE_POR_GRUPO = Object.freeze({
   piernas: 'SENTADILLAS',
-  gluteos: 'PUENTE_GLUTEO',
+  'glúteos': 'PUENTE_GLUTEO',
   pecho: 'FLEXIONES',
-  brazos: 'ELEVACIONES_LATERALES',
-  hombros: 'ELEVACIONES_LATERALES',
+  hombros: 'FLEXIONES',
   espalda: 'SUPERMAN',
   core: 'PLANCHA',
   cardio: 'JUMPING_JACKS',
   combate: 'FLEXIONES',
-  danza: 'CIRCULOS_BRAZOS',
-  movilidad: 'ESTIRAMIENTO_CUELLO',
-  ritmo: 'RODILLAS_ALTAS',
+  movilidad: 'ESTIRAMIENTO_GENERAL',
 });
 
 function demoDesdeBase(ejercicio) {

@@ -36,19 +36,9 @@ export const UMBRAL_RODILLA_ESCALADOR = 120;
 export const UMBRAL_PIERNA_EXTENDIDA = 150;
 export const UMBRAL_SUPERMAN = 0.03;
 
-// Escritorio: la cámara solo necesita ver hombros y cabeza; las piernas
-// pueden quedar debajo del escritorio.
-export const UMBRAL_BRAZOS_ARRIBA = 0.05;
-export const UMBRAL_BRAZOS_NIVEL = 0.01;
-export const UMBRAL_BRAZOS_ABAJO = 0.06;
-export const UMBRAL_APERTURA_ABIERTO = 1.3;
-export const UMBRAL_APERTURA_CERRADO = 0.95;
+// Escritorio: la cámara solo necesita ver hombros y cabeza.
 export const UMBRAL_ROTACION_TORSO = 0.3;
 export const UMBRAL_ROTACION_TORSO_NEUTRO = 0.1;
-export const UMBRAL_INCLINACION_CUELLO = 0.02;
-export const UMBRAL_INCLINACION_CUELLO_NEUTRO = 0.008;
-export const UMBRAL_DESVIO_NARIZ = 0.3;
-export const UMBRAL_NARIZ_BAJA = 0.15;
 
 // Wall sit: torso vertical y rodillas cerca de 90 grados.
 export const UMBRAL_TORSO_VERTICAL = 0.1;
@@ -60,14 +50,9 @@ export const UMBRAL_GOLPE_CODO = 150;
 export const UMBRAL_GOLPE_Y = 0.1;
 export const UMBRAL_PATADA = 0.06;
 
-// Danza / cardio lateral.
-export const UMBRAL_STEP = 0.5;
-
 // Fuerza estilo pump.
 export const UMBRAL_PRESS_ARRIBA = 0.55;
 export const UMBRAL_PRESS_ABAJO = 0.15;
-export const UMBRAL_CURL_ARRIBA = 0.15;
-export const UMBRAL_CURL_ABAJO = 0.6;
 export const UMBRAL_REMO_JALADO = 0.35;
 export const UMBRAL_REMO_EXTENDIDO = 0.6;
 export const UMBRAL_BISAGRA = 0.35;
@@ -540,79 +525,6 @@ function centroY(landmarks, indices) {
 
 // Círculos de brazos: cuenta cuando las muñecas pasan por encima de los
 // hombros y regresan (una vuelta completa).
-export function detectarCirculosBrazos(landmarks, estado) {
-  const visibles = [11, 12, 15, 16];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
-  }
-
-  const hombroY = centroY(landmarks, [11, 12]);
-  const munecaY = centroY(landmarks, [15, 16]);
-
-  let { fase } = estado;
-  let repeticion = false;
-
-  if (munecaY < hombroY - UMBRAL_BRAZOS_ARRIBA) {
-    if (fase === 'ABAJO') repeticion = true;
-    fase = 'ARRIBA';
-  } else if (munecaY > hombroY + UMBRAL_BRAZOS_NIVEL) {
-    fase = 'ABAJO';
-  }
-
-  return resultado(estado, { fase, mensaje: null }, repeticion);
-}
-
-// Elevaciones laterales: cuenta cuando las muñecas suben al nivel de los
-// hombros. Solo tren superior, no exige piernas.
-export function detectarElevacionBrazos(landmarks, estado) {
-  const visibles = [11, 12, 15, 16];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
-  }
-
-  const hombroY = centroY(landmarks, [11, 12]);
-  const munecaY = centroY(landmarks, [15, 16]);
-
-  let { fase } = estado;
-  let repeticion = false;
-
-  if (munecaY < hombroY + UMBRAL_BRAZOS_NIVEL) {
-    if (fase === 'ABAJO') repeticion = true;
-    fase = 'ARRIBA';
-  } else if (munecaY > hombroY + UMBRAL_BRAZOS_ABAJO) {
-    fase = 'ABAJO';
-  }
-
-  return resultado(estado, { fase, mensaje: null }, repeticion);
-}
-
-// Apertura de pecho: compara la separación de muñecas contra el ancho de
-// hombros. Abre y cierra; una rep por abertura.
-export function detectarAperturaPecho(landmarks, estado) {
-  const visibles = [11, 12, 15, 16];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
-  }
-
-  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
-  const separacionMuñecas =
-    Math.abs(landmarks[16].x - landmarks[15].x) / anchoHombros;
-
-  let { fase } = estado;
-  let repeticion = false;
-
-  if (separacionMuñecas > UMBRAL_APERTURA_ABIERTO) {
-    if (fase === 'CERRADO') repeticion = true;
-    fase = 'ABIERTO';
-  } else if (separacionMuñecas < UMBRAL_APERTURA_CERRADO) {
-    fase = 'CERRADO';
-  }
-
-  return resultado(estado, { fase, mensaje: null }, repeticion);
-}
-
-// Rotación de torso: alterna la nariz a cada lado del centro de hombros.
-// Sentado frente a la cámara, la pierna no entra en juego.
 export function detectarRotacionTorso(landmarks, estado) {
   const visibles = [0, 11, 12];
   if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
@@ -648,51 +560,6 @@ export function detectarRotacionTorso(landmarks, estado) {
 
 // Estiramiento de cuello: alterna inclinaciones hacia cada hombro.
 // Usa el desnivel entre orejas; si no se ven, recurre a la nariz.
-export function detectarEstiramientoCuello(landmarks, estado) {
-  if (!esVisible(landmarks, [11, 12], UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra tus hombros en la cámara' }, false);
-  }
-
-  const hombroY = centroY(landmarks, [11, 12]);
-  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
-  const orejaI = landmarks[7];
-  const orejaD = landmarks[8];
-  const orejasVisibles =
-    (orejaI?.visibility ?? 0) > UMBRAL_VISIBILIDAD &&
-    (orejaD?.visibility ?? 0) > UMBRAL_VISIBILIDAD;
-
-  let lado = null;
-  if (orejasVisibles) {
-    const desnivel = orejaI.y - orejaD.y;
-    if (desnivel > UMBRAL_INCLINACION_CUELLO) lado = 'IZQ';
-    else if (desnivel < -UMBRAL_INCLINACION_CUELLO) lado = 'DER';
-  } else {
-    const nariz = landmarks[0];
-    if (nariz && (nariz.visibility ?? 1) > UMBRAL_VISIBILIDAD) {
-      const desvio = (nariz.x - (landmarks[11].x + landmarks[12].x) / 2) / anchoHombros;
-      const baja = nariz.y > hombroY - UMBRAL_NARIZ_BAJA;
-      if (baja && desvio < -UMBRAL_DESVIO_NARIZ) lado = 'IZQ';
-      else if (baja && desvio > UMBRAL_DESVIO_NARIZ) lado = 'DER';
-    }
-  }
-
-  let { ladoActivo } = estado;
-  let repeticion = false;
-
-  if (lado) {
-    if (ladoActivo !== lado) {
-      repeticion = ladoActivo != null;
-      ladoActivo = lado;
-    }
-  } else {
-    ladoActivo = null;
-  }
-
-  return resultado(estado, { ladoActivo, mensaje: null }, repeticion);
-}
-
-// Wall sit: ejercicio de sostén. No cuenta repeticiones; califica la
-// postura cada frame para energan el minijuego del techo.
 export function detectarWallSit(landmarks, estado) {
   const scoreForma = calcularScoreForma('WALL_SIT', landmarks);
   const lado = mejorLado(landmarks, LADOS_SENTADILLA);
@@ -813,43 +680,6 @@ export function detectarPatadaFrontal(landmarks, estado) {
 
 // Step touch / skater: alterna el pie que sale por fuera de la cadera. Cuenta
 // un paso por cada lado nuevo.
-export function detectarStepToque(landmarks, estado) {
-  const visibles = [23, 24, 27, 28];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra piernas y cadera en la cámara' }, false);
-  }
-
-  const anchoCadera = Math.max(Math.abs(landmarks[24].x - landmarks[23].x), 0.0001);
-  const izqFuera = landmarks[27].x < landmarks[23].x - UMBRAL_STEP * anchoCadera;
-  const derFuera = landmarks[28].x > landmarks[24].x + UMBRAL_STEP * anchoCadera;
-
-  let { ladoActivo } = estado;
-  let repeticion = false;
-  let mensaje = null;
-
-  if (izqFuera && !derFuera) {
-    if (ladoActivo !== 'IZQ') {
-      repeticion = true;
-      ladoActivo = 'IZQ';
-    }
-  } else if (derFuera && !izqFuera) {
-    if (ladoActivo !== 'DER') {
-      repeticion = true;
-      ladoActivo = 'DER';
-    }
-  } else if (!izqFuera && !derFuera) {
-    ladoActivo = null;
-  } else {
-    mensaje = 'Da un paso hacia un lado';
-  }
-
-  return resultado(estado, { ladoActivo, mensaje }, repeticion);
-}
-
-// --- Fuerza estilo pump ---------------------------------------------------
-
-// Press de hombro: las muñecas suben por encima de la cabeza y vuelven al
-// nivel de los hombros.
 export function detectarPressHombro(landmarks, estado) {
   const visibles = [11, 12, 15, 16];
   if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
@@ -875,33 +705,6 @@ export function detectarPressHombro(landmarks, estado) {
 }
 
 // Curl de bíceps: las muñecas suben del nivel de la cadera al de los hombros.
-export function detectarCurlBiceps(landmarks, estado) {
-  const visibles = [11, 12, 15, 16];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
-  }
-
-  const hombroY = centroY(landmarks, [11, 12]);
-  const caderaY = centroY(landmarks, [23, 24]);
-  const munecaY = centroY(landmarks, [15, 16]);
-  const largo = Math.max(Math.abs(caderaY - hombroY), 0.0001);
-  const relativo = (munecaY - hombroY) / largo;
-
-  let { fase } = estado;
-  let repeticion = false;
-
-  if (relativo < UMBRAL_CURL_ARRIBA) {
-    if (fase === 'ABAJO') repeticion = true;
-    fase = 'ARRIBA';
-  } else if (relativo > UMBRAL_CURL_ABAJO) {
-    fase = 'ABAJO';
-  }
-
-  return resultado(estado, { fase, mensaje: null }, repeticion);
-}
-
-// Remo: las muñecas se separan del hombro (brazos extendidos) y vuelven al
-// torso, con los codos atrás.
 export function detectarRemo(landmarks, estado) {
   const visibles = [11, 12, 15, 16];
   if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
@@ -968,17 +771,11 @@ export const DETECTORES = {
   MOUNTAIN_CLIMBER: detectarMountainClimber,
   PLANCHA_LATERAL: detectarPlanchaLateral,
   SUPERMAN: detectarSuperman,
-  CIRCULOS_BRAZOS: detectarCirculosBrazos,
-  ELEVACIONES_LATERALES: detectarElevacionBrazos,
-  APERTURA_PECHO: detectarAperturaPecho,
   ROTACION_TORSO: detectarRotacionTorso,
-  ESTIRAMIENTO_CUELLO: detectarEstiramientoCuello,
   GOLPE_DIRECTO: detectarGolpeDirecto,
   RODILLAZO: detectarRodillazo,
   PATADA_FRONTAL: detectarPatadaFrontal,
-  STEP_TOQUE: detectarStepToque,
   PRESS_HOMBRO: detectarPressHombro,
-  CURL_BICEPS: detectarCurlBiceps,
   REMO: detectarRemo,
   PESO_MUERTO: detectarPesoMuerto,
 };
@@ -995,16 +792,10 @@ const DETECTORES_POR_NOMBRE = {
   puente_gluteo: detectarPuenteGluteo,
   abdominal: detectarAbdominal,
   mountain_climber: detectarMountainClimber,
-  circulos_brazos: detectarCirculosBrazos,
-  elevacion_brazos: detectarElevacionBrazos,
-  apertura_pecho: detectarAperturaPecho,
   rotacion_torso: detectarRotacionTorso,
-  estiramiento_cuello: detectarEstiramientoCuello,
   press_hombro: detectarPressHombro,
   remo: detectarRemo,
-  curl_biceps: detectarCurlBiceps,
   peso_muerto: detectarPesoMuerto,
-  step_toque: detectarStepToque,
   golpe_directo: detectarGolpeDirecto,
   rodillazo: detectarRodillazo,
   patada_frontal: detectarPatadaFrontal,

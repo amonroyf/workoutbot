@@ -138,8 +138,8 @@ export function useEntrenadorVoz(resumen = null) {
     const anunciarBloque = () => {
       if (bloque && bloque.seccionId !== antes.seccion) {
         const evento =
-          bloque.seccionTipo === 'calentamiento'
-            ? 'CALENTAMIENTO'
+          bloque.seccionTipo === 'activacion'
+            ? 'ACTIVACION'
             : bloque.seccionTipo === 'enfriamiento'
               ? 'ENFRIAMIENTO'
               : 'SECCION';

@@ -63,9 +63,9 @@ describe('estadoInicialCircuito', () => {
     expect(e.combo).toBe(0);
   });
 
-  it('arranca una clase real por su calentamiento', () => {
-    const e = estadoInicialCircuito(0, obtenerClase('movilidad-10'));
-    expect(e.ejercicioActual).toBe('MARCHA');
+  it('arranca una clase real por su activación', () => {
+    const e = estadoInicialCircuito(0, obtenerClase('fuerza-10'));
+    expect(e.ejercicioActual).toBe('SENTADILLAS');
     expect(e.tiempoRestante).toBeGreaterThan(0);
   });
 });

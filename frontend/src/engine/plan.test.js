@@ -62,7 +62,7 @@ describe('claseParaDia', () => {
   it('asigna las clases del objetivo en orden de día', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
     expect(claseParaDia(plan, 1)?.id).toBe('fuerza-30');
-    expect(claseParaDia(plan, 3)?.id).toBe('danza-30');
+    expect(claseParaDia(plan, 3)?.id).toBe('hiit-20');
     expect(claseParaDia(plan, 5)?.id).toBe('core-20');
   });
 
@@ -100,7 +100,7 @@ describe('diaIso y claseParaFecha', () => {
 describe('siguienteDiaPlan', () => {
   it('encuentra el próximo día planeado y su clase', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
-    expect(siguienteDiaPlan(plan, 2)).toMatchObject({ dia: 3, clase: { id: 'danza-30' } });
+    expect(siguienteDiaPlan(plan, 2)).toMatchObject({ dia: 3, clase: { id: 'hiit-20' } });
     expect(siguienteDiaPlan(plan, 5)).toMatchObject({ dia: 1, clase: { id: 'fuerza-30' } });
   });
 });
@@ -110,7 +110,7 @@ describe('textoHoy', () => {
     const plan = { dias: [1, 3, 5], objetivo: 'equilibrio' };
     expect(textoHoy(plan, fechaLocal(2026, 10, 19))).toBe('Hoy toca Fuerza 30');
     expect(textoHoy(plan, fechaLocal(2026, 10, 20))).toBe(
-      'Hoy descansas. El miércoles toca Danza 30'
+      'Hoy descansas. El miércoles toca HIIT 20'
     );
   });
 });

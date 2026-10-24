@@ -19,7 +19,7 @@ describe('motor de una clase real', () => {
     const estado = estadoInicialCircuito(0, CORE_5);
     expect(estado.claseId).toBe('core-5');
     expect(estado.bloqueActual).toBe(0);
-    expect(estado.ejercicioActual).toBe('MARCHA');
+    expect(estado.ejercicioActual).toBe('BIRD_DOG');
     expect(estado.tiempoRestante).toBe(CORE_5.bloques[0].trabajo);
     expect(estado.totales).toEqual(totalesVacios(CORE_5));
   });
@@ -29,8 +29,8 @@ describe('motor de una clase real', () => {
     const trabajo = CORE_5.bloques[0].trabajo;
 
     estado = aplicar(estado, trabajo * 1000).estado;
-    expect(estado.ejercicioActual).toBe('BIRD_DOG');
-    expect(estado.totales.MARCHA).toBe(trabajo);
+    expect(estado.ejercicioActual).toBe('DEAD_BUG');
+    expect(estado.totales.BIRD_DOG).toBe(trabajo);
     expect(estado.faseActual).toBe('TRABAJO');
   });
 

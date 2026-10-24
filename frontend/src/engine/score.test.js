@@ -17,7 +17,7 @@ describe('calcularTotal', () => {
   });
 
   it('no cuenta los segundos de ejercicios de tiempo como repeticiones', () => {
-    expect(calcularTotal({ SENTADILLAS: 10, PLANCHA: 45, MARCHA: 120 })).toBe(10);
+    expect(calcularTotal({ SENTADILLAS: 10, PLANCHA: 45, MARCHA_SUAVE: 120 })).toBe(10);
   });
 });
 
@@ -26,16 +26,16 @@ describe('separarTotales', () => {
     const { reps, segundos } = separarTotales({
       SENTADILLAS: 12,
       PLANCHA: 45,
-      MARCHA: 120,
+      MARCHA_SUAVE: 120,
     });
     expect(reps).toEqual({ SENTADILLAS: 12 });
-    expect(segundos).toEqual({ PLANCHA: 45, MARCHA: 120 });
+    expect(segundos).toEqual({ PLANCHA: 45, MARCHA_SUAVE: 120 });
   });
 });
 
 describe('calcularSegundos', () => {
   it('suma solo los ejercicios de tiempo', () => {
-    expect(calcularSegundos({ SENTADILLAS: 10, PLANCHA: 45, MARCHA: 120 })).toBe(165);
+    expect(calcularSegundos({ SENTADILLAS: 10, PLANCHA: 45, MARCHA_SUAVE: 120 })).toBe(165);
   });
 
   it('devuelve 0 sin ejercicios de tiempo', () => {

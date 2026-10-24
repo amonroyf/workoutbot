@@ -22,17 +22,11 @@ const IDS_CLAVE = [
   'hiit-10',
   'hiit-20',
   'hiit-30',
-  'danza-20',
-  'danza-30',
-  'danza-45',
   'combat-20',
   'combat-30',
   'core-5',
   'core-10',
   'core-20',
-  'movilidad-10',
-  'movilidad-20',
-  'spinning-30',
 ];
 
 describe('CLASES', () => {
@@ -47,8 +41,8 @@ describe('CLASES', () => {
     expect(duracionClase(CLASE_INICIAL)).toBeLessThanOrEqual(300);
   });
 
-  it('reemplaza el catálogo completo por los 17 ids nuevos', () => {
-    expect(CLASES).toHaveLength(17);
+  it('reemplaza el catálogo completo por los 11 ids nuevos', () => {
+    expect(CLASES).toHaveLength(11);
     for (const id of IDS_CLAVE) {
       expect(obtenerClase(id), id).toBeTruthy();
     }
@@ -106,7 +100,7 @@ describe('resumenSecciones', () => {
   it('resume una clase con duración y ejercicios por sección', () => {
     const resumen = resumenSecciones(obtenerClase('core-5'));
     expect(resumen).toHaveLength(3);
-    expect(resumen[0]).toMatchObject({ tipo: 'calentamiento', rondas: 1 });
+    expect(resumen[0]).toMatchObject({ tipo: 'activacion', rondas: 1 });
     expect(resumen.reduce((total, seccion) => total + seccion.duracion, 0)).toBe(
       duracionClase(obtenerClase('core-5'))
     );
@@ -129,7 +123,7 @@ describe('formatearReloj', () => {
 describe('catálogo de ejercicios', () => {
   it('marca los ejercicios de tiempo', () => {
     expect(esDeTiempo('PLANCHA')).toBe(true);
-    expect(esDeTiempo('MARCHA')).toBe(true);
+    expect(esDeTiempo('MARCHA_SUAVE')).toBe(true);
     expect(esDeTiempo('BURPEE')).toBe(true);
     expect(esDeTiempo('SENTADILLAS')).toBe(false);
     expect(esDeTiempo('JAB_CROSS')).toBe(false);

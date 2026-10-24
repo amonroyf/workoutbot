@@ -33,10 +33,10 @@ describe('modificacionesEjercicio', () => {
 
 describe('consignaEjercicio', () => {
   it('usa la consigna propia de cada ejercicio de tiempo', () => {
-    expect(consignaEjercicio('MARCHA').consigna).toBe('Muévete');
+    expect(consignaEjercicio('MARCHA_SUAVE').consigna).toBe('Respira');
     expect(consignaEjercicio('PLANCHA').consigna).toBe('Sostén');
     expect(consignaEjercicio('ESTIRAMIENTO_GENERAL').consigna).toBe('Estira');
-    expect(consignaEjercicio('MARCHA').consignaAyuda.length).toBeGreaterThan(0);
+    expect(consignaEjercicio('MARCHA_SUAVE').consignaAyuda.length).toBeGreaterThan(0);
   });
 
   it('cae en valores por defecto si el ejercicio no existe', () => {

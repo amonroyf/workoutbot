@@ -12,11 +12,7 @@ import {
   detectarPlanchaLateral,
   detectarSuperman,
   detectarWallSit,
-  detectarCirculosBrazos,
-  detectarElevacionBrazos,
-  detectarAperturaPecho,
   detectarRotacionTorso,
-  detectarEstiramientoCuello,
   crearEstadoDetector,
   DETECTORES,
 } from './detectors';
@@ -562,86 +558,6 @@ describe('detectarSuperman', () => {
   });
 });
 
-// --- Escritorio: solo tren superior, la cámara ve hombros y cabeza.
-const ESCRITORIO_BRAZOS_ARRIBA = {
-  11: { x: 0.4, y: 0.4 },
-  12: { x: 0.6, y: 0.4 },
-  15: { x: 0.42, y: 0.2 },
-  16: { x: 0.58, y: 0.2 },
-};
-const ESCRITORIO_BRAZOS_ABAJO = {
-  11: { x: 0.4, y: 0.4 },
-  12: { x: 0.6, y: 0.4 },
-  15: { x: 0.42, y: 0.55 },
-  16: { x: 0.58, y: 0.55 },
-};
-const ESCRITORIO_PECHO_ABIERTO = {
-  11: { x: 0.4, y: 0.4 },
-  12: { x: 0.6, y: 0.4 },
-  15: { x: 0.15, y: 0.38 },
-  16: { x: 0.85, y: 0.38 },
-};
-const ESCRITORIO_PECHO_CERRADO = {
-  11: { x: 0.4, y: 0.4 },
-  12: { x: 0.6, y: 0.4 },
-  15: { x: 0.45, y: 0.45 },
-  16: { x: 0.55, y: 0.45 },
-};
-
-function conRodillasOcultas(base) {
-  const lms = conPuntos(base);
-  for (const indice of [23, 24, 25, 26, 27, 28]) {
-    lms[indice] = { ...lms[indice], visibility: 0 };
-  }
-  return lms;
-}
-
-describe('detectarCirculosBrazos', () => {
-  it('cuenta una vuelta cuando las muñecas suben sobre los hombros', () => {
-    let e = crearEstadoDetector();
-    e = alimentar(detectarCirculosBrazos, conPuntos(ESCRITORIO_BRAZOS_ABAJO), e, 3).estado;
-    expect(e.fase).toBe('ABAJO');
-
-    const subida = alimentar(detectarCirculosBrazos, conPuntos(ESCRITORIO_BRAZOS_ARRIBA), e, 3);
-    expect(subida.repeticiones).toBe(1);
-    expect(subida.estado.fase).toBe('ARRIBA');
-  });
-
-  it('funciona con las piernas ocultas bajo el escritorio', () => {
-    let e = crearEstadoDetector();
-    e = alimentar(detectarCirculosBrazos, conRodillasOcultas(ESCRITORIO_BRAZOS_ABAJO), e, 3).estado;
-    const r = alimentar(detectarCirculosBrazos, conRodillasOcultas(ESCRITORIO_BRAZOS_ARRIBA), e, 3);
-    expect(r.repeticiones).toBe(1);
-  });
-});
-
-describe('detectarElevacionBrazos', () => {
-  it('cuenta al subir al nivel de los hombros y baja con control', () => {
-    let e = crearEstadoDetector();
-    e = alimentar(detectarElevacionBrazos, conPuntos(ESCRITORIO_BRAZOS_ABAJO), e, 3).estado;
-    expect(e.fase).toBe('ABAJO');
-
-    const subida = alimentar(detectarElevacionBrazos, conPuntos(ESCRITORIO_BRAZOS_ARRIBA), e, 3);
-    expect(subida.repeticiones).toBe(1);
-
-    const bajada = alimentar(detectarElevacionBrazos, conPuntos(ESCRITORIO_BRAZOS_ABAJO), subida.estado, 3);
-    expect(bajada.repeticiones).toBe(0);
-    expect(bajada.estado.fase).toBe('ABAJO');
-  });
-});
-
-describe('detectarAperturaPecho', () => {
-  it('cuenta cada abertura respecto al ancho de hombros', () => {
-    let e = crearEstadoDetector();
-    e = alimentar(detectarAperturaPecho, conPuntos(ESCRITORIO_PECHO_CERRADO), e, 3).estado;
-    expect(e.fase).toBe('CERRADO');
-
-    const abierta = alimentar(detectarAperturaPecho, conPuntos(ESCRITORIO_PECHO_ABIERTO), e, 3);
-    expect(abierta.repeticiones).toBe(1);
-    expect(abierta.estado.fase).toBe('ABIERTO');
-  });
-});
-
 describe('detectarRotacionTorso', () => {
   const HOMBROS = {
     11: { x: 0.4, y: 0.4 },
@@ -669,41 +585,6 @@ describe('detectarRotacionTorso', () => {
   });
 });
 
-describe('detectarEstiramientoCuello', () => {
-  const oreja = (yI, yD) => conPuntos({
-    0: { x: 0.5, y: 0.3 },
-    11: { x: 0.4, y: 0.4 },
-    12: { x: 0.6, y: 0.4 },
-    7: { x: 0.42, y: yI },
-    8: { x: 0.58, y: yD },
-  });
-
-  it('cuenta al inclinar la cabeza a cada hombro', () => {
-    const IZQ = oreja(0.45, 0.4);
-    const DER = oreja(0.4, 0.45);
-
-    let e = crearEstadoDetector();
-    e = alimentar(detectarEstiramientoCuello, IZQ, e, 3).estado;
-    expect(e.ladoActivo).toBe('IZQ');
-
-    const r = alimentar(detectarEstiramientoCuello, DER, e, 3);
-    expect(r.repeticiones).toBe(1);
-    expect(r.estado.ladoActivo).toBe('DER');
-  });
-
-  it('vuelve a neutro entre inclinaciones y no cuenta el mismo lado', () => {
-    const NEUTRO = oreja(0.4, 0.4);
-    const IZQ = oreja(0.45, 0.4);
-
-    let e = crearEstadoDetector();
-    e = alimentar(detectarEstiramientoCuello, IZQ, e, 3).estado;
-    e = alimentar(detectarEstiramientoCuello, NEUTRO, e, 3).estado;
-    expect(e.ladoActivo).toBeNull();
-
-    const r = alimentar(detectarEstiramientoCuello, IZQ, e, 3);
-    expect(r.repeticiones).toBe(0);
-  });
-});
 
 // --- Wall sit: sostén el minijuego del techo con la postura.
 const WALL_SIT_PERFECTO = {
@@ -775,17 +656,11 @@ describe('DETECTORES', () => {
       'MOUNTAIN_CLIMBER',
       'PLANCHA_LATERAL',
       'SUPERMAN',
-      'CIRCULOS_BRAZOS',
-      'ELEVACIONES_LATERALES',
-      'APERTURA_PECHO',
       'ROTACION_TORSO',
-      'ESTIRAMIENTO_CUELLO',
       'GOLPE_DIRECTO',
       'RODILLAZO',
       'PATADA_FRONTAL',
-      'STEP_TOQUE',
       'PRESS_HOMBRO',
-      'CURL_BICEPS',
       'REMO',
       'PESO_MUERTO',
     ]);

@@ -11,14 +11,14 @@ import {
 
 describe('bpmSeccion', () => {
   it('define un BPM por tipo de sección', () => {
-    expect(bpmSeccion('calentamiento')).toBe(BPM_POR_SECCION.calentamiento);
+    expect(bpmSeccion('activacion')).toBe(BPM_POR_SECCION.activacion);
     expect(bpmSeccion('pico')).toBe(BPM_POR_SECCION.pico);
     expect(bpmSeccion('enfriamiento')).toBe(BPM_POR_SECCION.enfriamiento);
   });
 
   it('usa el BPM del arquetipo cuando no hay sección conocida', () => {
     expect(bpmSeccion('no-existe', '', 'hiit')).toBe(BPM_POR_ARQUETIPO.hiit);
-    expect(bpmSeccion(undefined, '', 'danza')).toBe(BPM_POR_ARQUETIPO.danza);
+    expect(bpmSeccion(undefined, '', 'combat')).toBe(BPM_POR_ARQUETIPO.combat);
   });
 
   it('usa un BPM por defecto para valores desconocidos', () => {
@@ -36,8 +36,8 @@ describe('bpmSeccion', () => {
   });
 
   it('sube el pulso en el pico y baja al enfriar', () => {
-    expect(BPM_POR_SECCION.pico).toBeGreaterThan(BPM_POR_SECCION.calentamiento);
-    expect(BPM_POR_SECCION.enfriamiento).toBeLessThan(BPM_POR_SECCION.calentamiento);
+    expect(BPM_POR_SECCION.pico).toBeGreaterThan(BPM_POR_SECCION.activacion);
+    expect(BPM_POR_SECCION.enfriamiento).toBeLessThan(BPM_POR_SECCION.activacion);
   });
 });
 
@@ -60,7 +60,7 @@ describe('MUSICA_POR_ARQUETIPO', () => {
   });
 
   it('tiene pulso en los arquetipos con impacto', () => {
-    for (const arquetipo of ['fuerza', 'hiit', 'danza', 'combat', 'spinning']) {
+    for (const arquetipo of ['fuerza', 'hiit', 'combat']) {
       expect(MUSICA_POR_ARQUETIPO[arquetipo].bombo.some(Boolean)).toBe(true);
     }
   });

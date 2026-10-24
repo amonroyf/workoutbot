@@ -40,10 +40,6 @@ const TRABAJO = {
     'Puente de glúteo. Empuja con los talones y aprieta los glúteos.',
     'Puente de glúteo. Sube con control y baja sin soltar.',
   ],
-  MARCHA: [
-    'Marcha en el lugar. Suelta los hombros y respira.',
-    'Marcha. Brazos relajados y paso cómodo.',
-  ],
   MARCHA_SUAVE: [
     'Marcha suave. Baja el ritmo y recupera la respiración.',
     'Marcha suave. Deja que el pulso baje poco a poco.',
@@ -81,30 +77,10 @@ const TRABAJO = {
     'Abdominales. Sube con el abdomen y baja con control.',
     'Abdominales. Exhala al subir y mantén el ombligo adentro.',
   ],
-  CIRCULOS_BRAZOS: [
-    'Círculos de brazos. Suelta las piernas, solo mueve los hombros.',
-    'Círculos amplios. Deja que la tensión del escritorio se vaya.',
-    'Círculos de brazos, sin prisa. Respira profundo.',
-  ],
-  ELEVACIONES_LATERALES: [
-    'Elevaciones. Brazos arriba del escritorio y baja suave.',
-    'Elevaciones laterales. Hasta la altura de los hombros, sin golpe.',
-    'Elevaciones. Exhala al subir y baja despacio.',
-  ],
-  APERTURA_PECHO: [
-    'Apertura de pecho. Abre los omóplatos y suelta la espalda.',
-    'Apertura de pecho. Abre los brazos y respira amplio.',
-    'Apertura de pecho. Desarma la postura del teclado.',
-  ],
   ROTACION_TORSO: [
     'Rotación de torso. Gira suave, la espalda de la silla lo agradece.',
     'Rotación de torso. Mano al hombro contrario y vuelve al centro.',
     'Rotación de torso. Sin prisa, gira hasta donde llegue.',
-  ],
-  ESTIRAMIENTO_CUELLO: [
-    'Estiramiento de cuello. Suave, sin forzar.',
-    'Oreja hacia el hombro. Suelta la tensión del cuello.',
-    'Cierra los ojos un momento y respira profundo.',
   ],
   PRESS_HOMBRO: [
     'Press de hombro. Empuja arriba y baja con control.',
@@ -115,16 +91,6 @@ const TRABAJO = {
     'Remo. Codos cerca del torso y atrás.',
     'Remo. Aprieta la espalda arriba, un segundo.',
     'Remo. No uses impulso, tira con la espalda.',
-  ],
-  CURL_BICEPS: [
-    'Curl de bíceps. Codos pegados, sube hasta el hombro.',
-    'Curl. Sube fuerte, baja lento.',
-    'Curl. Nada de balanceo, controla el descenso.',
-  ],
-  EXTENSION_TRICEPS: [
-    'Extensión de tríceps. Codos cerca de la cabeza.',
-    'Tríceps. Estira del todo y vuelve con control.',
-    'Tríceps. Codos quietos, solo mueve el antebrazo.',
   ],
   PESO_MUERTO: [
     'Peso muerto. Cadera atrás y espalda recta.',
@@ -141,11 +107,6 @@ const TRABAJO = {
     'Burpee. Mantén el abdomen firme en la plancha.',
     'Burpee. Versión sin salto: camina los pies.',
   ],
-  SKATER: [
-    'Skater. Salta de lado a lado y aterriza en una pierna.',
-    'Skater. Rodillas flexibles, aterriza suave.',
-    'Skater. Sin salto: toca el pie al lado y sigue.',
-  ],
   PLANK_JACK: [
     'Plank jack. Plancha firme y piernas abren y cierran.',
     'Plank jack. No muevas la cadera.',
@@ -155,31 +116,6 @@ const TRABAJO = {
     'Escaladores. Rodillas al pecho y cadera baja.',
     'Escaladores. Ritmo fuerte, sin rebotar la cadera.',
     'Escaladores. Manos bajo los hombros.',
-  ],
-  STEP_TOUCH: [
-    'Step touch. Paso al lado, toca y vuelve.',
-    'Step touch. Brazos libres y al ritmo.',
-    'Step touch. No hay paso incorrecto, sigue.',
-  ],
-  MERENGUE: [
-    'Merengue. Paso corto y rápido, cadera al ritmo.',
-    'Merengue. Brazos acompañan, sonríe.',
-    'Merengue. Mantén el ritmo, faltan pocos.',
-  ],
-  SALSA: [
-    'Salsa. Cambia el peso de un pie al otro.',
-    'Salsa. Gira el torso suave, paso al ritmo.',
-    'Salsa. Marca el ritmo, disfruta.',
-  ],
-  CADERA: [
-    'Cadera. Suéltala al ritmo, rodillas suaves.',
-    'Cadera. Brazos arriba y mucha energía.',
-    'Cadera. Mueve libre, es tu momento.',
-  ],
-  GRAPEVINE: [
-    'Grapevine. Paso al lado, cruza atrás y sigue.',
-    'Grapevine. De lado a lado, brazos al ritmo.',
-    'Grapevine. Cambia de dirección a mi señal.',
   ],
   JAB_CROSS: [
     'Jab y cross. Extiende el brazo y vuelve a la guardia.',
@@ -226,20 +162,10 @@ const TRABAJO = {
     'Elevación de piernas. Baja solo hasta donde controles.',
     'Elevación de piernas. No arquees la espalda.',
   ],
-  PLANCHA_TOQUE: [
-    'Plancha con toque. Toca el hombro sin mover la cadera.',
-    'Plancha con toque. Cadera estable, abdomen firme.',
-    'Plancha con toque. Lento y controlado.',
-  ],
   RUSSIAN_TWIST: [
     'Giro ruso. Torso atrás y gira de lado a lado.',
     'Giro ruso. Pecho arriba, gira con control.',
     'Giro ruso. Exhala en cada giro.',
-  ],
-  GATO_CAMELLO: [
-    'Gato y camello. Redondea y arquea la espalda.',
-    'Gato y camello. Sigue la respiración.',
-    'Gato y camello. Movimiento lento y fluido.',
   ],
   POSTURA_NINO: [
     'Postura del niño. Frente al piso y brazos estirados.',
@@ -260,26 +186,6 @@ const TRABAJO = {
     'Respira. Inhala por la nariz y exhala largo.',
     'Respira. Suelta los hombros y el aire.',
     'Respira. Baja el pulso, lo hiciste bien.',
-  ],
-  SALUDO_SOL: [
-    'Saludo al sol. Encadena con la respiración.',
-    'Saludo al sol. Manos arriba, inhala; al frente, exhala.',
-    'Saludo al sol. Fluido y sin prisa.',
-  ],
-  PEDALEO_SENTADO: [
-    'Pedaleo sentado. Cadencia constante, torso firme.',
-    'Pedaleo. Rodillas al pecho al ritmo.',
-    'Pedaleo. Hombros relajados, respira.',
-  ],
-  PEDALEO_PIE: [
-    'De pie. Rodillas altas y core activo.',
-    'De pie. Mantén la cadencia, no frenes.',
-    'De pie. Torso firme y respiración controlada.',
-  ],
-  SPRINT: [
-    'Sprint. Todo lo que tengas, rodillas a la cadera.',
-    'Sprint. Brazos activos, máximo ritmo.',
-    'Sprint. Aguanta, falta poco.',
   ],
 };
 
@@ -348,9 +254,9 @@ const SEGURIDAD = [
 ];
 
 
-const CALENTAMIENTO = [
-  'Calentamiento. Vamos a preparar el cuerpo con movimiento suave.',
-  'Arrancamos el calentamiento. Sube la temperatura poco a poco.',
+const ACTIVACION = [
+  'Activación funcional. Preparamos el cuerpo con movimiento.',
+  'Arrancamos la activación. Sube la temperatura poco a poco.',
 ];
 
 const SECCION = [
@@ -396,7 +302,7 @@ const RESPIRACION = [
 
 const BANCOS = {
   INICIO,
-  CALENTAMIENTO,
+  ACTIVACION,
   SECCION,
   RONDA,
   ULTIMA_RONDA,
@@ -435,7 +341,7 @@ export function obtenerFrase(evento, indice = 0, ejercicio = null) {
 
 export const EVENTOS_VOZ = Object.freeze([
   'INICIO',
-  'CALENTAMIENTO',
+  'ACTIVACION',
   'SECCION',
   'RONDA',
   'ULTIMA_RONDA',

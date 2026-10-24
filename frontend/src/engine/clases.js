@@ -1,15 +1,15 @@
-// Catálogo de clases grupales de WorkoutBot.
+// Catálogo de clases grupales funcionales de WorkoutBot.
 //
-// Cada clase tiene un arquetipo (fuerza, hiit, danza, combat, core, movilidad,
-// spinning), una duración, un nivel, un impacto y una estructura de secciones
-// que imita una clase grupal real: calentamiento, bloque principal y vuelta a
-// la calma, con música, descansos y voz de instructor.
+// Cuatro arquetipos (fuerza, hiit, combat, core) con sesiones rápidas y
+// funcionales. Cada clase imita una clase grupal real: activación funcional,
+// bloque principal y vuelta a la calma, con música, descansos y voz de
+// instructor. Solo peso corporal, sin objetos.
 
 export const ARQUETIPOS = Object.freeze([
   Object.freeze({
     id: 'fuerza',
     nombre: 'Fuerza',
-    descripcion: 'Fuerza total con repeticiones y carga ligera',
+    descripcion: 'Fuerza total con movimientos compuestos',
     color: '#f97316',
     impacto: 'bajo',
     bpm: 128,
@@ -21,14 +21,6 @@ export const ARQUETIPOS = Object.freeze([
     color: '#ef4444',
     impacto: 'alto',
     bpm: 156,
-  }),
-  Object.freeze({
-    id: 'danza',
-    nombre: 'Danza',
-    descripcion: 'Cardio que se siente como fiesta',
-    color: '#ec4899',
-    impacto: 'medio',
-    bpm: 138,
   }),
   Object.freeze({
     id: 'combat',
@@ -45,22 +37,6 @@ export const ARQUETIPOS = Object.freeze([
     color: '#06b6d4',
     impacto: 'bajo',
     bpm: 118,
-  }),
-  Object.freeze({
-    id: 'movilidad',
-    nombre: 'Movilidad',
-    descripcion: 'Recuperación, respiración y flexibilidad',
-    color: '#22c55e',
-    impacto: 'bajo',
-    bpm: 92,
-  }),
-  Object.freeze({
-    id: 'spinning',
-    nombre: 'Ritmo',
-    descripcion: 'Cardio de bajo impacto guiado por el ritmo',
-    color: '#eab308',
-    impacto: 'bajo',
-    bpm: 132,
   }),
 ]);
 
@@ -91,12 +67,14 @@ function seccion(id, nombre, nombreCorto, tipo, bloques, extra = {}) {
   });
 }
 
-const CALENTAMIENTO = 'calentamiento';
+const ACTIVACION = 'activacion';
 const PRINCIPAL = 'principal';
 const ENFRIAMIENTO = 'enfriamiento';
 
-function calentamiento(bloques, pistaVoz) {
-  return seccion('calentamiento', 'Calentamiento', 'Calent.', CALENTAMIENTO, bloques, { pistaVoz });
+function activacion(bloques, pistaVoz) {
+  return seccion('activacion', 'Activación funcional', 'Activación', ACTIVACION, bloques, {
+    pistaVoz,
+  });
 }
 
 function calma(bloques, pistaVoz) {
@@ -166,25 +144,26 @@ function ajustarDuracion(clase, objetivoSeg) {
   return { ...clase, secciones };
 }
 
-// --- Fuerza estilo pump ---------------------------------------------------
+// --- Fuerza funcional -----------------------------------------------------
 
 const FUERZA_10 = base('fuerza-10', 'Fuerza 10', 'fuerza', 'principiante', {
   etiqueta: '10 min',
   duracionMin: 10,
-  descripcion: 'Circuito de fuerza completo para días con poco tiempo.',
-  equipamiento: ['mochila', 'botellas'],
-  briefing: 'Usa mochila o botellas si tienes; si no, peso del cuerpo. Técnica primero.',
-  cues: ['Reps lentas y controladas', 'No sueltes el abdomen'],
+  descripcion: 'Circuito funcional de cuerpo completo para días con poco tiempo.',
+  equipamiento: [],
+  briefing: 'Peso corporal. Técnica y control antes que velocidad.',
+  cues: ['Reps controladas', 'Abdomen firme'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 45, 0, 'suave', 'Camina en el lugar y suelta los hombros.'),
-      bloque('SENTADILLAS', 45, 0, 'suave', 'Sentadillas sin peso, rango cómodo.'),
-    ], 'Calentamiento corto. Preparamos el cuerpo.'),
+    activacion([
+      bloque('SENTADILLAS', 30, 0, 'suave', 'Sentadillas suaves, rango cómodo.'),
+      bloque('FLEXIONES', 30, 0, 'suave', 'Flexiones apoyando rodillas si hace falta.'),
+      bloque('PESO_MUERTO', 30, 0, 'suave', 'Bisagra de cadera, espalda larga.'),
+    ], 'Activación funcional. Preparamos el cuerpo.'),
     seccion('bloque', 'Circuito de fuerza', 'Fuerza', PRINCIPAL, [
       bloque('SENTADILLAS', 30, 15, 'media', 'Sentadilla, cadera atrás y pecho arriba.'),
       bloque('FLEXIONES', 30, 15, 'media', 'Flexión, cuerpo en plancha.'),
-      bloque('PRESS_HOMBRO', 30, 15, 'media', 'Press, empuja hacia arriba.'),
-      bloque('REMO', 30, 15, 'media', 'Remo, codos atrás.'),
+      bloque('REMO', 30, 15, 'media', 'Remo, codos atrás y espalda firme.'),
+      bloque('PESO_MUERTO', 30, 15, 'media', 'Bisagra, empuja el piso con los pies.'),
     ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Dos rondas de fuerza. Misma técnica.' }),
     seccion('core', 'Core', 'Core', PRINCIPAL, [
       bloque('PLANCHA', 40, 0, 'media', 'Plancha, abdomen firme.'),
@@ -199,28 +178,29 @@ const FUERZA_10 = base('fuerza-10', 'Fuerza 10', 'fuerza', 'principiante', {
 const FUERZA_30 = base('fuerza-30', 'Fuerza 30', 'fuerza', 'principiante', {
   etiqueta: '30 min',
   duracionMin: 30,
-  descripcion: 'Cinco bloques por grupo muscular, estilo clase con barra.',
-  equipamiento: ['mochila', 'botellas', 'banda elástica'],
-  briefing: 'Carga ligera y muchas repeticiones. Si no tienes peso, hazlo lento.',
+  descripcion: 'Bloques de piernas, empuje y tirón con movimientos compuestos.',
+  equipamiento: [],
+  briefing: 'Carga el peso en los pies y el control en el abdomen. Sin prisa.',
   cues: ['Tempo controlado', 'Rango completo', 'Respira en cada repetición'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 90, 0, 'suave', 'En marcha, sube la temperatura.'),
-      bloque('SENTADILLAS', 60, 15, 'suave', 'Sentadillas suaves.'),
-      bloque('PRESS_HOMBRO', 45, 0, 'suave', 'Press sin peso para hombros.'),
-    ], 'Calentamiento de cinco minutos.'),
+    activacion([
+      bloque('SENTADILLAS', 45, 0, 'suave', 'Sentadillas para subir la temperatura.'),
+      bloque('PESO_MUERTO', 45, 0, 'suave', 'Bisagra de cadera suave.'),
+      bloque('FLEXIONES', 45, 0, 'suave', 'Flexiones controladas.'),
+      bloque('REMO', 45, 0, 'suave', 'Remo sin carga, aprieta la espalda.'),
+    ], 'Activación funcional de todo el cuerpo.'),
     seccion('bloque', 'Piernas', 'Piernas', PRINCIPAL, [
       bloque('SENTADILLAS', 45, 15, 'media', 'Sentadilla profunda, cadera atrás.'),
       bloque('ZANCADAS', 45, 15, 'media', 'Zancadas alternas, paso controlado.'),
-      bloque('SENTADILLAS', 45, 15, 'media', 'Sentadilla, tempo lento.'),
+      bloque('SENTADILLA_SUMO', 45, 15, 'media', 'Sentadilla sumo, rodillas afuera.'),
       bloque('WALL_SIT', 30, 30, 'media', 'Sentadilla en pared, sostén.'),
-    ], { pistaVoz: 'Bloque de piernas.' }),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Bloque de piernas, dos rondas.' }),
     seccion('bloque2', 'Empuje y tirón', 'Torso', PRINCIPAL, [
       bloque('FLEXIONES', 45, 15, 'media', 'Flexión con codos a 45 grados.'),
       bloque('PRESS_HOMBRO', 45, 15, 'media', 'Press de hombro controlado.'),
       bloque('REMO', 45, 15, 'media', 'Remo, aprieta la espalda.'),
-      bloque('CURL_BICEPS', 40, 30, 'media', 'Curl de bíceps, codos pegados.'),
-    ], { pistaVoz: 'Empuje y tirón.' }),
+      bloque('PESO_MUERTO', 45, 15, 'media', 'Peso muerto, cadena posterior.'),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Empuje y tirón, dos rondas.' }),
     seccion('core', 'Core', 'Core', PRINCIPAL, [
       bloque('PUENTE_GLUTEO', 40, 15, 'media', 'Puente, aprieta glúteos.'),
       bloque('ABDOMINALES', 40, 15, 'media', 'Abdominales controlados.'),
@@ -228,7 +208,8 @@ const FUERZA_30 = base('fuerza-30', 'Fuerza 30', 'fuerza', 'principiante', {
     ], { pistaVoz: 'Core y glúteo.' }),
     calma([
       bloque('MARCHA_SUAVE', 30, 0, 'suave', 'Baja el pulso.'),
-      bloque('ESTIRAMIENTO_GENERAL', 90, 0, 'suave', 'Estiramiento general.'),
+      bloque('ESTIRAMIENTO_ISQUIOS', 45, 0, 'suave', 'Isquios, espalda larga.'),
+      bloque('ESTIRAMIENTO_GENERAL', 60, 0, 'suave', 'Estiramiento general.'),
     ], 'Vuelta a la calma.'),
   ],
 });
@@ -236,43 +217,45 @@ const FUERZA_30 = base('fuerza-30', 'Fuerza 30', 'fuerza', 'principiante', {
 const FUERZA_45 = base('fuerza-45', 'Fuerza 45', 'fuerza', 'intermedio', {
   etiqueta: '45 min',
   duracionMin: 45,
-  descripcion: 'La experiencia completa: ocho bloques con progresión de carga.',
-  equipamiento: ['mochila', 'botellas', 'banda elástica'],
-  briefing: 'Progresión completa. Ajusta la carga para llegar al último bloque.',
-  cues: ['Baja la carga antes que la técnica', 'Rondas anunciadas'],
+  descripcion: 'La experiencia completa: patrones funcionales con progresión.',
+  equipamiento: [],
+  briefing: 'Cuida la técnica en cada ronda. Si pierdes la forma, descansa.',
+  cues: ['Baja antes de romper la técnica', 'Rondas anunciadas'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 120, 0, 'suave', 'Calentamiento completo, respira.'),
-      bloque('SENTADILLAS', 60, 15, 'suave', 'Sentadillas suaves.'),
-      bloque('ZANCADAS', 60, 15, 'suave', 'Zancadas alternas.'),
-      bloque('PRESS_HOMBRO', 45, 0, 'suave', 'Press de hombro sin peso.'),
-    ], 'Calentamiento de seis minutos.'),
+    activacion([
+      bloque('SENTADILLAS', 60, 0, 'suave', 'Sentadillas, respiración constante.'),
+      bloque('PESO_MUERTO', 60, 0, 'suave', 'Bisagra de cadera.'),
+      bloque('FLEXIONES', 45, 0, 'suave', 'Flexiones controladas.'),
+      bloque('REMO', 45, 0, 'suave', 'Remo, espalda activa.'),
+      bloque('ZANCADAS', 45, 0, 'suave', 'Zancadas alternas suaves.'),
+    ], 'Activación funcional completa.'),
     seccion('bloque', 'Piernas', 'Piernas', PRINCIPAL, [
       bloque('SENTADILLAS', 50, 15, 'media', 'Sentadilla, primera serie.'),
       bloque('ZANCADAS', 50, 15, 'media', 'Zancada larga.'),
-      bloque('SENTADILLAS', 50, 15, 'media', 'Sentadilla con pausa.'),
+      bloque('SENTADILLA_SUMO', 50, 15, 'media', 'Sentadilla sumo.'),
       bloque('WALL_SIT', 40, 40, 'media', 'Sostén en pared.'),
-    ], { pistaVoz: 'Piernas, primera parte.' }),
-    seccion('bloque2', 'Pecho', 'Pecho', PRINCIPAL, [
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Piernas, dos rondas.' }),
+    seccion('bloque2', 'Empuje', 'Empuje', PRINCIPAL, [
       bloque('FLEXIONES', 50, 15, 'media', 'Flexiones, pecho al piso.'),
       bloque('FLEXION_DIAMANTE', 45, 15, 'media', 'Flexión diamante.'),
       bloque('PRESS_HOMBRO', 45, 30, 'media', 'Press de hombro.'),
-    ], { pistaVoz: 'Pecho y empuje.' }),
-    seccion('bloque3', 'Espalda y brazos', 'Espalda', PRINCIPAL, [
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Empuje, dos rondas.' }),
+    seccion('bloque3', 'Cadena posterior', 'Espalda', PRINCIPAL, [
       bloque('REMO', 50, 15, 'media', 'Remo, codos atrás.'),
       bloque('PESO_MUERTO', 50, 15, 'media', 'Peso muerto, cadera atrás.'),
-      bloque('CURL_BICEPS', 45, 15, 'media', 'Curl de bíceps.'),
-      bloque('EXTENSION_TRICEPS', 40, 30, 'media', 'Extensión de tríceps.'),
-    ], { pistaVoz: 'Espalda y brazos.' }),
+      bloque('SUPERMAN', 40, 15, 'media', 'Superman para espalda baja.'),
+      bloque('PUENTE_GLUTEO', 40, 15, 'media', 'Puente de glúteo.'),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Cadena posterior.' }),
     seccion('core', 'Core', 'Core', PRINCIPAL, [
       bloque('PLANCHA', 45, 15, 'media', 'Plancha frontal.'),
       bloque('PLANCHA_LATERAL', 30, 15, 'media', 'Plancha lateral.'),
       bloque('DEAD_BUG', 40, 15, 'media', 'Dead bug controlado.'),
-      bloque('SUPERMAN', 30, 0, 'media', 'Superman para espalda baja.'),
+      bloque('ABDOMINALES', 40, 0, 'media', 'Abdominales controlados.'),
     ], { pistaVoz: 'Core y estabilidad.' }),
     calma([
       bloque('MARCHA_SUAVE', 40, 0, 'suave', 'Baja el pulso.'),
-      bloque('ESTIRAMIENTO_GENERAL', 120, 0, 'suave', 'Estiramiento largo.'),
+      bloque('ESTIRAMIENTO_CUADRICEPS', 45, 0, 'suave', 'Cuádriceps con apoyo.'),
+      bloque('ESTIRAMIENTO_GENERAL', 90, 0, 'suave', 'Estiramiento largo.'),
     ], 'Vuelta a la calma. Lo lograste.'),
   ],
 });
@@ -282,25 +265,26 @@ const FUERZA_45 = base('fuerza-45', 'Fuerza 45', 'fuerza', 'intermedio', {
 const HIIT_10 = base('hiit-10', 'HIIT 10', 'hiit', 'intermedio', {
   etiqueta: '10 min',
   duracionMin: 10,
-  descripcion: 'Tabata corto: intervalos de alta intensidad y descanso mínimo.',
-  equipamiento: ['toalla'],
+  descripcion: 'Intervalos cortos de alta intensidad y descanso mínimo.',
+  equipamiento: [],
   briefing: 'Trabajo y descanso. Versión sin salto disponible siempre.',
   cues: ['3, 2, 1, cambio', 'Todo lo que tengas con forma'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 60, 0, 'suave', 'Calentamiento progresivo.'),
-      bloque('JUMPING_JACKS', 30, 0, 'media', 'Jumping jacks suaves.'),
-      bloque('SENTADILLAS', 30, 0, 'media', 'Sentadillas para activar.'),
-    ], 'Calentamiento de dos minutos.'),
-    seccion('pico', 'Tabata', 'Tabata', PRINCIPAL, [
+    activacion([
+      bloque('SENTADILLAS', 30, 0, 'suave', 'Sentadillas para activar.'),
+      bloque('FLEXIONES', 30, 0, 'suave', 'Flexiones suaves.'),
+      bloque('RODILLAS_ALTAS', 30, 0, 'media', 'Rodillas altas a ritmo cómodo.'),
+    ], 'Activación funcional de dos minutos.'),
+    seccion('pico', 'Intervalos', 'Intervalos', PRINCIPAL, [
       bloque('SENTADILLA_SALTO', 20, 10, 'alta', 'Sentadilla con salto. Sin salto si necesitas.'),
       bloque('ESCALADOR', 20, 10, 'alta', 'Escaladores rápidos.'),
       bloque('JUMPING_JACKS', 20, 10, 'alta', 'Jumping jacks.'),
       bloque('RODILLAS_ALTAS', 20, 20, 'alta', 'Rodillas altas.'),
-    ], { rondas: 4, descansoRonda: 30, pistaVoz: 'Cuatro rondas de Tabata.' }),
+    ], { rondas: 3, descansoRonda: 30, pistaVoz: 'Tres rondas de intervalos.' }),
     calma([
       bloque('MARCHA_SUAVE', 45, 0, 'suave', 'Camina y respira.'),
-      bloque('ESTIRAMIENTO_GENERAL', 75, 0, 'suave', 'Estira lo que trabajaste.'),
+      bloque('ESTIRAMIENTO_CUADRICEPS', 45, 0, 'suave', 'Cuádriceps suave.'),
+      bloque('ESTIRAMIENTO_GENERAL', 45, 0, 'suave', 'Estira lo que trabajaste.'),
     ], 'Vuelta a la calma.'),
   ],
 });
@@ -308,21 +292,22 @@ const HIIT_10 = base('hiit-10', 'HIIT 10', 'hiit', 'intermedio', {
 const HIIT_20 = base('hiit-20', 'HIIT 20', 'hiit', 'intermedio', {
   etiqueta: '20 min',
   duracionMin: 20,
-  descripcion: 'Dos bloques metabólicos con descanso entre ellos.',
-  equipamiento: ['toalla'],
-  briefing: 'Alternamos patrón para no fatigar el mismo músculo.',
+  descripcion: 'Dos bloques metabólicos con descanso activo entre ellos.',
+  equipamiento: [],
+  briefing: 'Alternamos patrones para no fatigar el mismo músculo.',
   cues: ['Descanso activo, no te sientes', 'Última ronda, esta es la buena'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 90, 0, 'suave', 'Calentamiento progresivo.'),
-      bloque('SENTADILLAS', 45, 15, 'media', 'Sentadillas.'),
-      bloque('PLANK_JACK', 30, 0, 'media', 'Plank jack suave.'),
-    ], 'Calentamiento de tres minutos.'),
+    activacion([
+      bloque('SENTADILLAS', 45, 0, 'suave', 'Sentadillas progresivas.'),
+      bloque('FLEXIONES', 30, 0, 'suave', 'Flexiones controladas.'),
+      bloque('RODILLAS_ALTAS', 30, 0, 'media', 'Rodillas altas.'),
+      bloque('MOUNTAIN_CLIMBER', 30, 0, 'media', 'Escaladores suaves.'),
+    ], 'Activación funcional de tres minutos.'),
     seccion('pico', 'Bloque 1', 'Bloque 1', PRINCIPAL, [
       bloque('SENTADILLA_SALTO', 40, 20, 'alta', 'Sentadilla con salto.'),
       bloque('ESCALADOR', 40, 20, 'alta', 'Escaladores.'),
       bloque('BURPEE', 40, 20, 'alta', 'Burpees, versión sin salto si prefieres.'),
-      bloque('SKATER', 40, 20, 'alta', 'Skater de lado a lado.'),
+      bloque('MOUNTAIN_CLIMBER', 40, 20, 'alta', 'Mountain climber.'),
       bloque('RODILLAS_ALTAS', 40, 60, 'alta', 'Rodillas altas.'),
     ], { pistaVoz: 'Bloque uno: todo lo que tengas.' }),
     seccion('recuperacion', 'Descanso activo', 'Descanso', 'recuperacion', [
@@ -337,7 +322,8 @@ const HIIT_20 = base('hiit-20', 'HIIT 20', 'hiit', 'intermedio', {
     ], { pistaVoz: 'Bloque dos: última parte.' }),
     calma([
       bloque('MARCHA_SUAVE', 45, 0, 'suave', 'Baja el pulso.'),
-      bloque('ESTIRAMIENTO_GENERAL', 90, 0, 'suave', 'Estiramiento completo.'),
+      bloque('ESTIRAMIENTO_ISQUIOS', 45, 0, 'suave', 'Isquios.'),
+      bloque('ESTIRAMIENTO_GENERAL', 75, 0, 'suave', 'Estiramiento completo.'),
     ], 'Terminaste. Respira.'),
   ],
 });
@@ -345,20 +331,21 @@ const HIIT_20 = base('hiit-20', 'HIIT 20', 'hiit', 'intermedio', {
 const HIIT_30 = base('hiit-30', 'HIIT 30', 'hiit', 'avanzado', {
   etiqueta: '30 min',
   duracionMin: 30,
-  descripcion: 'Tres bloques: intervalos largos, Tabata y potencia final.',
-  equipamiento: ['toalla', 'botellas'],
+  descripcion: 'Tres bloques: intervalos largos, descanso activo y final explosivo.',
+  equipamiento: [],
   briefing: 'Clase exigente. Ajusta el impacto con la versión sin salto.',
   cues: ['Calidad sobre cantidad', 'Una más'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 120, 0, 'suave', 'Calentamiento progresivo.'),
-      bloque('SENTADILLAS', 45, 15, 'media', 'Sentadillas.'),
-      bloque('JUMPING_JACKS', 45, 0, 'media', 'Jumping jacks.'),
-    ], 'Calentamiento de cuatro minutos.'),
+    activacion([
+      bloque('SENTADILLAS', 60, 0, 'suave', 'Sentadillas progresivas.'),
+      bloque('FLEXIONES', 45, 0, 'suave', 'Flexiones.'),
+      bloque('RODILLAS_ALTAS', 45, 0, 'media', 'Rodillas altas.'),
+      bloque('MOUNTAIN_CLIMBER', 45, 0, 'media', 'Escaladores.'),
+    ], 'Activación funcional de cuatro minutos.'),
     seccion('pico', 'Bloque 1', 'Bloque 1', PRINCIPAL, [
       bloque('SENTADILLA_SALTO', 40, 20, 'alta', 'Sentadilla con salto.'),
       bloque('FLEXIONES', 40, 20, 'alta', 'Flexiones.'),
-      bloque('SKATER', 40, 20, 'alta', 'Skater.'),
+      bloque('ZANCADAS', 40, 20, 'alta', 'Zancadas alternas.'),
       bloque('PRESS_HOMBRO', 40, 20, 'alta', 'Press de hombro.'),
       bloque('BURPEE', 40, 60, 'alta', 'Burpees.'),
     ], { pistaVoz: 'Bloque uno.' }),
@@ -373,115 +360,9 @@ const HIIT_30 = base('hiit-30', 'HIIT 30', 'hiit', 'avanzado', {
     ], { rondas: 4, descansoRonda: 30, pistaVoz: 'Tabata final.' }),
     calma([
       bloque('MARCHA_SUAVE', 60, 0, 'suave', 'Baja el pulso.'),
-      bloque('ESTIRAMIENTO_GENERAL', 100, 0, 'suave', 'Estiramiento completo.'),
+      bloque('ESTIRAMIENTO_CUADRICEPS', 45, 0, 'suave', 'Cuádriceps.'),
+      bloque('ESTIRAMIENTO_GENERAL', 90, 0, 'suave', 'Estiramiento completo.'),
     ], 'Clase terminada. Excelente.'),
-  ],
-});
-
-// --- Danza ----------------------------------------------------------------
-
-const DANZA_20 = base('danza-20', 'Danza 20', 'danza', 'principiante', {
-  etiqueta: '20 min',
-  duracionMin: 20,
-  descripcion: 'Ritmos latinos sin saltos: merengue, salsa y reggaetón.',
-  equipamiento: [],
-  briefing: 'No hay pasos incorrectos. Sigue el pie y sonríe.',
-  cues: ['Paso al lado, cadera libre', '3, 2, 1, cambio'],
-  secciones: [
-    calentamiento([
-      bloque('MARCHA', 90, 0, 'suave', 'Marcha al ritmo, suelta el cuerpo.'),
-      bloque('STEP_TOUCH', 45, 0, 'suave', 'Step touch suave.'),
-      bloque('CADERA', 45, 0, 'suave', 'Mueve la cadera al ritmo.'),
-    ], 'Calentamiento bailando.'),
-    seccion('bloque', 'Merengue', 'Merengue', PRINCIPAL, [
-      bloque('MERENGUE', 120, 15, 'media', 'Merengue, paso rápido y corto.'),
-      bloque('GRAPEVINE', 90, 15, 'media', 'Grapevine de lado a lado.'),
-      bloque('SALSA', 120, 30, 'media', 'Salsa, cambio de peso.'),
-    ], { pistaVoz: 'Merengue y salsa.' }),
-    seccion('pico', 'Reggaetón', 'Pico', PRINCIPAL, [
-      bloque('CADERA', 90, 15, 'alta', 'Cadera al ritmo.'),
-      bloque('STEP_TOUCH', 90, 15, 'alta', 'Step touch rápido.'),
-      bloque('SALSA', 90, 30, 'alta', 'Salsa con giro de torso.'),
-    ], { pistaVoz: 'Subimos el ritmo.' }),
-    calma([
-      bloque('MARCHA_SUAVE', 60, 0, 'suave', 'Baja el ritmo.'),
-      bloque('ESTIRAMIENTO_GENERAL', 90, 0, 'suave', 'Estiramiento final.'),
-    ], 'Lo bailaste. Eso es cardio.'),
-  ],
-});
-
-const DANZA_30 = base('danza-30', 'Danza 30', 'danza', 'principiante', {
-  etiqueta: '30 min',
-  duracionMin: 30,
-  descripcion: 'Clase de baile completa: calentamiento, tres ritmos y calma.',
-  equipamiento: [],
-  briefing: 'La música manda. Repetimos los pasos hasta que salgan.',
-  cues: ['Sonríe, estás bailando', 'Cadera libre'],
-  secciones: [
-    calentamiento([
-      bloque('MARCHA', 120, 0, 'suave', 'Marcha al ritmo.'),
-      bloque('STEP_TOUCH', 60, 0, 'suave', 'Step touch.'),
-      bloque('CADERA', 60, 0, 'suave', 'Cadera suave.'),
-    ], 'Calentamiento de cuatro minutos.'),
-    seccion('bloque', 'Merengue y cumbia', 'Merengue', PRINCIPAL, [
-      bloque('MERENGUE', 150, 15, 'media', 'Merengue.'),
-      bloque('STEP_TOUCH', 120, 15, 'media', 'Step touch.'),
-      bloque('GRAPEVINE', 120, 30, 'media', 'Grapevine.'),
-    ], { pistaVoz: 'Merengue y cumbia.' }),
-    seccion('pico', 'Salsa', 'Salsa', PRINCIPAL, [
-      bloque('SALSA', 150, 15, 'alta', 'Salsa, cambio de peso.'),
-      bloque('CADERA', 120, 15, 'alta', 'Cadera al ritmo.'),
-      bloque('MERENGUE', 120, 30, 'alta', 'Merengue rápido.'),
-    ], { pistaVoz: 'Salsa y más ritmo.' }),
-    seccion('pico2', 'Reggaetón', 'Reggaetón', PRINCIPAL, [
-      bloque('SALSA', 120, 15, 'alta', 'Salsa con giro.'),
-      bloque('STEP_TOUCH', 120, 15, 'alta', 'Step touch.'),
-      bloque('CADERA', 120, 30, 'alta', 'Cadera final.'),
-    ], { pistaVoz: 'Reggaetón, última parte.' }),
-    calma([
-      bloque('MARCHA_SUAVE', 60, 0, 'suave', 'Baja el ritmo.'),
-      bloque('ESTIRAMIENTO_GENERAL', 120, 0, 'suave', 'Estiramiento largo.'),
-    ], 'Lo bailaste. Nos vemos la próxima.'),
-  ],
-});
-
-const DANZA_45 = base('danza-45', 'Danza 45', 'danza', 'intermedio', {
-  etiqueta: '45 min',
-  duracionMin: 45,
-  descripcion: 'Experiencia completa de baile con cuatro bloques de ritmo.',
-  equipamiento: [],
-  briefing: 'Cuarenta y cinco minutos de fiesta. Hidrátate.',
-  cues: ['Sin salto también quema', 'Mantén el ritmo'],
-  secciones: [
-    calentamiento([
-      bloque('MARCHA', 150, 0, 'suave', 'Marcha al ritmo.'),
-      bloque('STEP_TOUCH', 90, 0, 'suave', 'Step touch.'),
-      bloque('CADERA', 60, 0, 'suave', 'Cadera suave.'),
-    ], 'Calentamiento de cinco minutos.'),
-    seccion('bloque', 'Merengue', 'Merengue', PRINCIPAL, [
-      bloque('MERENGUE', 180, 15, 'media', 'Merengue.'),
-      bloque('GRAPEVINE', 150, 15, 'media', 'Grapevine.'),
-      bloque('STEP_TOUCH', 150, 30, 'media', 'Step touch.'),
-    ], { pistaVoz: 'Merengue.' }),
-    seccion('pico', 'Salsa', 'Salsa', PRINCIPAL, [
-      bloque('SALSA', 180, 15, 'alta', 'Salsa.'),
-      bloque('CADERA', 150, 15, 'alta', 'Cadera.'),
-      bloque('SALSA', 150, 30, 'alta', 'Salsa con giro.'),
-    ], { pistaVoz: 'Salsa.' }),
-    seccion('pico2', 'Reggaetón', 'Reggaetón', PRINCIPAL, [
-      bloque('MERENGUE', 180, 15, 'alta', 'Merengue rápido.'),
-      bloque('STEP_TOUCH', 150, 15, 'alta', 'Step touch.'),
-      bloque('CADERA', 150, 30, 'alta', 'Cadera al máximo.'),
-    ], { pistaVoz: 'Reggaetón.' }),
-    seccion('pico3', 'Batidora final', 'Final', PRINCIPAL, [
-      bloque('SALSA', 120, 15, 'alta', 'Salsa.'),
-      bloque('MERENGUE', 120, 15, 'alta', 'Merengue.'),
-      bloque('CADERA', 120, 0, 'alta', 'Cadera, última canción.'),
-    ], { pistaVoz: 'Canción final, todo el mundo.' }),
-    calma([
-      bloque('MARCHA_SUAVE', 60, 0, 'suave', 'Baja el ritmo.'),
-      bloque('ESTIRAMIENTO_GENERAL', 150, 0, 'suave', 'Estiramiento completo.'),
-    ], 'Clase terminada. Excelente baile.'),
   ],
 });
 
@@ -495,21 +376,21 @@ const COMBAT_20 = base('combat-20', 'Combat 20', 'combat', 'principiante', {
   briefing: 'Guardia arriba. No es pelear, es moverse. Versión sin salto siempre.',
   cues: ['Exhala en cada golpe', 'Vuelve a la guardia'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 90, 0, 'suave', 'Marcha y suelta los hombros.'),
-      bloque('GUARDIA', 60, 0, 'suave', 'Guardia y paso ligero.'),
-      bloque('CIRCULOS_BRAZOS', 30, 0, 'suave', 'Círculos de brazos.'),
-    ], 'Calentamiento con guardia.'),
+    activacion([
+      bloque('ROTACION_TORSO', 45, 0, 'suave', 'Rotación de torso, hombros sueltos.'),
+      bloque('GUARDIA', 45, 0, 'suave', 'Guardia y paso ligero.'),
+      bloque('JAB_CROSS', 30, 0, 'suave', 'Jab y cross lento.'),
+    ], 'Activación con guardia.'),
     seccion('bloque', 'Boxeo', 'Boxeo', PRINCIPAL, [
       bloque('JAB_CROSS', 45, 15, 'media', 'Jab y cross, al aire.'),
       bloque('RODILLAZO', 45, 15, 'media', 'Rodillazos alternos.'),
       bloque('COMBINACION', 45, 30, 'media', 'Combinación de golpes.'),
-    ], { pistaVoz: 'Bloque de boxeo.' }),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Bloque de boxeo, dos rondas.' }),
     seccion('pico', 'Patadas', 'Patadas', PRINCIPAL, [
       bloque('PATADA_FRONTAL', 45, 15, 'alta', 'Patada frontal controlada.'),
       bloque('PATADA_LATERAL', 45, 15, 'alta', 'Patada lateral.'),
       bloque('JAB_CROSS', 45, 30, 'alta', 'Jab y cross rápidos.'),
-    ], { pistaVoz: 'Bloque de patadas.' }),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Bloque de patadas, dos rondas.' }),
     seccion('core', 'Core combat', 'Core', PRINCIPAL, [
       bloque('PLANCHA', 40, 15, 'media', 'Plancha firme.'),
       bloque('MOUNTAIN_CLIMBER', 40, 0, 'media', 'Escaladores.'),
@@ -524,31 +405,32 @@ const COMBAT_20 = base('combat-20', 'Combat 20', 'combat', 'principiante', {
 const COMBAT_30 = base('combat-30', 'Combat 30', 'combat', 'intermedio', {
   etiqueta: '30 min',
   duracionMin: 30,
-  descripcion: 'Cinco tracks: boxeo, potencia, patadas y acondicionamiento.',
+  descripcion: 'Boxeo, potencia y patadas con acondicionamiento final.',
   equipamiento: [],
   briefing: 'Aprende cuatro golpes antes de ir rápido. Sin contacto.',
   cues: ['Golpea con la cadera', 'No hiperextiendas el codo'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 120, 0, 'suave', 'Marcha y hombros sueltos.'),
-      bloque('GUARDIA', 60, 0, 'suave', 'Guardia y paso.'),
-      bloque('JAB_CROSS', 45, 0, 'suave', 'Jab y cross lento.'),
-    ], 'Calentamiento con guardia.'),
+    activacion([
+      bloque('ROTACION_TORSO', 45, 0, 'suave', 'Rotación de torso.'),
+      bloque('GUARDIA', 45, 0, 'suave', 'Guardia y paso.'),
+      bloque('JAB_CROSS', 30, 0, 'suave', 'Jab y cross lento.'),
+      bloque('MOUNTAIN_CLIMBER', 30, 0, 'media', 'Escaladores suaves.'),
+    ], 'Activación con guardia.'),
     seccion('bloque', 'Combat 1', 'Combat 1', PRINCIPAL, [
       bloque('JAB_CROSS', 50, 15, 'alta', 'Combinaciones de boxeo.'),
       bloque('RODILLAZO', 45, 15, 'alta', 'Rodillazos.'),
       bloque('COMBINACION', 45, 30, 'alta', 'Combinación completa.'),
-    ], { pistaVoz: 'Combat uno.' }),
-    seccion('potencia', 'Potencia 1', 'Potencia', PRINCIPAL, [
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Combat uno, dos rondas.' }),
+    seccion('potencia', 'Potencia', 'Potencia', PRINCIPAL, [
       bloque('SENTADILLA_SALTO', 45, 15, 'alta', 'Potencia de piernas.'),
       bloque('ZANCADAS', 45, 15, 'alta', 'Zancadas con impulso.'),
-      bloque('SKATER', 45, 30, 'alta', 'Skater lateral.'),
-    ], { pistaVoz: 'Potencia de piernas.' }),
+      bloque('MOUNTAIN_CLIMBER', 45, 30, 'alta', 'Escaladores explosivos.'),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Potencia de piernas.' }),
     seccion('bloque2', 'Patadas', 'Patadas', PRINCIPAL, [
       bloque('PATADA_FRONTAL', 50, 15, 'alta', 'Patada frontal.'),
       bloque('PATADA_LATERAL', 50, 15, 'alta', 'Patada lateral.'),
       bloque('RODILLAZO', 45, 30, 'alta', 'Rodillazos finales.'),
-    ], { pistaVoz: 'Patadas.' }),
+    ], { rondas: 2, descansoRonda: 20, pistaVoz: 'Patadas, dos rondas.' }),
     seccion('core', 'Condicionamiento', 'Core', PRINCIPAL, [
       bloque('PLANCHA', 45, 15, 'media', 'Plancha.'),
       bloque('MOUNTAIN_CLIMBER', 45, 15, 'media', 'Escaladores.'),
@@ -571,10 +453,10 @@ const CORE_5 = base('core-5', 'Core 5', 'core', 'principiante', {
   briefing: 'Calidad antes que velocidad. Lumbar pegada al piso.',
   cues: ['Exhala al subir', 'No jales el cuello'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 30, 0, 'suave', 'Marcha suave para calentar.'),
+    activacion([
       bloque('BIRD_DOG', 30, 0, 'suave', 'Bird dog, activa el core.'),
-    ], 'Calentamiento corto.'),
+      bloque('DEAD_BUG', 30, 0, 'suave', 'Dead bug suave.'),
+    ], 'Activación corta de core.'),
     seccion('core', 'Circuito de core', 'Core', PRINCIPAL, [
       bloque('PLANCHA', 40, 15, 'media', 'Plancha.'),
       bloque('ABDOMINALES', 40, 15, 'media', 'Abdominales.'),
@@ -591,14 +473,14 @@ const CORE_10 = base('core-10', 'Core 10', 'core', 'principiante', {
   etiqueta: '10 min',
   duracionMin: 10,
   descripcion: 'Abdomen, espalda baja y glúteos con control.',
-  equipamiento: ['toalla'],
+  equipamiento: [],
   briefing: 'Respira en cada repetición; si la forma se rompe, descansa.',
   cues: ['Controla el descenso', 'Abdomen firme'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 45, 0, 'suave', 'Marcha en el lugar.'),
+    activacion([
       bloque('BIRD_DOG', 45, 0, 'suave', 'Bird dog alternado.'),
-    ], 'Calentamiento de core.'),
+      bloque('DEAD_BUG', 45, 0, 'suave', 'Dead bug suave.'),
+    ], 'Activación de core.'),
     seccion('core', 'Circuito', 'Circuito', PRINCIPAL, [
       bloque('PLANCHA', 40, 15, 'media', 'Plancha frontal.'),
       bloque('ABDOMINALES', 40, 15, 'media', 'Abdominales.'),
@@ -613,6 +495,7 @@ const CORE_10 = base('core-10', 'Core 10', 'core', 'principiante', {
     ], { pistaVoz: 'Estabilidad final.' }),
     calma([
       bloque('ESTIRAMIENTO_GENERAL', 60, 0, 'suave', 'Estiramiento.'),
+      bloque('POSTURA_NINO', 30, 0, 'suave', 'Postura del niño.'),
     ], 'Vuelta a la calma.'),
   ],
 });
@@ -620,16 +503,16 @@ const CORE_10 = base('core-10', 'Core 10', 'core', 'principiante', {
 const CORE_20 = base('core-20', 'Core 20', 'core', 'intermedio', {
   etiqueta: '20 min',
   duracionMin: 20,
-  descripcion: 'Cuatro bloques de core: frontal, lateral, antirotación y espalda.',
-  equipamiento: ['toalla'],
+  descripcion: 'Cuatro bloques de core: frontal, lateral, espalda y final.',
+  equipamiento: [],
   briefing: 'Veinte minutos para un centro sólido. Sin prisa.',
   cues: ['Costillas abajo', 'Respira, no aguantes el aire'],
   secciones: [
-    calentamiento([
-      bloque('MARCHA', 60, 0, 'suave', 'Marcha y respira.'),
-      bloque('BIRD_DOG', 60, 0, 'suave', 'Bird dog.'),
+    activacion([
+      bloque('BIRD_DOG', 45, 0, 'suave', 'Bird dog.'),
       bloque('DEAD_BUG', 45, 0, 'suave', 'Dead bug suave.'),
-    ], 'Calentamiento de core.'),
+      bloque('PLANCHA', 30, 0, 'suave', 'Plancha suave.'),
+    ], 'Activación de core.'),
     seccion('core', 'Frontal', 'Frontal', PRINCIPAL, [
       bloque('PLANCHA', 45, 15, 'media', 'Plancha frontal.'),
       bloque('ABDOMINALES', 45, 15, 'media', 'Abdominales.'),
@@ -658,105 +541,6 @@ const CORE_20 = base('core-20', 'Core 20', 'core', 'intermedio', {
   ],
 });
 
-// --- Movilidad ------------------------------------------------------------
-
-const MOVILIDAD_10 = base('movilidad-10', 'Movilidad 10', 'movilidad', 'principiante', {
-  etiqueta: '10 min',
-  duracionMin: 10,
-  descripcion: 'Movilidad de columna, hombros y caderas para soltar el cuerpo.',
-  equipamiento: ['toalla'],
-  briefing: 'Sin rebotar. Respira y sostén cada posición.',
-  cues: ['Respira lento', 'Sin dolor, hasta donde llegues'],
-  secciones: [
-    calentamiento([
-      bloque('MARCHA', 45, 0, 'suave', 'Marcha suave.'),
-      bloque('CIRCULOS_BRAZOS', 45, 0, 'suave', 'Círculos de brazos.'),
-    ], 'Empezamos a soltar el cuerpo.'),
-    seccion('bloque', 'Movilidad', 'Movilidad', PRINCIPAL, [
-      bloque('GATO_CAMELLO', 60, 10, 'suave', 'Gato y camello con la respiración.'),
-      bloque('ROTACION_TORSO', 45, 10, 'suave', 'Rotación de torso.'),
-      bloque('ESTIRAMIENTO_CUELLO', 45, 10, 'suave', 'Cuello suave, oreja al hombro.'),
-      bloque('POSTURA_NINO', 60, 0, 'suave', 'Postura del niño.'),
-    ], { pistaVoz: 'Movilidad guiada.' }),
-    seccion('bloque2', 'Caderas', 'Caderas', PRINCIPAL, [
-      bloque('ESTIRAMIENTO_ISQUIOS', 60, 10, 'suave', 'Isquios, espalda larga.'),
-      bloque('ESTIRAMIENTO_CUADRICEPS', 60, 0, 'suave', 'Cuádriceps con apoyo.'),
-    ], { pistaVoz: 'Movilidad de piernas.' }),
-    calma([
-      bloque('RESPIRACION_DIAFRAGMATICA', 90, 0, 'suave', 'Respira profundo y suelta.'),
-    ], 'Terminamos con respiración.'),
-  ],
-});
-
-const MOVILIDAD_20 = base('movilidad-20', 'Movilidad 20', 'movilidad', 'principiante', {
-  etiqueta: '20 min',
-  duracionMin: 20,
-  descripcion: 'Flujo suave de movilidad y estiramiento profundo.',
-  equipamiento: ['toalla'],
-  briefing: 'Recuperación activa. Ideal para días de descanso.',
-  cues: ['Sigue la respiración', 'Sostén sin forzar'],
-  secciones: [
-    calentamiento([
-      bloque('MARCHA', 60, 0, 'suave', 'Marcha suave.'),
-      bloque('CIRCULOS_BRAZOS', 60, 0, 'suave', 'Círculos de brazos.'),
-      bloque('ROTACION_TORSO', 60, 0, 'suave', 'Rotación de torso.'),
-    ], 'Calentamiento suave.'),
-    seccion('bloque', 'Columna', 'Columna', PRINCIPAL, [
-      bloque('GATO_CAMELLO', 90, 10, 'suave', 'Gato y camello.'),
-      bloque('SALUDO_SOL', 90, 10, 'suave', 'Saludo al sol, fluido.'),
-      bloque('POSTURA_NINO', 60, 0, 'suave', 'Postura del niño.'),
-    ], { pistaVoz: 'Columna y fluidez.' }),
-    seccion('bloque2', 'Hombros y cuello', 'Hombros', PRINCIPAL, [
-      bloque('APERTURA_PECHO', 60, 10, 'suave', 'Apertura de pecho.'),
-      bloque('ESTIRAMIENTO_CUELLO', 60, 10, 'suave', 'Estiramiento de cuello.'),
-      bloque('CIRCULOS_BRAZOS', 45, 0, 'suave', 'Círculos de brazos.'),
-    ], { pistaVoz: 'Hombros y cuello.' }),
-    seccion('bloque3', 'Piernas', 'Piernas', PRINCIPAL, [
-      bloque('ESTIRAMIENTO_ISQUIOS', 75, 10, 'suave', 'Isquios.'),
-      bloque('ESTIRAMIENTO_CUADRICEPS', 75, 10, 'suave', 'Cuádriceps.'),
-      bloque('GATO_CAMELLO', 60, 0, 'suave', 'Vuelve a la columna.'),
-    ], { pistaVoz: 'Piernas.' }),
-    calma([
-      bloque('RESPIRACION_DIAFRAGMATICA', 90, 0, 'suave', 'Respiración final.'),
-      bloque('ESTIRAMIENTO_GENERAL', 60, 0, 'suave', 'Estiramiento general.'),
-    ], 'Recuperación completa. Descansa.'),
-  ],
-});
-
-// --- Spinning / ritmo -----------------------------------------------------
-
-const SPINNING_30 = base('spinning-30', 'Ritmo 30', 'spinning', 'intermedio', {
-  etiqueta: '30 min',
-  duracionMin: 30,
-  descripcion: 'Cardio guiado por el ritmo, sin bicicleta: pedaleo en el sitio.',
-  equipamiento: ['toalla', 'botellas'],
-  briefing: 'Imagina el pedaleo: cadencia constante. Sin saltos.',
-  cues: ['Mantén la cadencia', 'Torso firme, hombros relajados'],
-  secciones: [
-    calentamiento([
-      bloque('PEDALEO_SENTADO', 120, 0, 'suave', 'Pedaleo suave para calentar.'),
-      bloque('MARCHA', 60, 0, 'suave', 'Marcha y respiración.'),
-    ], 'Calentamiento al ritmo.'),
-    seccion('bloque', 'Subida', 'Subida', PRINCIPAL, [
-      bloque('PEDALEO_SENTADO', 150, 20, 'media', 'Pedaleo constante, cadencia firme.'),
-      bloque('PEDALEO_PIE', 90, 20, 'media', 'Sube de pie y mantén el ritmo.'),
-    ], { pistaVoz: 'Bloque de subida.' }),
-    seccion('pico', 'Sprints', 'Sprints', PRINCIPAL, [
-      bloque('SPRINT', 60, 30, 'alta', 'Sprint: todo lo que tengas.'),
-      bloque('PEDALEO_SENTADO', 120, 20, 'media', 'Recupera pedaleando.'),
-      bloque('SPRINT', 60, 30, 'alta', 'Último sprint.'),
-    ], { pistaVoz: 'Sprints. Aguanten.' }),
-    seccion('bloque2', 'Final', 'Final', PRINCIPAL, [
-      bloque('PEDALEO_PIE', 120, 20, 'alta', 'De pie, rodillas altas.'),
-      bloque('PEDALEO_SENTADO', 90, 0, 'media', 'Sentado, baja la cadencia.'),
-    ], { pistaVoz: 'Recta final.' }),
-    calma([
-      bloque('MARCHA_SUAVE', 60, 0, 'suave', 'Baja el pulso.'),
-      bloque('ESTIRAMIENTO_GENERAL', 120, 0, 'suave', 'Estira las piernas.'),
-    ], 'Baja el ritmo. Buen trabajo.'),
-  ],
-});
-
 const CLASES_BASE = Object.freeze([
   FUERZA_10,
   FUERZA_30,
@@ -764,17 +548,11 @@ const CLASES_BASE = Object.freeze([
   HIIT_10,
   HIIT_20,
   HIIT_30,
-  DANZA_20,
-  DANZA_30,
-  DANZA_45,
   COMBAT_20,
   COMBAT_30,
   CORE_5,
   CORE_10,
   CORE_20,
-  MOVILIDAD_10,
-  MOVILIDAD_20,
-  SPINNING_30,
 ]);
 
 function congelarLista(lista) {
@@ -838,9 +616,8 @@ export const CLASES = Object.freeze(CLASES_BASE.map((clase) => compilarClase(cla
 
 export const CLASE_POR_DEFECTO = CLASES[0];
 
-// La puerta de entrada es la clase corta y amable de movilidad/core.
-export const CLASE_INICIAL =
-  obtenerClase('core-5') || CLASE_POR_DEFECTO;
+// La puerta de entrada es la clase corta y amable de core.
+export const CLASE_INICIAL = obtenerClase('core-5') || CLASE_POR_DEFECTO;
 
 export function obtenerClase(id) {
   return CLASES.find((clase) => clase.id === id) || null;

@@ -35,14 +35,15 @@ describe('obtenerFrase', () => {
     expect(obtenerFrase('NO_EXISTE', 0)).toBe('');
   });
 
-  it('tiene frases suaves propias para la pausa de escritorio', () => {
+  it('tiene frases propias para los ejercicios del catálogo', () => {
     const general = obtenerFrase('TRABAJO', 0, 'BAILE');
     const frases = [
-      'CIRCULOS_BRAZOS',
-      'ELEVACIONES_LATERALES',
-      'APERTURA_PECHO',
       'ROTACION_TORSO',
-      'ESTIRAMIENTO_CUELLO',
+      'PRESS_HOMBRO',
+      'REMO',
+      'PESO_MUERTO',
+      'BIRD_DOG',
+      'DEAD_BUG',
     ].map((ejercicio) => obtenerFrase('TRABAJO', 0, ejercicio));
     expect(new Set(frases).size).toBe(frases.length);
     for (const frase of frases) {
