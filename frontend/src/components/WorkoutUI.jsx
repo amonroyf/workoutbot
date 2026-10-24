@@ -20,35 +20,35 @@ import MinijuegoTecho from './MinijuegoTecho';
 import MarcoEncuadre from './MarcoEncuadre';
 
 function AnilloRep({ fase, color = '#4ade80' }) {
-  const radio = 24;
+  const radio = 36; // Aumentado de 24 a 36
   const circunferencia = 2 * Math.PI * radio;
   const avance = fase === 'ABAJO' ? 1 : 0;
 
   return (
-    <div className="relative h-16 w-16">
-      <svg viewBox="0 0 64 64" className="h-full w-full -rotate-90">
+    <div className="relative h-24 w-24 drop-shadow-xl">
+      <svg viewBox="0 0 88 88" className="h-full w-full -rotate-90">
         <circle
-          cx="32"
-          cy="32"
+          cx="44"
+          cy="44"
           r={radio}
           fill="none"
-          stroke="rgba(255, 255, 255, 0.2)"
-          strokeWidth="5"
+          stroke="rgba(255, 255, 255, 0.15)"
+          strokeWidth="10"
         />
         <circle
-          cx="32"
-          cy="32"
+          cx="44"
+          cy="44"
           r={radio}
           fill="none"
           stroke={color}
-          strokeWidth="5"
+          strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={circunferencia}
           strokeDashoffset={circunferencia * (1 - avance)}
           className="transition-all duration-300 ease-out"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black uppercase tracking-wide">
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-black uppercase tracking-widest text-white">
         {fase}
       </span>
     </div>
@@ -81,8 +81,6 @@ export default function WorkoutUI() {
     setMusicaActiva,
     abrirDemo,
     cerrarDemo,
-    registrarRepeticion,
-    quitarRepeticion,
     camaraHabilitada,
     setCamaraHabilitada,
   } = useWorkoutStore();
@@ -171,7 +169,7 @@ export default function WorkoutUI() {
           <p className="mt-1 text-xs font-semibold text-aviso-300">{avisoMusica}</p>
         )}
         {seccionesProgreso ? (
-          <div className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-tinta-700/60">
+          <div className="mt-4 flex h-4 w-full overflow-hidden rounded-full bg-tinta-800/80 shadow-inner">
             {seccionesProgreso.map((seccion) => {
               const ancho = (seccion.duracion / duracionClase(claseActual)) * 100;
               const avance = seccion.duracion > 0 ? seccion.transcurrido / seccion.duracion : 0;
@@ -199,7 +197,7 @@ export default function WorkoutUI() {
             })}
           </div>
         ) : (
-          <div className="h-3 w-full overflow-hidden rounded-full bg-tinta-700/60">
+          <div className="h-4 w-full overflow-hidden rounded-full bg-tinta-800/80 shadow-inner">
             <div
               className="h-full rounded-full transition-all duration-300"
               style={{ width: `${progreso * 100}%`, backgroundColor: gel }}
@@ -264,8 +262,8 @@ export default function WorkoutUI() {
           </p>
         )}
         <h1
-          className={`text-7xl font-black md:text-9xl ${
-            faseActual === 'DESCANSO' ? 'text-aviso-400' : 'text-tinta-100'
+          className={`text-[130px] font-black leading-none tabular-nums tracking-tighter drop-shadow-2xl ${
+            faseActual === 'DESCANSO' ? 'text-aviso-400' : 'text-white'
           }`}
         >
           {tiempoRestante}
@@ -286,59 +284,41 @@ export default function WorkoutUI() {
 
         {faseActual === 'TRABAJO' ? (
           mostrarTecho ? (
-            <div className="mt-3 w-full max-w-sm">
+            <div className="mt-4 w-full max-w-sm">
               <MinijuegoTecho />
-              <p className="mt-1 text-xs font-semibold text-tinta-400">
-                Mantén rodillas a 90° para frenar el techo
+              <p className="mt-2 text-sm font-bold text-tinta-300 uppercase tracking-widest">
+                Rodillas a 90°
               </p>
             </div>
           ) : esTiempo ? (
-            <div className="mt-3 flex flex-col items-center gap-2">
-              <p className="text-3xl font-black text-marca-300">{consigna.consigna}</p>
-              <p className="text-sm text-tinta-300">{consigna.consignaAyuda}</p>
+            <div className="mt-6 flex flex-col items-center gap-3 rounded-panel bg-tinta-950/60 p-6 backdrop-blur-xl border border-white/10 shadow-2xl">
+              <p className="text-4xl font-black text-marca-300">{consigna.consigna}</p>
+              <p className="text-base text-tinta-200">{consigna.consignaAyuda}</p>
               {scoreForma != null && (
-                <span className={`rounded-full px-4 py-1 text-sm font-black ${colorScore}`}>
+                <span className={`rounded-md px-4 py-2 text-lg font-black uppercase tracking-wide ${colorScore}`}>
                   Forma {scoreForma}%
                 </span>
               )}
             </div>
           ) : (
-            <div className="mt-3 flex items-center gap-4 rounded-panel bg-tinta-950/40 p-4 backdrop-blur-md border border-white/10 z-20 relative">
-              <div className="text-left flex-1">
-                <p className="text-sm font-bold text-tinta-300 uppercase tracking-widest">Repeticiones</p>
-                <div className="flex items-baseline gap-2">
-                  <p className="text-4xl font-black">{repeticiones}</p>
-                  {scoreForma != null && (
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${colorScore}`}>
-                      {scoreForma}% Forma
-                    </span>
-                  )}
+            <div className="mt-6 flex w-full max-w-md items-center justify-between gap-4 rounded-panel bg-tinta-950/70 p-6 backdrop-blur-xl border-2 border-white/10 z-20 relative shadow-2xl">
+              <div className="flex flex-col items-start gap-2">
+                <div className="flex items-baseline gap-3">
+                  <p className="text-8xl font-black text-white tabular-nums tracking-tighter leading-none">{repeticiones}</p>
+                  <span className="text-xl font-bold text-tinta-400 uppercase tracking-widest">Reps</span>
                 </div>
 
-                <div className="mt-2 flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={quitarRepeticion}
-                    aria-label="Quitar una repetición"
-                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-white/10 bg-tinta-900/60 text-lg font-black text-tinta-200 transition hover:bg-tinta-800"
-                  >
-                    −1
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => registrarRepeticion(false)}
-                    aria-label="Sumar una repetición"
-                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-marca-400/40 bg-marca-500/20 text-lg font-black text-marca-300 transition hover:bg-marca-500/40"
-                  >
-                    +1
-                  </button>
-                </div>
+                {scoreForma != null && (
+                  <span className={`px-3 py-1.5 rounded-md text-sm font-black uppercase tracking-wider ${colorScore}`}>
+                    Forma {scoreForma}%
+                  </span>
+                )}
               </div>
 
-              <div className="flex flex-col items-center gap-2 shrink-0">
+              <div className="flex flex-col items-center gap-3 shrink-0">
                 <AnilloRep fase={faseRepeticion} color={gel} />
                 {combo >= 3 && (
-                  <span className="rounded-full bg-racha-500 px-2 py-0.5 text-[10px] font-black text-black">
+                  <span className="rounded-chip bg-racha-500 px-3 py-1.5 text-xs font-black text-black shadow-foco">
                     {combo >= 5 ? <Icono nombre="fuego" tamano={12} className="inline" /> : null}
                     {combo >= 5 ? ' ON FIRE' : `x${combo} COMBO`}
                   </span>
@@ -346,7 +326,7 @@ export default function WorkoutUI() {
                 {flashPerfecta > 0 && (
                   <span
                     key={flashPerfecta}
-                    className="perfecta-flash rounded-full bg-marca-400 px-2 py-0.5 text-[10px] font-black text-black"
+                    className="perfecta-flash rounded-chip bg-marca-400 px-3 py-1.5 text-xs font-black text-black shadow-foco"
                   >
                     ¡PERFECTA!
                   </span>
@@ -355,8 +335,8 @@ export default function WorkoutUI() {
             </div>
           )
         ) : (
-          <div className="mt-2 flex flex-col items-center">
-            <p className="text-2xl font-bold text-aviso-300">¡Descansa!</p>
+          <div className="mt-6 flex flex-col items-center">
+            <p className="text-4xl font-black text-aviso-400 drop-shadow-lg tracking-widest uppercase">¡Descansa!</p>
           </div>
         )}
 

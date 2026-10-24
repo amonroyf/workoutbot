@@ -65,18 +65,35 @@ describe('WorkoutUI — cambios de UX sobre el feed de cámara', () => {
     expect(scrims.length).toBe(1);
   });
 
-  it('agrupa repeticiones, ajustes y estado en el panel de cristal', () => {
-    render(<WorkoutUI />);
-    expect(screen.getByText('Repeticiones')).toBeTruthy();
-    expect(screen.getByLabelText('Sumar una repetición')).toBeTruthy();
-    expect(screen.getByLabelText('Quitar una repetición')).toBeTruthy();
+  it('agrupa repeticiones y estado en la tarjeta flotante de alta contraste', () => {
+    const { container } = render(<WorkoutUI />);
+    expect(screen.getByText('Reps')).toBeTruthy();
 
-    let panel = screen.getByText('Repeticiones');
-    while (panel && !claseConInclude(panel, 'backdrop-blur-md')) {
+    let panel = screen.getByText('Reps');
+    while (panel && !claseConInclude(panel, 'backdrop-blur-xl')) {
       panel = panel.parentElement;
     }
     expect(panel).toBeTruthy();
-    expect(claseConInclude(panel, 'bg-tinta-950/40')).toBe(true);
+    expect(claseConInclude(panel, 'bg-tinta-950/70')).toBe(true);
+    expect(claseConInclude(panel, 'border-2')).toBe(true);
+
+    // Interfaz 10-foot: los botones manuales -1/+1 quedan fuera de la tarjeta
+    expect(screen.queryByLabelText('Sumar una repetición')).toBeNull();
+    expect(screen.queryByLabelText('Quitar una repetición')).toBeNull();
+
+    // El AnilloRep es grueso: trazos de 10 unidades
+    expect(
+      container.querySelectorAll('circle[stroke-width="10"]').length
+    ).toBeGreaterThan(0);
+  });
+
+  it('usa un cronómetro gigante con dígitos tabulares', () => {
+    render(<WorkoutUI />);
+    const h1 = screen.getByRole('heading', { level: 1 });
+    expect(h1.textContent).toBe('30');
+    expect(claseConInclude(h1, 'tabular-nums')).toBe(true);
+    expect(claseConInclude(h1, 'text-[130px]')).toBe(true);
+    expect(claseConInclude(h1, 'text-white')).toBe(true);
   });
 
   it('oculta el panel de repeticiones en ejercicios de tiempo', () => {
