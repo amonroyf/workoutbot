@@ -95,7 +95,7 @@ rutina. Es lo que hace que la gente siga y termine.
 
 ## 5. Mecánicas de estructura de clase (para poder completarla)
 
-- **Estructura fija**: calentamiento → trabajo → enfriamiento. Te dice qué sigue.
+- **Estructura fija**: activación funcional → trabajo → vuelta a la calma. Te dice qué sigue.
 - **Sets y series** con repeticiones objetivo por ejercicio.
 - **Regresiones por ejercicio**: versión fácil de cada movimiento (sentadilla con
   apoyo de silla, flexión en rodillas, JJ sin salto) para no trabarse.

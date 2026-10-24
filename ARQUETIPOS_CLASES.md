@@ -8,6 +8,13 @@
 > separadas por nivel de evidencia para no mezclar estándares oficiales con
 > convenciones de diseño.
 
+> **Decisión de producto vigente (implementada):** el catálogo lanzado se reduce
+> a **4 arquetipos** —fuerza, HIIT, combat y core— con **11 clases** y solo peso
+> corporal. Se retiraron cardio dance (Zumba), movilidad/yoga y spinning/rhythm.
+> Cada clase abre con una **activación funcional** (no movilidad lenta) y cierra
+> con vuelta a la calma. El catálogo es dato en `frontend/src/engine/clases.js`;
+> este informe conserva los siete arquetipos originales solo como investigación.
+
 ---
 
 ## 0. Cómo leer este informe
@@ -1014,7 +1021,9 @@ las tres motivaciones, no solo una.
 | "Spin 60" | Spinning | 8 + 14 + 16 + 12 + 10 | Intermedio-avanzado |
 | "Yoga 60" | Yoga | 5 + 7 + 10 + 18 + 12 + 8 | Todos |
 
-### 5.4 Qué lanzar primero
+### 5.4 Qué lanzar primero (plan original de investigación)
+
+> Superado por la decisión de producto: ver 5.5.
 
 Orden recomendado para el MVP:
 
@@ -1026,6 +1035,22 @@ Orden recomendado para el MVP:
 4. **T3/T4 de BodyPump y Spinning** (más difíciles por equipo/espacio; dejar
    para cuando haya tracción).
 5. **T5 insignia** solo cuando exista comunidad y usuarios recurrentes.
+
+### 5.5 Catálogo implementado (vigente)
+
+La recomendación anterior es investigación. El catálogo que corre hoy es:
+
+| Clase | Arquetipo | Duración | Nivel |
+|---|---|---:|---|
+| Fuerza 10 / 30 / 45 | Fuerza | 10 / 30 / 45 min | principiante / principiante / intermedio |
+| HIIT 10 / 20 / 30 | HIIT | 10 / 20 / 30 min | intermedio / intermedio / avanzado |
+| Combat 20 / 30 | Combat | 20 / 30 min | principiante / intermedio |
+| Core 5 / 10 / 20 | Core | 5 / 10 / 20 min | principiante / principiante / intermedio |
+
+Estructura común: **activación funcional** (10–15 %, específica del arquetipo),
+bloque(s) principal(es) con rondas y **vuelta a la calma** con estiramientos.
+Sin equipamiento. Objetivos del plan: equilibrio, fuerza, cardio, suave, exprés y
+combat.
 
 ---
 
@@ -1118,13 +1143,13 @@ No es código, es contrato de datos. Cada clase debería poder describirse con:
 
 | Campo | Tipo | Ejemplo | Por qué |
 |---|---|---|---|
-| `arquetipo` | enum | `fuerza`, `hiit`, `dance`, `combat`, `core`, `movilidad`, `spinning` | Filtro y expectativa |
+| `arquetipo` | enum | `fuerza`, `hiit`, `combat`, `core` (implementado; la investigación proponía 7) | Filtro y expectativa |
 | `duracionMin` | int | 20 | Tier de catálogo |
 | `nivel` | enum | `principiante`, `intermedio`, `avanzado` | Onboarding |
 | `impacto` | enum | `bajo`, `medio`, `alto` | Seguridad y piso |
 | `equipamiento` | array | `[]`, `["mochila"]` | Filtro realista |
 | `bpmPorSeccion` | array | `[{seccion:"pico", bpm:140}]` | Música |
-| `secciones` | array | calentamiento, bloques, calma | Motor actual |
+| `secciones` | array | activación, bloques, calma | Motor actual |
 | `trabajo` / `descanso` | int (s) | 40 / 20 | Timer |
 | `rondas` | int | 3 | Timer |
 | `cues` | array | `["3, 2, 1, cambio"]` | Voz |
@@ -1253,9 +1278,10 @@ ejercicios, no el contenido audiovisual.
 
 ## 10. Conclusión
 
-WorkoutBot no necesita "más ejercicios". Necesita **siete arquetipos bien
+WorkoutBot no necesita "más ejercicios". Necesita **pocos arquetipos bien
 resueltos** y una **escalera de duraciones** que permita al usuario terminar algo
-hoy:
+hoy. La investigación cubrió siete; la decisión de producto lanzó cuatro
+(fuerza, HIIT, combat y core) con once clases de 5 a 45 minutos:
 
 - **5–10 min**: hábito y activación.
 - **20 min**: sesión mínima real.
@@ -1270,8 +1296,10 @@ corazón de la demanda cuando el usuario ya está enganchado. La evidencia de
 instructores (SDT) dice que la voz y los cues son parte del producto, no un
 adorno.
 
-El orden de construcción recomendado es: **core, movilidad y HIIT cortos** →
-**fuerza bodyweight** → **Zumba/Combat** → **BodyPump/Spinning** → **clases
-insignia**. Cada clase debe declarar su arquetipo, duración, impacto, equipo,
-BPM por sección, trabajo/descanso, rondas, cues y modificaciones. Sin esos datos,
-no es una clase: es una lista de ejercicios con un temporizador.
+El orden de construcción ejecutado fue: **core y HIIT cortos** → **fuerza
+bodyweight** → **combat** → **versiones de 30/45 min**. Las clases de danza,
+movilidad y spinning quedaron fuera del alcance actual por no encajar con el
+foco funcional y de peso corporal. Cada clase declara su arquetipo, duración,
+impacto, equipo, BPM por sección, trabajo/descanso, rondas, cues y
+modificaciones. Sin esos datos, no es una clase: es una lista de ejercicios con
+un temporizador.

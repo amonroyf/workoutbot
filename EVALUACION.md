@@ -190,8 +190,8 @@ Cobertura de lógica:
   rondas, estaciones del mapa y resumen por secciones.
 - `circuito-clases.test.js`: motor genérico con clases de distinta duración,
   bloques, progreso y totales.
-- `clases.test.js`: catálogo de 13 clases, duración, formato, ejercicios válidos,
-  modo por tiempo y compilación de `Funcional 45` (5 secciones, 38 bloques).
+- `clases.test.js`: catálogo de 11 clases, duración, formato, ejercicios válidos,
+  modo por tiempo y compilación de `Fuerza 45` (6 secciones, 34 bloques).
 - `demos.test.js`: keyframes de la demo, articulaciones válidas, interpolación
   y guion de voz.
 - `progreso.test.js`: diferencia de reps, comparación y guion narrado del resumen.

@@ -6,6 +6,12 @@
 > Estado: investigación documental cerrada con fuentes públicas. El **P0 ya está
 > implementado en código** (detalle por secciones, progreso segmentado, siguiente
 > ejercicio, tutorial y voz de transiciones). No se copió contenido ni clases ajenas.
+>
+> **Nota de vigencia:** este informe conserva la propuesta original `Funcional 45`
+> como ejemplo de diseño. El catálogo actual es de 11 clases en 4 arquetipos
+> (fuerza, HIIT, combat y core); la versión larga implementada es `Fuerza 45` con
+> activación funcional en lugar de calentamiento. Ver `BIBLIOTECA_CLASES.md` y
+> `frontend/src/engine/clases.js`.
 
 ## 1. Fuentes y nivel de evidencia
 
@@ -92,6 +98,9 @@ Inspirado en `Kaiji-Z/workout-timer` y en las apps:
 - Cierre: “vuelta a la calma” y “clase terminada”.
 
 ## 4. Clase original propuesta: `Funcional 45`
+
+> Ejemplo histórico de la investigación. El catálogo implementado no incluye
+> `funcional-45`; su lugar lo ocupa `fuerza-45` (ver nota de vigencia).
 
 Diseño original para WorkoutBot, nivel intermedio, sin equipamiento, 45 minutos exactos. No reproduce una clase ajena; usa patrones comunes de estructura y guía.
 

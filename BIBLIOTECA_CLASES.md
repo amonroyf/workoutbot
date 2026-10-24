@@ -17,13 +17,15 @@
 > táctiles contra los sistemas de diseño chinos, y además trae el sistema de
 > tokens (`frontend/src/index.css`), la iconografía, los skeletons, el empty state
 > de primer usuario y la paleta unificada. El motor
-> interpreta clases como datos (`engine/clases.js`), hay **13 clases** y **21
-> ejercicios** en el catálogo (`engine/ejercicios.js`), con **11 detectores** y
-> demos stick figure. La plancha, la plancha lateral, el superman, la marcha, el
-> estiramiento y los isométricos sin detector se siguen por tiempo. **Funcional
-> 45** es la primera clase completa con 5 secciones y rondas. **Plan semanal
-> local** implementado (días, objetivo y rotación de clases). Falta ampliar
-> movilidad avanzada, burpee, el catálogo remoto y la asignación por entrenador.
+> interpreta clases como datos (`engine/clases.js`), hay **11 clases** y **41
+> ejercicios** en el catálogo (`engine/ejercicios.js`), con **19 detectores** y
+> demos stick figure. El catálogo se organiza en **4 arquetipos** (fuerza, HIIT,
+> combat y core), cada clase abre con una **activación funcional** y cierra con
+> vuelta a la calma; se retiraron danza, movilidad y ritmo/spinning. La plancha,
+> la plancha lateral, el superman, la marcha y los isométricos sin detector se
+> siguen por tiempo. **Fuerza 45** es la primera clase completa con 5 secciones y
+> rondas. **Plan semanal local** implementado (días, objetivo y rotación de
+> clases). Falta el catálogo remoto y la asignación por entrenador.
 
 Sí existen librerías: hay datasets de **800 a 1,324 ejercicios** con JSON,
 instrucciones en español y animaciones/GIFs. Las apps chinas no programan cada
@@ -89,8 +91,9 @@ define por secciones con rondas y se compila a la lista plana que ya consume el
 motor:
 
 ```js
+// Ejemplo simplificado (la clase real incluye activación y vuelta a la calma).
 {
-  id: 'funcional-45',
+  id: 'fuerza-45',
   secciones: [
     {
       id: 'fuerza',
@@ -289,9 +292,12 @@ de contenido puro suelen ser enlaces a videos o datasets traducidos. No hay un
 
 Detectores nuevos implementados: **zancada, plancha (tiempo), rodillas altas,
 puente de glúteo, abdominal, mountain climber, plancha lateral y superman**.
-Pendientes: burpee y movilidad.
+El burpee se sigue por tiempo y la movilidad quedó fuera del catálogo actual.
 
 ### Fase 2.1 — Ampliación de biblioteca (implementada)
+> Histórico: estas clases se consolidaron después en las 11 sesiones actuales de
+> 4 arquetipos.
+
 10 ejercicios nuevos, con demo stick y pistas en español:
 
 1. **Sentadilla sumo** (reps, detector de sentadilla).
@@ -368,10 +374,9 @@ sube; plancha lateral y superman validan la forma sin contar repeticiones.
 ## 10. Recomendación
 
 Las fases 1, 2, 2.1, 2.2 y el esquema v2 ya están implementadas: motor genérico,
-catálogo, selector de 13 clases, 21 ejercicios, 11 detectores, score de forma en
-vivo, `Funcional 45` por secciones y demo stick figure. El siguiente paso es
-medir uso real en sesiones de 45 minutos y luego agregar movilidad avanzada,
-burpee y catálogo remoto.
+catálogo, selector de 11 clases, 41 ejercicios, 19 detectores, score de forma en
+vivo, `Fuerza 45` por secciones y demo stick figure. El siguiente paso es medir
+uso real en sesiones de 45 minutos y luego agregar el catálogo remoto.
 
 La biblioteca de datos recomendada para el MVP es `free-exercise-db` por
 licencia, y `hasaneyldrm/exercises-dataset` solo como referencia visual hasta
