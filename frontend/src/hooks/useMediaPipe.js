@@ -101,8 +101,13 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio) => {
     ctx.clearRect(0, 0, width, height);
+
+    // Sombra oscura: contraste dinámico sobre paredes claras o ventanas
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+    ctx.shadowBlur = 8;
+
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4; // Engrosado para visibilidad a distancia
 
     // 1. Esqueleto base
     for (const [i, j] of POSE_CONNECTIONS) {

@@ -126,6 +126,9 @@ export default function WorkoutUI() {
   const arquetipo = obtenerArquetipo(claseActual.arquetipo);
   const gel = arquetipo?.color || '#ff6a2b';
 
+  // El anillo se vuelve ámbar vibrante (racha-500) cuando entra en racha
+  const colorAnillo = combo >= 5 ? '#f59e0b' : gel;
+
   const abrirDemoActual = () => {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   };
@@ -316,7 +319,7 @@ export default function WorkoutUI() {
               </div>
 
               <div className="flex flex-col items-center gap-3 shrink-0">
-                <AnilloRep fase={faseRepeticion} color={gel} />
+                <AnilloRep fase={faseRepeticion} color={colorAnillo} />
                 {combo >= 3 && (
                   <span className="rounded-chip bg-racha-500 px-3 py-1.5 text-xs font-black text-black shadow-foco">
                     {combo >= 5 ? <Icono nombre="fuego" tamano={12} className="inline" /> : null}
@@ -353,6 +356,11 @@ export default function WorkoutUI() {
               {texto}
             </p>
           </div>
+        )}
+
+        {/* Viñeteado de alerta periférica: errores críticos en la visión periférica */}
+        {esCorreccion && (
+          <div className="pointer-events-none absolute inset-0 z-30 shadow-[inset_0_0_120px_rgba(248,113,113,0.5)] animate-pulse" />
         )}
       </div>
 

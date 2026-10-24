@@ -143,4 +143,36 @@ describe('WorkoutUI — cambios de UX sobre el feed de cámara', () => {
     render(<WorkoutUI />);
     expect(screen.getByText('Ubica la cámara de lado (perfil)')).toBeTruthy();
   });
+
+  it('enciende el viñeteado periférico rojo solo ante una corrección', () => {
+    preparar({ mensajeForma: 'Abre las rodillas hacia afuera', subtitulo: null });
+    const { container } = render(<WorkoutUI />);
+    const viñeta = [...container.querySelectorAll('div')].filter((d) =>
+      claseConInclude(d, 'shadow-[inset_0_0_120px_rgba(248,113,113,0.5)]')
+    );
+    expect(viñeta.length).toBe(1);
+    expect(claseConInclude(viñeta[0], 'pointer-events-none')).toBe(true);
+  });
+
+  it('sin corrección no hay viñeteado de alerta', () => {
+    preparar({ mensajeForma: null, subtitulo: 'Buen ritmo' });
+    const { container } = render(<WorkoutUI />);
+    const viñeta = [...container.querySelectorAll('div')].filter((d) =>
+      claseConInclude(d, 'shadow-[inset_0_0_120px_rgba(248,113,113,0.5)]')
+    );
+    expect(viñeta.length).toBe(0);
+  });
+
+  it('el anillo se vuelve ámbar cuando la racha llega a 5 (On Fire)', () => {
+    preparar({ combo: 5 });
+    const { container } = render(<WorkoutUI />);
+    expect(container.querySelector('circle[stroke="#f59e0b"]')).toBeTruthy();
+    expect(screen.getByText(/ON FIRE/)).toBeTruthy();
+  });
+
+  it('el anillo usa el color del arquetipo sin racha', () => {
+    preparar({ combo: 0 });
+    const { container } = render(<WorkoutUI />);
+    expect(container.querySelector('circle[stroke="#f59e0b"]')).toBeNull();
+  });
 });
