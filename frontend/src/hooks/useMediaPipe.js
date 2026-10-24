@@ -1,31 +1,19 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { PoseLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { obtenerDetector, crearEstadoDetector } from '../engine/detectors';
-import {
-  crearFiltrosLandmarks,
-  filtrarLandmarks,
-  reiniciarFiltros,
-} from '../engine/filters';
+import { crearFiltrosLandmarks, filtrarLandmarks, reiniciarFiltros } from '../engine/filters';
 import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
 import { calculateAngle, detectarOrientacion } from '../engine/angles';
-import {
-  MODELOS_POSE,
-  elegirModeloPose,
-  modelosParaIntentar,
-} from '../engine/modeloPose';
+import { MODELOS_POSE, elegirModeloPose, modelosParaIntentar } from '../engine/modeloPose';
 import { EJERCICIOS_CATALOGO } from '../engine/ejercicios';
 import { useWorkoutStore } from '../store/workoutStore';
 
 const POSE_CONNECTIONS = [
-  [11, 13], [13, 15],
-  [12, 14], [14, 16],
-  [11, 12],
-  [11, 23], [12, 24],
-  [23, 24],
-  [23, 25], [25, 27],
+  [11, 13], [13, 15], [12, 14], [14, 16], [11, 12],
+  [11, 23], [12, 24], [23, 24], [23, 25], [25, 27],
   [24, 26], [26, 28],
 ];
 
-// Articulaciones monitoreadas por ejercicio: [a, vertice, c]
 const LADOS_ANGULOS = {
   SENTADILLAS: [[23, 25, 27], [24, 26, 28]],
   SENTADILLA_SUMO: [[23, 25, 27], [24, 26, 28]],
@@ -54,17 +42,13 @@ const RANGOS_OBJETIVO = {
 
 function colorPorAngulo(ejercicio, angulo) {
   const regla = RANGOS_OBJETIVO[ejercicio];
-  if (!regla) return '#fbbf24'; // Color de aviso (amarillo) por defecto
-
-  if (regla.condicion === 'menor_o_igual') {
-    return angulo <= regla.umbral ? '#4ade80' : '#fbbf24'; // Verde si alcanza profundidad
-  }
-  return angulo >= regla.umbral ? '#4ade80' : '#f87171'; // Verde si está alineado, rojo si se cae
+  if (!regla) return '#fbbf24';
+  if (regla.condicion === 'menor_o_igual') return angulo <= regla.umbral ? '#4ade80' : '#fbbf24';
+  return angulo >= regla.umbral ? '#4ade80' : '#f87171';
 }
 
 function obtenerAnguloVisible(landmarks, lados) {
   if (!lados) return null;
-  // Filtramos el lado más visible hacia la cámara
   const validos = lados
     .map((indices) => {
       const vis = Math.min(...indices.map((i) => landmarks[i]?.visibility ?? 1));
@@ -72,11 +56,10 @@ function obtenerAnguloVisible(landmarks, lados) {
     })
     .filter((l) => l.vis > 0.5)
     .sort((a, b) => b.vis - a.vis);
-
   if (validos.length === 0) return null;
   const [a, b, c] = validos[0].indices.map((i) => landmarks[i]);
   const angulo = calculateAngle(a, b, c);
-  return { angulo: Math.round(angulo), vertice: b }; // ángulo y vértice central (ej: rodilla)
+  return { angulo: Math.round(angulo), vertice: b };
 }
 
 export const COOLDOWN_REP_MS = 300;
@@ -84,8 +67,9 @@ export const COOLDOWN_REP_MS = 300;
 export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [modeloPose] = useState(() => elegirModeloPose());
-  const workerRef = useRef(null);
-  const procesandoRef = useRef(false);
+
+  const landmarkerRef = useRef(null);
+  const ultimoTimestampRef = useRef(-1);
 
   const filtrosLandmarks = useRef(crearFiltrosLandmarks());
   const estadoDetector = useRef(crearEstadoDetector());
@@ -95,21 +79,18 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const ultimaPoseMs = useRef(0);
   const faseAnterior = useRef(useWorkoutStore.getState().faseActual);
   const animFrameRef = useRef(null);
+
   const registrarRepeticion = useWorkoutStore((state) => state.registrarRepeticion);
   const setMensajeForma = useWorkoutStore((state) => state.setMensajeForma);
   const setScoreForma = useWorkoutStore((state) => state.setScoreForma);
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio) => {
     ctx.clearRect(0, 0, width, height);
-
-    // Sombra oscura: contraste dinámico sobre paredes claras o ventanas
     ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 8;
-
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4; // Engrosado para visibilidad a distancia
+    ctx.lineWidth = 4;
 
-    // 1. Esqueleto base
     for (const [i, j] of POSE_CONNECTIONS) {
       const a = landmarks[i];
       const b = landmarks[j];
@@ -121,29 +102,23 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
       }
     }
 
-    // 2. Overlay biomecánico
     if (ejercicio && LADOS_ANGULOS[ejercicio]) {
       const overlay = obtenerAnguloVisible(landmarks, LADOS_ANGULOS[ejercicio]);
       if (overlay) {
         const { angulo, vertice } = overlay;
         const x = vertice.x * width;
         const y = vertice.y * height;
-
-        // Evaluar el color dinámico según el progreso
         const color = colorPorAngulo(ejercicio, angulo);
 
-        // Fondo del badge oscuro translúcido
         ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
         ctx.beginPath();
         ctx.roundRect(x + 12, y - 12, 42, 24, 6);
         ctx.fill();
 
-        // Texto del ángulo dinámico
         ctx.font = '900 13px system-ui';
         ctx.fillStyle = color;
         ctx.fillText(`${angulo}°`, x + 16, y + 5);
 
-        // Efecto de resplandor (Halo) cuando el rango es perfecto
         if (color === '#4ade80') {
           ctx.beginPath();
           ctx.arc(x, y, 14, 0, 2 * Math.PI);
@@ -151,7 +126,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
           ctx.fill();
         }
 
-        // Nodo de la articulación principal
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fillStyle = color;
@@ -163,76 +137,108 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
     }
   }, []);
 
-  const actualizarMensaje = useCallback(
-    (mensaje) => {
-      if (mensaje !== mensajeActual.current) {
-        mensajeActual.current = mensaje;
-        setMensajeForma(mensaje);
-      }
-    },
-    [setMensajeForma]
-  );
+  const actualizarMensaje = useCallback((mensaje) => {
+    if (mensaje !== mensajeActual.current) {
+      mensajeActual.current = mensaje;
+      setMensajeForma(mensaje);
+    }
+  }, [setMensajeForma]);
 
-  const procesarEjercicio = useCallback(
-    (landmarks, ejercicio, ahoraMs) => {
-      const detector = obtenerDetector(ejercicio);
-      if (!detector) return;
+  const procesarEjercicio = useCallback((landmarks, ejercicio, ahoraMs) => {
+    const detector = obtenerDetector(ejercicio);
+    if (!detector) return;
+    if (ejercicioEnCurso.current !== ejercicio) {
+      ejercicioEnCurso.current = ejercicio;
+      estadoDetector.current = crearEstadoDetector();
+      reiniciarFiltros(filtrosLandmarks.current);
+      setScoreForma(null);
+    }
+    const resultado = detector(landmarks, estadoDetector.current, ahoraMs);
+    estadoDetector.current = resultado.estado;
+    useWorkoutStore.getState().setFaseRepeticion(resultado.estado.fase);
+    actualizarMensaje(resultado.estado.mensaje);
+    setScoreForma(resultado.estado.scoreForma ?? null);
 
-      if (ejercicioEnCurso.current !== ejercicio) {
-        ejercicioEnCurso.current = ejercicio;
-        estadoDetector.current = crearEstadoDetector();
-        reiniciarFiltros(filtrosLandmarks.current);
-        setScoreForma(null);
-      }
-
-      const resultado = detector(landmarks, estadoDetector.current, ahoraMs);
-      estadoDetector.current = resultado.estado;
-
-      useWorkoutStore.getState().setFaseRepeticion(resultado.estado.fase);
-      actualizarMensaje(resultado.estado.mensaje);
-      setScoreForma(resultado.estado.scoreForma ?? null);
-
-      if (resultado.repeticion && ahoraMs - ultimaRepMs.current >= COOLDOWN_REP_MS) {
-        ultimaRepMs.current = ahoraMs;
-        const score = resultado.estado.scoreForma;
-        const perfecta =
-          !resultado.estado.mensaje &&
-          (score == null || score >= UMBRAL_SCORE_PERFECTO);
-        registrarRepeticion(perfecta);
-      }
-    },
-    [registrarRepeticion, actualizarMensaje, setScoreForma]
-  );
+    if (resultado.repeticion && ahoraMs - ultimaRepMs.current >= COOLDOWN_REP_MS) {
+      ultimaRepMs.current = ahoraMs;
+      const score = resultado.estado.scoreForma;
+      const perfecta = !resultado.estado.mensaje && (score == null || score >= UMBRAL_SCORE_PERFECTO);
+      registrarRepeticion(perfecta);
+    }
+  }, [registrarRepeticion, actualizarMensaje, setScoreForma]);
 
   useEffect(() => {
     if (!habilitada) {
       setIsLoaded(false);
-      workerRef.current?.terminate();
-      workerRef.current = null;
-      return undefined;
+      if (landmarkerRef.current) {
+        landmarkerRef.current.close();
+        landmarkerRef.current = null;
+      }
+      return;
     }
 
-    // Web Worker nativo de Vite: MediaPipe vive en un hilo aparte
-    const worker = new Worker(
-      new URL('../engine/poseWorker.js', import.meta.url),
-      { type: 'module' }
-    );
-    workerRef.current = worker;
+    let activo = true;
+    const inicializar = async () => {
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12/wasm'
+        );
+        const modelos = modelosParaIntentar(modeloPose).map((id) => MODELOS_POSE[id].url);
 
-    worker.onmessage = (e) => {
-      if (e.data.tipo === 'READY') {
-        setIsLoaded(true);
+        for (const modelUrl of modelos) {
+          for (const delegate of ['GPU', 'CPU']) {
+            try {
+              const landmarker = await PoseLandmarker.createFromOptions(vision, {
+                baseOptions: { modelAssetPath: modelUrl, delegate },
+                runningMode: 'VIDEO',
+                numPoses: 1,
+              });
+              if (activo) {
+                landmarkerRef.current = landmarker;
+                setIsLoaded(true);
+              } else {
+                landmarker.close();
+              }
+              return;
+            } catch (e) {
+              console.warn('Fallo cargando modelo', modelUrl, delegate, e);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error inicializando MediaPipe:', error);
       }
-      if (e.data.tipo === 'ERROR') {
-        console.warn('poseWorker:', e.data.fase, e.data.error);
-        // Desbloqueamos el envío de frames para que el loop no muera
-        procesandoRef.current = false;
+    };
+
+    inicializar();
+
+    return () => {
+      activo = false;
+      if (landmarkerRef.current) {
+        landmarkerRef.current.close();
+        landmarkerRef.current = null;
       }
-      if (e.data.tipo === 'RESULTADOS') {
-        const { landmarks, timestampMs } = e.data;
-        const ahora = performance.now();
+    };
+  }, [modeloPose, habilitada]);
+
+  const detectFrame = useCallback(() => {
+    if (!habilitada || !landmarkerRef.current) {
+      animFrameRef.current = requestAnimationFrame(detectFrame);
+      return;
+    }
+
+    const video = videoRef.current;
+    if (video && video.readyState >= 2 && video.videoWidth > 0) {
+      const ahora = performance.now();
+      let ts = Math.round(ahora);
+      if (ts <= ultimoTimestampRef.current) ts = ultimoTimestampRef.current + 1;
+      ultimoTimestampRef.current = ts;
+
+      try {
+        const results = landmarkerRef.current.detectForVideo(video, ts);
+        const landmarks = results.landmarks;
+
         const estado = useWorkoutStore.getState();
-
         if (faseAnterior.current !== estado.faseActual) {
           faseAnterior.current = estado.faseActual;
           if (estado.faseActual === 'TRABAJO') ultimaPoseMs.current = ahora;
@@ -241,7 +247,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
         const hayPose = landmarks && landmarks.length > 0;
         if (hayPose) {
           ultimaPoseMs.current = ahora;
-
           const orientacionUsuario = detectarOrientacion(landmarks[0]);
           const ejercicioObjetivo =
             estado.faseActual === 'DESCANSO'
@@ -251,53 +256,24 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
             ? EJERCICIOS_CATALOGO[ejercicioObjetivo]?.vista
             : null;
 
-          // Auto-reanudación
           if (estado.pausado && estado.pausadoPor === 'faltaPose') estado.reanudar();
-          if (
-            estado.pausado &&
-            estado.pausadoPor === 'orientacion' &&
-            orientacionUsuario === vistaOptima
-          ) {
+          if (estado.pausado && estado.pausadoPor === 'orientacion' && orientacionUsuario === vistaOptima) {
             estado.reanudar();
           }
 
-          // Auto-pausa si la vista es obligatoria y el usuario está mal posicionado
-          if (
-            vistaOptima &&
-            orientacionUsuario &&
-            vistaOptima !== orientacionUsuario &&
-            estado.faseActual === 'TRABAJO' &&
-            !estado.pausado
-          ) {
+          if (vistaOptima && orientacionUsuario && vistaOptima !== orientacionUsuario && estado.faseActual === 'TRABAJO' && !estado.pausado) {
             estado.pausar('orientacion');
           }
 
-          const landmarksFiltrados = filtrarLandmarks(
-            landmarks[0],
-            filtrosLandmarks.current,
-            ahora
-          );
+          const landmarksFiltrados = filtrarLandmarks(landmarks[0], filtrosLandmarks.current, ahora);
           const ctx = canvasRef.current?.getContext('2d');
 
           if (ctx) {
             if (estado.faseActual === 'TRABAJO' && !estado.pausado) {
-              drawSkeleton(
-                ctx,
-                landmarksFiltrados,
-                canvasRef.current.width,
-                canvasRef.current.height,
-                estado.ejercicioActual
-              );
+              drawSkeleton(ctx, landmarksFiltrados, canvasRef.current.width, canvasRef.current.height, estado.ejercicioActual);
               procesarEjercicio(landmarksFiltrados, estado.ejercicioActual, ahora);
             } else {
-              // En descanso mostramos el esqueleto limpio
-              drawSkeleton(
-                ctx,
-                landmarksFiltrados,
-                canvasRef.current.width,
-                canvasRef.current.height,
-                null
-              );
+              drawSkeleton(ctx, landmarksFiltrados, canvasRef.current.width, canvasRef.current.height, null);
             }
           }
 
@@ -311,66 +287,18 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
           }
         }
 
-        const activo =
-          estado.faseActual === 'TRABAJO' || estado.faseActual === 'DESCANSO';
+        const activo = estado.faseActual === 'TRABAJO' || estado.faseActual === 'DESCANSO';
         const sinPoseMs = ahora - ultimaPoseMs.current;
-        if (
-          activo &&
-          !estado.pausado &&
-          estado.camaraHabilitada &&
-          ultimaPoseMs.current > 0 &&
-          sinPoseMs > 2000
-        ) {
+        if (activo && !estado.pausado && estado.camaraHabilitada && ultimaPoseMs.current > 0 && sinPoseMs > 2000) {
           estado.pausar('faltaPose');
         }
-
-        // Liberamos el candado para enviar el siguiente frame
-        procesandoRef.current = false;
-      }
-    };
-
-    worker.postMessage({
-      tipo: 'INIT',
-      payload: {
-        modelos: modelosParaIntentar(modeloPose).map((id) => MODELOS_POSE[id].url),
-        delegate: 'GPU',
-      },
-    });
-
-    return () => {
-      worker.terminate();
-      workerRef.current = null;
-    };
-  }, [modeloPose, habilitada, drawSkeleton, procesarEjercicio, actualizarMensaje, setScoreForma]);
-
-  const detectFrame = useCallback(async () => {
-    if (!habilitada || !workerRef.current || procesandoRef.current) {
-      animFrameRef.current = requestAnimationFrame(detectFrame);
-      return;
-    }
-
-    const video = videoRef.current;
-    if (
-      video &&
-      video.readyState >= 2 &&
-      typeof workerRef.current.postMessage === 'function' &&
-      typeof createImageBitmap === 'function'
-    ) {
-      procesandoRef.current = true;
-      try {
-        // createImageBitmap no bloquea el hilo principal
-        const bitmap = await createImageBitmap(video);
-        workerRef.current.postMessage(
-          { tipo: 'DETECT', payload: { bitmap, timestampMs: performance.now() } },
-          [bitmap] // Transferencia: cero copia de memoria
-        );
       } catch (err) {
-        procesandoRef.current = false;
+        console.error('Error procesando frame:', err);
       }
     }
 
     animFrameRef.current = requestAnimationFrame(detectFrame);
-  }, [habilitada, videoRef]);
+  }, [habilitada, videoRef, drawSkeleton, procesarEjercicio, actualizarMensaje, setScoreForma]);
 
   useEffect(() => {
     if (isLoaded) {
