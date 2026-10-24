@@ -19,6 +19,7 @@ import {
 } from '../engine/plan';
 import { nombreEjercicio } from '../engine/ejercicios';
 import { estiloGel } from '../theme';
+import { useWorkoutStore } from '../store/workoutStore';
 import Marca from './Marca';
 import Icono from './Icono';
 import PlanSemanal from './PlanSemanal';
@@ -130,6 +131,7 @@ export default function PantallaInicio({
   soportaPantallaCompleta,
 }) {
   const contenedorRef = useRef(null);
+  const toggleFacingMode = useWorkoutStore((state) => state.toggleFacingMode);
   const [hojaAbierta, setHojaAbierta] = useState(false);
   const [verDetalle, setVerDetalle] = useState(false);
   const [instruccionesIos, setInstruccionesIos] = useState(false);
@@ -267,6 +269,17 @@ export default function PantallaInicio({
                 </button>
               </div>
             )}
+
+            <div className="mt-1 flex justify-end">
+              <button
+                type="button"
+                onClick={toggleFacingMode}
+                className="flex min-h-10 items-center gap-1 text-xs font-bold text-tinta-300 hover:text-tinta-100"
+              >
+                <Icono nombre="cambiarCamara" tamano={16} />
+                Girar cámara
+              </button>
+            </div>
           </>
         )}
 

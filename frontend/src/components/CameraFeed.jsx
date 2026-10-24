@@ -28,6 +28,7 @@ export default function CameraFeed() {
   const activa = useWorkoutStore((s) => s.camaraActiva);
   const setActiva = useWorkoutStore((s) => s.setCamaraActiva);
   const camaraHabilitada = useWorkoutStore((s) => s.camaraHabilitada);
+  const facingMode = useWorkoutStore((s) => s.facingMode);
   const setCamaraHabilitada = useWorkoutStore((s) => s.setCamaraHabilitada);
   const { isLoaded } = useMediaPipe(videoRef, canvasRef, camaraHabilitada);
   const enClase = faseActual === 'TRABAJO' || faseActual === 'DESCANSO';
@@ -57,7 +58,7 @@ export default function CameraFeed() {
     }
 
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      .getUserMedia({ video: { facingMode }, audio: false })
       .then((s) => {
         if (!activo) {
           s.getTracks().forEach((t) => t.stop());
@@ -84,7 +85,7 @@ export default function CameraFeed() {
       if (stream) stream.getTracks().forEach((t) => t.stop());
       if (videoRef.current) videoRef.current.srcObject = null;
     };
-  }, [reintento, camaraHabilitada]);
+  }, [reintento, camaraHabilitada, facingMode]);
 
   useEffect(() => {
     const video = videoRef.current;

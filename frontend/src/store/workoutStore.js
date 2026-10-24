@@ -51,6 +51,12 @@ export const useWorkoutStore = create((set, get) => ({
   reintentoCamara: 0,
   camaraActiva: false,
   camaraHabilitada: leerCamaraHabilitada(),
+  facingMode: 'user',
+
+  toggleFacingMode: () =>
+    set((state) => ({
+      facingMode: state.facingMode === 'user' ? 'environment' : 'user',
+    })),
 
   setCamaraActiva: (camaraActiva) => set({ camaraActiva }),
 
