@@ -11,6 +11,10 @@ export function distancia(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
+export function distanciaHorizontal(a, b) {
+  return Math.abs(a.x - b.x);
+}
+
 export function esVisible(landmarks, indices, umbral = 0.5) {
   return indices.every(
     (i) => landmarks[i] && (landmarks[i].visibility ?? 1) > umbral

@@ -1,9 +1,10 @@
-import { calculateAngle, distancia, esVisible, normalizarLandmarks } from './angles';
+import { calculateAngle, distancia, esVisible, normalizarLandmarks, distanciaHorizontal } from './angles';
 import { OneEuroFilter } from './filters';
 import { calcularScoreForma } from './forma';
 import { EJERCICIOS_CATALOGO } from './ejercicios';
 
 export const UMBRAL_VISIBILIDAD = 0.5;
+export const UMBRAL_VALGO_RODILLA = 0.75; // Las rodillas no deben estar más juntas que el 75% de los tobillos
 export const UMBRAL_ANGULO_ARRIBA = 160;
 export const UMBRAL_ANGULO_ABAJO = 100;
 export const UMBRAL_ZONA_BAJA = 115;
@@ -120,6 +121,11 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
   const angulo = calculateAngle(cadera, rodilla, tobillo);
   const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
 
+  // Distancias bilaterales para el análisis categórico de valgo
+  const sepRodillas = distanciaHorizontal(normalizados[25], normalizados[26]);
+  const sepTobillos = distanciaHorizontal(normalizados[27], normalizados[28]);
+  const rodillasColapsadas = sepRodillas < sepTobillos * UMBRAL_VALGO_RODILLA;
+
   let { fase, baseY, sentado, tiempoZonaBajaMs, scoreForma } = estado;
   let repeticion = false;
   let mensaje = null;
@@ -150,6 +156,13 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
     } else {
       tiempoZonaBajaMs = null;
     }
+  }
+
+  // Detección de postura incorrecta: valgo de rodilla (Error Categórico)
+  if (angulo < 150 && rodillasColapsadas) {
+    mensaje = 'Abre las rodillas hacia afuera';
+    // Penalización severa para anular la calificación genérica
+    scoreForma = scoreForma != null ? Math.min(scoreForma, 60) : 60;
   }
 
   return resultado(

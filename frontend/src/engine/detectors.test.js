@@ -117,6 +117,38 @@ describe('detectarSentadilla', () => {
     const r = detectarSentadilla(lms, crearEstadoDetector(), 0);
     expect(r.repeticion).toBe(false);
   });
+
+  const SENTADILLA_VALGO = {
+    ...SENTADILLA_ABAJO,
+    25: { x: 0.5, y: 0.65 },
+    26: { x: 0.52, y: 0.65 },
+    27: { x: 0.68, y: 0.6 },
+    28: { x: 0.76, y: 0.6 },
+  };
+
+  it('detecta el valgo de rodilla y penaliza el score', () => {
+    let e = crearEstadoDetector();
+    e = alimentar(detectarSentadilla, conPuntos(SENTADILLA_ARRIBA), e, 3).estado;
+    const r = alimentar(detectarSentadilla, conPuntos(SENTADILLA_VALGO), e, 4);
+    expect(r.estado.fase).toBe('ABAJO');
+    expect(r.estado.mensaje).toBe('Abre las rodillas hacia afuera');
+    expect(r.estado.scoreForma).toBeLessThanOrEqual(60);
+  });
+
+  it('no marca valgo cuando las rodillas se abren normalmente', () => {
+    const piernasAbiertas = {
+      ...SENTADILLA_ABAJO,
+      25: { x: 0.39, y: 0.65 },
+      26: { x: 0.57, y: 0.65 },
+      27: { x: 0.38, y: 0.6 },
+      28: { x: 0.6, y: 0.6 },
+    };
+    let e = crearEstadoDetector();
+    e = alimentar(detectarSentadilla, conPuntos(SENTADILLA_ARRIBA), e, 3).estado;
+    const r = alimentar(detectarSentadilla, conPuntos(piernasAbiertas), e, 4);
+    expect(r.estado.fase).toBe('ABAJO');
+    expect(r.estado.mensaje).toBeNull();
+  });
 });
 
 const FLEXION_PLANCHA_ABAJO = {

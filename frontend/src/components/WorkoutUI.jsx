@@ -9,6 +9,7 @@ import {
   esDeTiempo,
   nombreEjercicio,
   modificacionesEjercicio,
+  EJERCICIOS_CATALOGO,
 } from '../engine/ejercicios';
 import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
 import { useMusica } from '../hooks/useMusica';
@@ -104,6 +105,16 @@ export default function WorkoutUI() {
   const ejercicioDemo = demoEjercicio || (faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   const demoVisible = obtenerDemo(ejercicioDemo);
   const modificaciones = modificacionesEjercicio(ejercicioDemo);
+
+  // Orientación óptica recomendada para el ejercicio a punto de comenzar
+  const ejercicioObjetivo = faseActual === 'DESCANSO' ? siguiente : ejercicioActual;
+  const vistaOptima = ejercicioObjetivo ? EJERCICIOS_CATALOGO[ejercicioObjetivo]?.vista : null;
+  const mensajeVista =
+    vistaOptima === 'perfil'
+      ? 'Ubica la cámara de lado (perfil)'
+      : vistaOptima === 'frontal'
+        ? 'Ubica la cámara de frente'
+        : null;
   const esTiempo = esDeTiempo(ejercicioActual);
   const consigna = consignaEjercicio(ejercicioActual);
   const bloque = claseActual.bloques?.[bloqueActual] || null;
@@ -265,6 +276,13 @@ export default function WorkoutUI() {
           <p className="mt-2 text-sm text-tinta-300">
             {faseActual === 'TRABAJO' ? 'Siguiente' : 'Sigue'}: {nombreEjercicio(siguiente)}
           </p>
+        )}
+
+        {mensajeVista && camaraHabilitada && (
+          <div className="mt-3 inline-flex items-center justify-center gap-2 rounded-chip border border-marca-500/40 bg-marca-500/15 px-4 py-2 text-xs font-black tracking-wide text-marca-300 shadow-foco">
+            <Icono nombre="camara" tamano={16} />
+            {mensajeVista}
+          </div>
         )}
 
         {faseActual === 'TRABAJO' ? (
