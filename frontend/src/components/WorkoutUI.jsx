@@ -143,7 +143,8 @@ export default function WorkoutUI() {
 
   return (
     <div style={estiloGel(claseActual.arquetipo)} className="absolute inset-0 z-10 text-tinta-100">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 gel opacity-70" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-tinta-950/90 via-tinta-950/50 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 gel opacity-50 mix-blend-screen" />
       <div className="absolute top-0 left-0 right-0 px-4 pb-2 pt-[calc(1rem+env(safe-area-inset-top))]">
         <div className="mb-1 flex items-center gap-2 text-xs font-semibold">
           <span
@@ -218,43 +219,41 @@ export default function WorkoutUI() {
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center gap-2 border-t border-linea bg-tinta-950/85 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur-md">
+      <div className="absolute bottom-0 left-0 right-0 z-30 flex items-center gap-2 px-3 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-4">
         <button
           onClick={togglePausa}
-          className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-boton bg-marca-500 px-4 text-base font-black text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+          className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-ficha bg-marca-500 px-4 text-lg font-black text-black transition hover:bg-marca-400 shadow-flotante focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
         >
-          <Icono nombre={pausado ? 'reproducir' : 'pausa'} tamano={18} />
+          <Icono nombre={pausado ? 'reproducir' : 'pausa'} tamano={22} />
           {pausado ? 'Seguir' : 'Pausa'}
         </button>
-        <button
-          onClick={() => setVozActiva(!vozActiva)}
-          aria-pressed={vozActiva}
-          aria-label={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
-          title={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
-          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
-        >
-          <Icono nombre="voz" tamano={16} className={vozActiva ? 'text-marca-300' : 'text-tinta-500'} />
-          <span className={vozActiva ? 'text-marca-300' : 'text-tinta-400'}>Voz</span>
-        </button>
-        <button
-          onClick={() => setMusicaActiva(!musicaActiva)}
-          aria-pressed={musicaActiva}
-          aria-label={musicaActiva ? 'Apagar la música' : 'Encender la música'}
-          title={musicaActiva ? 'Apagar la música' : 'Encender la música'}
-          className="flex min-h-11 items-center gap-1.5 rounded-boton border border-linea bg-tinta-800/70 px-3 text-sm font-semibold transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
-        >
-          <Icono nombre="musica" tamano={16} className={musicaActiva ? 'text-marca-300' : 'text-tinta-500'} />
-          <span className={musicaActiva ? 'text-marca-300' : 'text-tinta-400'}>Música</span>
-        </button>
-        <button
-          onClick={abrirDemoActual}
-          aria-label="Cómo se hace este ejercicio"
-          title="Cómo se hace este ejercicio"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-boton border border-linea bg-tinta-800/70 text-tinta-200 transition hover:bg-tinta-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
-        >
-          <Icono nombre="ayuda" tamano={18} />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setVozActiva(!vozActiva)}
+            aria-pressed={vozActiva}
+            aria-label={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
+            title={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
+            className={`flex h-14 w-14 items-center justify-center rounded-boton border border-white/10 backdrop-blur-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100 ${
+              vozActiva ? 'bg-marca-500/20 text-marca-300' : 'bg-tinta-950/80 text-tinta-500'
+            }`}
+          >
+            <Icono nombre="voz" tamano={20} />
+          </button>
+          <button
+            onClick={() => setMusicaActiva(!musicaActiva)}
+            aria-pressed={musicaActiva}
+            aria-label={musicaActiva ? 'Apagar la música' : 'Encender la música'}
+            title={musicaActiva ? 'Apagar la música' : 'Encender la música'}
+            className={`flex h-14 w-14 items-center justify-center rounded-boton border border-white/10 backdrop-blur-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100 ${
+              musicaActiva ? 'bg-marca-500/20 text-marca-300' : 'bg-tinta-950/80 text-tinta-500'
+            }`}
+          >
+            <Icono nombre="musica" tamano={20} />
+          </button>
+        </div>
       </div>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-tinta-950/95 via-tinta-950/70 to-transparent z-10" />
 
       <div className="flex h-full flex-col items-center justify-center px-6 pb-36 pt-24 text-center">
         <p className="mb-1 text-2xl font-bold">{nombreEjercicio(ejercicioActual)}</p>
@@ -304,15 +303,24 @@ export default function WorkoutUI() {
               )}
             </div>
           ) : (
-            <div className="mt-3 flex items-center gap-4">
-              <div className="text-left">
-                <p className="text-2xl font-bold">Repeticiones: {repeticiones}</p>
+            <div className="mt-3 flex items-center gap-4 rounded-panel bg-tinta-950/40 p-4 backdrop-blur-md border border-white/10 z-20 relative">
+              <div className="text-left flex-1">
+                <p className="text-sm font-bold text-tinta-300 uppercase tracking-widest">Repeticiones</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-4xl font-black">{repeticiones}</p>
+                  {scoreForma != null && (
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${colorScore}`}>
+                      {scoreForma}% Forma
+                    </span>
+                  )}
+                </div>
+
                 <div className="mt-2 flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={quitarRepeticion}
                     aria-label="Quitar una repetición"
-                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-linea bg-tinta-900/80 text-lg font-black text-tinta-200 transition hover:bg-tinta-800"
+                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-white/10 bg-tinta-900/60 text-lg font-black text-tinta-200 transition hover:bg-tinta-800"
                   >
                     −1
                   </button>
@@ -320,40 +328,30 @@ export default function WorkoutUI() {
                     type="button"
                     onClick={() => registrarRepeticion(false)}
                     aria-label="Sumar una repetición"
-                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-marca-400/40 bg-marca-500/15 text-lg font-black text-marca-300 transition hover:bg-marca-500/25"
+                    className="flex h-10 w-10 items-center justify-center rounded-boton border border-marca-400/40 bg-marca-500/20 text-lg font-black text-marca-300 transition hover:bg-marca-500/40"
                   >
                     +1
                   </button>
-                  <span className="text-[10px] text-tinta-500">Ajuste manual</span>
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  {scoreForma != null && (
-                    <span className={`rounded-full px-3 py-1 text-sm font-black ${colorScore}`}>
-                      Forma {scoreForma}%
-                    </span>
-                  )}
-                  {combo >= 3 && (
-                    <span className="rounded-full bg-racha-500 px-3 py-1 text-sm font-black">
-                      Combo x{combo}
-                    </span>
-                  )}
-                  {combo >= 5 && (
-                    <span className="flex items-center gap-1 rounded-full bg-racha-500 px-3 py-1 text-sm font-black text-black">
-                      <Icono nombre="fuego" tamano={14} />
-                      On Fire
-                    </span>
-                  )}
-                  {flashPerfecta > 0 && (
-                    <span
-                      key={flashPerfecta}
-                      className="perfecta-flash rounded-full bg-marca-400 px-3 py-1 text-sm font-black text-black"
-                    >
-                      ¡PERFECTA!
-                    </span>
-                  )}
                 </div>
               </div>
-              <AnilloRep fase={faseRepeticion} color={gel} />
+
+              <div className="flex flex-col items-center gap-2 shrink-0">
+                <AnilloRep fase={faseRepeticion} color={gel} />
+                {combo >= 3 && (
+                  <span className="rounded-full bg-racha-500 px-2 py-0.5 text-[10px] font-black text-black">
+                    {combo >= 5 ? <Icono nombre="fuego" tamano={12} className="inline" /> : null}
+                    {combo >= 5 ? ' ON FIRE' : `x${combo} COMBO`}
+                  </span>
+                )}
+                {flashPerfecta > 0 && (
+                  <span
+                    key={flashPerfecta}
+                    className="perfecta-flash rounded-full bg-marca-400 px-2 py-0.5 text-[10px] font-black text-black"
+                  >
+                    ¡PERFECTA!
+                  </span>
+                )}
+              </div>
             </div>
           )
         ) : (
@@ -363,13 +361,18 @@ export default function WorkoutUI() {
         )}
 
         {texto && (
-          <p
-            className={`mt-4 max-w-xl rounded-boton px-4 py-2 text-lg font-semibold ${
-              esCorreccion ? 'bg-aviso-500/90 text-black' : 'bg-tinta-950/80 text-tinta-100'
-            }`}
-          >
-            {texto}
-          </p>
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-40 animate-pulse">
+            <p
+              className={`rounded-panel px-5 py-3 text-center text-lg font-black shadow-flotante border-2 ${
+                esCorreccion
+                  ? 'border-aviso-400 bg-aviso-500/95 text-black'
+                  : 'border-tinta-600 bg-tinta-950/90 text-tinta-100'
+              }`}
+            >
+              {esCorreccion && <Icono nombre="alerta" tamano={20} className="inline-block mr-2 -mt-1" />}
+              {texto}
+            </p>
+          </div>
         )}
       </div>
 
