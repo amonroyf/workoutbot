@@ -391,7 +391,9 @@ export default function WorkoutUI() {
           <p className="text-xl text-tinta-200">
             {pausadoPor === 'faltaPose'
               ? 'No te veo. Ajusta el encuadre para seguir.'
-              : 'Respira. Sigue cuando estés listo.'}
+              : pausadoPor === 'orientacion'
+                ? 'Posición incorrecta.'
+                : 'Respira. Sigue cuando estés listo.'}
           </p>
 
           {pausadoPor === 'faltaPose' && (
@@ -402,6 +404,20 @@ export default function WorkoutUI() {
                 de frente.
               </p>
             </>
+          )}
+
+          {pausadoPor === 'orientacion' && (
+            <div className="flex flex-col items-center gap-2">
+              <Icono nombre="camara" tamano={42} className="text-aviso-400" />
+              <p className="max-w-xs text-sm text-tinta-200">
+                {vistaOptima === 'perfil'
+                  ? 'Este ejercicio requiere que te pongas de LADO a la cámara.'
+                  : 'Este ejercicio requiere que mires de FRENTE a la cámara.'}
+              </p>
+              <p className="mt-2 text-xs font-bold text-marca-400">
+                Gira tu cuerpo, el tiempo seguirá automáticamente.
+              </p>
+            </div>
           )}
 
           <button

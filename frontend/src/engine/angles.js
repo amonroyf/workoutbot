@@ -21,6 +21,14 @@ export function esVisible(landmarks, indices, umbral = 0.5) {
   );
 }
 
+export function detectarOrientacion(landmarks) {
+  // Distancia horizontal entre hombros (11 izquierdo, 12 derecho):
+  // amplia = de frente; casi nula (un hombro tapa al otro) = de perfil.
+  if (!landmarks || !landmarks[11] || !landmarks[12]) return null;
+  const separacionHombros = distanciaHorizontal(landmarks[11], landmarks[12]);
+  return separacionHombros > 0.12 ? 'frontal' : 'perfil';
+}
+
 export function normalizarLandmarks(landmarks) {
   if (!Array.isArray(landmarks) || landmarks.length < 25) return null;
 

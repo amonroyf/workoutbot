@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { calculateAngle, esVisible, distancia, normalizarLandmarks } from './angles';
+import {
+  calculateAngle,
+  esVisible,
+  distancia,
+  normalizarLandmarks,
+  detectarOrientacion,
+} from './angles';
 
 describe('calculateAngle', () => {
   it('calcula 90 grados', () => {
@@ -46,6 +52,32 @@ describe('esVisible', () => {
 describe('distancia', () => {
   it('calcula la distancia euclidiana', () => {
     expect(distancia({ x: 0, y: 0 }, { x: 3, y: 4 })).toBeCloseTo(5, 5);
+  });
+});
+
+describe('detectarOrientacion', () => {
+  function base() {
+    const lms = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.5, visibility: 1 }));
+    return lms;
+  }
+
+  it('detecta frontal cuando el ancho de hombros es amplio', () => {
+    const lms = base();
+    lms[11] = { x: 0.3, y: 0.3, visibility: 1 };
+    lms[12] = { x: 0.5, y: 0.3, visibility: 1 };
+    expect(detectarOrientacion(lms)).toBe('frontal');
+  });
+
+  it('detecta perfil cuando los hombros se solapan', () => {
+    const lms = base();
+    lms[11] = { x: 0.48, y: 0.3, visibility: 1 };
+    lms[12] = { x: 0.51, y: 0.3, visibility: 1 };
+    expect(detectarOrientacion(lms)).toBe('perfil');
+  });
+
+  it('devuelve null si faltan los hombros', () => {
+    expect(detectarOrientacion(null)).toBe(null);
+    expect(detectarOrientacion([{ x: 0, y: 0 }])).toBe(null);
   });
 });
 

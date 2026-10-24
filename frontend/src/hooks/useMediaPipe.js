@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { PoseLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { obtenerDetector, crearEstadoDetector } from '../engine/detectors';
 import {
   crearFiltrosLandmarks,
@@ -7,12 +6,13 @@ import {
   reiniciarFiltros,
 } from '../engine/filters';
 import { UMBRAL_SCORE_PERFECTO } from '../engine/forma';
-import { calculateAngle } from '../engine/angles';
+import { calculateAngle, detectarOrientacion } from '../engine/angles';
 import {
   MODELOS_POSE,
   elegirModeloPose,
   modelosParaIntentar,
 } from '../engine/modeloPose';
+import { EJERCICIOS_CATALOGO } from '../engine/ejercicios';
 import { useWorkoutStore } from '../store/workoutStore';
 
 const POSE_CONNECTIONS = [
@@ -84,8 +84,9 @@ export const COOLDOWN_REP_MS = 300;
 export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [modeloPose] = useState(() => elegirModeloPose());
-  const [modeloActivo, setModeloActivo] = useState(null);
-  const poseLandmarker = useRef(null);
+  const workerRef = useRef(null);
+  const procesandoRef = useRef(false);
+
   const filtrosLandmarks = useRef(crearFiltrosLandmarks());
   const estadoDetector = useRef(crearEstadoDetector());
   const ejercicioEnCurso = useRef(null);
@@ -97,62 +98,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const registrarRepeticion = useWorkoutStore((state) => state.registrarRepeticion);
   const setMensajeForma = useWorkoutStore((state) => state.setMensajeForma);
   const setScoreForma = useWorkoutStore((state) => state.setScoreForma);
-
-  useEffect(() => {
-    if (!habilitada) {
-      setIsLoaded(false);
-      poseLandmarker.current?.close();
-      poseLandmarker.current = null;
-      return undefined;
-    }
-
-    let cancelado = false;
-
-    const initModel = async () => {
-      try {
-        const vision = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
-        );
-
-        for (const id of modelosParaIntentar(modeloPose)) {
-          for (const delegate of ['GPU', 'CPU']) {
-            try {
-              const landmarker = await PoseLandmarker.createFromOptions(vision, {
-                baseOptions: {
-                  modelAssetPath: MODELOS_POSE[id].url,
-                  delegate,
-                },
-                runningMode: 'VIDEO',
-                numPoses: 1,
-              });
-
-              if (cancelado) {
-                landmarker.close();
-                return;
-              }
-
-              poseLandmarker.current = landmarker;
-              setModeloActivo(id);
-              setIsLoaded(true);
-              return;
-            } catch (err) {
-              console.warn(`No se pudo cargar pose ${id}/${delegate}:`, err);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('No se pudo inicializar MediaPipe:', err);
-      }
-    };
-
-    initModel();
-
-    return () => {
-      cancelado = true;
-      poseLandmarker.current?.close();
-      poseLandmarker.current = null;
-    };
-  }, [modeloPose, habilitada]);
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio) => {
     ctx.clearRect(0, 0, width, height);
@@ -254,87 +199,173 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
     [registrarRepeticion, actualizarMensaje, setScoreForma]
   );
 
-  const detectFrame = useCallback(() => {
-    if (!habilitada) return;
+  useEffect(() => {
+    if (!habilitada) {
+      setIsLoaded(false);
+      workerRef.current?.terminate();
+      workerRef.current = null;
+      return undefined;
+    }
 
-    if (!poseLandmarker.current || !videoRef.current || !canvasRef.current) {
+    // Web Worker nativo de Vite: MediaPipe vive en un hilo aparte
+    const worker = new Worker(
+      new URL('../engine/poseWorker.js', import.meta.url),
+      { type: 'module' }
+    );
+    workerRef.current = worker;
+
+    worker.onmessage = (e) => {
+      if (e.data.tipo === 'READY') {
+        setIsLoaded(true);
+      }
+      if (e.data.tipo === 'ERROR') {
+        console.warn('poseWorker:', e.data.fase, e.data.error);
+        // Desbloqueamos el envío de frames para que el loop no muera
+        procesandoRef.current = false;
+      }
+      if (e.data.tipo === 'RESULTADOS') {
+        const { landmarks, timestampMs } = e.data;
+        const ahora = performance.now();
+        const estado = useWorkoutStore.getState();
+
+        if (faseAnterior.current !== estado.faseActual) {
+          faseAnterior.current = estado.faseActual;
+          if (estado.faseActual === 'TRABAJO') ultimaPoseMs.current = ahora;
+        }
+
+        const hayPose = landmarks && landmarks.length > 0;
+        if (hayPose) {
+          ultimaPoseMs.current = ahora;
+
+          const orientacionUsuario = detectarOrientacion(landmarks[0]);
+          const ejercicioObjetivo =
+            estado.faseActual === 'DESCANSO'
+              ? estado.claseActual.bloques[estado.bloqueActual + 1]?.ejercicio
+              : estado.ejercicioActual;
+          const vistaOptima = ejercicioObjetivo
+            ? EJERCICIOS_CATALOGO[ejercicioObjetivo]?.vista
+            : null;
+
+          // Auto-reanudación
+          if (estado.pausado && estado.pausadoPor === 'faltaPose') estado.reanudar();
+          if (
+            estado.pausado &&
+            estado.pausadoPor === 'orientacion' &&
+            orientacionUsuario === vistaOptima
+          ) {
+            estado.reanudar();
+          }
+
+          // Auto-pausa si la vista es obligatoria y el usuario está mal posicionado
+          if (
+            vistaOptima &&
+            orientacionUsuario &&
+            vistaOptima !== orientacionUsuario &&
+            estado.faseActual === 'TRABAJO' &&
+            !estado.pausado
+          ) {
+            estado.pausar('orientacion');
+          }
+
+          const landmarksFiltrados = filtrarLandmarks(
+            landmarks[0],
+            filtrosLandmarks.current,
+            ahora
+          );
+          const ctx = canvasRef.current?.getContext('2d');
+
+          if (ctx) {
+            if (estado.faseActual === 'TRABAJO' && !estado.pausado) {
+              drawSkeleton(
+                ctx,
+                landmarksFiltrados,
+                canvasRef.current.width,
+                canvasRef.current.height,
+                estado.ejercicioActual
+              );
+              procesarEjercicio(landmarksFiltrados, estado.ejercicioActual, ahora);
+            } else {
+              // En descanso mostramos el esqueleto limpio
+              drawSkeleton(
+                ctx,
+                landmarksFiltrados,
+                canvasRef.current.width,
+                canvasRef.current.height,
+                null
+              );
+            }
+          }
+
+          if (estado.faseActual !== 'TRABAJO' && ejercicioEnCurso.current !== null) {
+            ejercicioEnCurso.current = null;
+            estadoDetector.current = crearEstadoDetector();
+            reiniciarFiltros(filtrosLandmarks.current);
+            actualizarMensaje(null);
+            setScoreForma(null);
+            estado.setFaseRepeticion('ARRIBA');
+          }
+        }
+
+        const activo =
+          estado.faseActual === 'TRABAJO' || estado.faseActual === 'DESCANSO';
+        const sinPoseMs = ahora - ultimaPoseMs.current;
+        if (
+          activo &&
+          !estado.pausado &&
+          estado.camaraHabilitada &&
+          ultimaPoseMs.current > 0 &&
+          sinPoseMs > 2000
+        ) {
+          estado.pausar('faltaPose');
+        }
+
+        // Liberamos el candado para enviar el siguiente frame
+        procesandoRef.current = false;
+      }
+    };
+
+    worker.postMessage({
+      tipo: 'INIT',
+      payload: {
+        modelos: modelosParaIntentar(modeloPose).map((id) => MODELOS_POSE[id].url),
+        delegate: 'GPU',
+      },
+    });
+
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+    };
+  }, [modeloPose, habilitada, drawSkeleton, procesarEjercicio, actualizarMensaje, setScoreForma]);
+
+  const detectFrame = useCallback(async () => {
+    if (!habilitada || !workerRef.current || procesandoRef.current) {
       animFrameRef.current = requestAnimationFrame(detectFrame);
       return;
     }
 
     const video = videoRef.current;
-    if (video.readyState < 2) {
-      animFrameRef.current = requestAnimationFrame(detectFrame);
-      return;
-    }
-
-    const startTimeMs = performance.now();
-    const results = poseLandmarker.current.detectForVideo(video, startTimeMs);
-
-    const ahora = performance.now();
-    const estado = useWorkoutStore.getState();
-
-    if (faseAnterior.current !== estado.faseActual) {
-      faseAnterior.current = estado.faseActual;
-      if (estado.faseActual === 'TRABAJO') ultimaPoseMs.current = ahora;
-    }
-
-    const hayPose = results.landmarks && results.landmarks.length > 0;
-
-    if (hayPose) {
-      ultimaPoseMs.current = ahora;
-      if (estado.pausado && estado.pausadoPor === 'faltaPose') estado.reanudar();
-    }
-
-    const activo = estado.faseActual === 'TRABAJO' || estado.faseActual === 'DESCANSO';
-    const sinPoseMs = ahora - ultimaPoseMs.current;
-
-    if (hayPose) {
-      const landmarks = filtrarLandmarks(
-        results.landmarks[0],
-        filtrosLandmarks.current,
-        ahora
-      );
-      const ctx = canvasRef.current.getContext('2d');
-      const actual = useWorkoutStore.getState();
-      if (actual.faseActual === 'TRABAJO' && !actual.pausado) {
-        drawSkeleton(ctx, landmarks, canvasRef.current.width, canvasRef.current.height, actual.ejercicioActual);
-        procesarEjercicio(landmarks, actual.ejercicioActual, ahora);
-      } else {
-        // En descanso mostramos el esqueleto limpio
-        drawSkeleton(ctx, landmarks, canvasRef.current.width, canvasRef.current.height, null);
-      }
-
-      if (actual.faseActual !== 'TRABAJO' && ejercicioEnCurso.current !== null) {
-        ejercicioEnCurso.current = null;
-        estadoDetector.current = crearEstadoDetector();
-        reiniciarFiltros(filtrosLandmarks.current);
-        actualizarMensaje(null);
-        setScoreForma(null);
-        actual.setFaseRepeticion('ARRIBA');
-      }
-    }
-
     if (
-      activo &&
-      !estado.pausado &&
-      estado.camaraHabilitada &&
-      ultimaPoseMs.current > 0 &&
-      sinPoseMs > 2000
+      video &&
+      video.readyState >= 2 &&
+      typeof workerRef.current.postMessage === 'function' &&
+      typeof createImageBitmap === 'function'
     ) {
-      estado.pausar('faltaPose');
+      procesandoRef.current = true;
+      try {
+        // createImageBitmap no bloquea el hilo principal
+        const bitmap = await createImageBitmap(video);
+        workerRef.current.postMessage(
+          { tipo: 'DETECT', payload: { bitmap, timestampMs: performance.now() } },
+          [bitmap] // Transferencia: cero copia de memoria
+        );
+      } catch (err) {
+        procesandoRef.current = false;
+      }
     }
 
     animFrameRef.current = requestAnimationFrame(detectFrame);
-  }, [
-    videoRef,
-    canvasRef,
-    habilitada,
-    drawSkeleton,
-    procesarEjercicio,
-    actualizarMensaje,
-    setScoreForma,
-  ]);
+  }, [habilitada, videoRef]);
 
   useEffect(() => {
     if (isLoaded) {
@@ -345,5 +376,5 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
     };
   }, [isLoaded, detectFrame]);
 
-  return { isLoaded, modeloActivo };
+  return { isLoaded, modeloActivo: modeloPose };
 }
