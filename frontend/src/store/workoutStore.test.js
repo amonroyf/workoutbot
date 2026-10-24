@@ -11,6 +11,7 @@ beforeEach(() => {
     pausadoPor: null,
     repeticiones: 0,
     combo: 0,
+    facingMode: 'user',
   });
 });
 
@@ -48,5 +49,19 @@ describe('quitarRepeticion', () => {
 
     expect(useWorkoutStore.getState().repeticiones).toBe(0);
     expect(useWorkoutStore.getState().combo).toBe(0);
+  });
+});
+
+describe('toggleFacingMode', () => {
+  it('parte de la camara frontal', () => {
+    expect(useWorkoutStore.getState().facingMode).toBe('user');
+  });
+
+  it('alterna entre frontal y trasera', () => {
+    useWorkoutStore.getState().toggleFacingMode();
+    expect(useWorkoutStore.getState().facingMode).toBe('environment');
+
+    useWorkoutStore.getState().toggleFacingMode();
+    expect(useWorkoutStore.getState().facingMode).toBe('user');
   });
 });
