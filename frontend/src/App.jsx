@@ -24,7 +24,6 @@ import LoginScreen from './components/LoginScreen';
 import PantallaInicio from './components/PantallaInicio';
 import Onboarding from './components/Onboarding';
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
-import { useEntrenadorVoz } from './hooks/useEntrenadorVoz';
 import { track } from './engine/analytics';
 
 function resumirError(error) {
@@ -55,8 +54,6 @@ export default function App() {
   const soportaPantallaCompleta = puedeEntrarEnPantallaCompleta() && !esIos();
   const abiertoRef = useRef(false);
   const ultimoErrorCamaraRef = useRef(null);
-
-  useEntrenadorVoz(resumenActual);
 
   const cargarResumen = useCallback(async () => {
     const actual = auth.currentUser;

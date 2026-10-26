@@ -198,7 +198,7 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
         totales,
         mitadCompletada: true,
       },
-      sonido: 'silbato',
+      sonido: 'cambio_lado',
     };
   }
 

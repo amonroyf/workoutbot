@@ -1,21 +1,22 @@
 import { create } from 'zustand';
-import { playStart, playWhistle, playCoin } from '../engine/sounds';
 import {
-  estadoInicialCircuito,
-  avanzarCircuito,
-  totalesVacios,
-} from '../engine/circuito';
+  playStart,
+  playWhistle,
+  playRep,
+  playAlert,
+  playCountdownPip,
+  playSideSwitch,
+} from '../engine/sounds';
+import { estadoInicialCircuito, avanzarCircuito, totalesVacios } from '../engine/circuito';
 import { CLASE_INICIAL, obtenerClase } from '../engine/clases';
-import {
-  guardarCamaraHabilitada,
-  leerCamaraHabilitada,
-} from '../engine/camara';
+import { guardarCamaraHabilitada, leerCamaraHabilitada } from '../engine/camara';
 
 const INTERVALO_TICK_MS = 250;
 
 function reproducirSonido(nombre) {
   if (nombre === 'inicio') playStart();
   else if (nombre === 'silbato') playWhistle();
+  else if (nombre === 'cambio_lado') playSideSwitch();
 }
 
 export const useWorkoutStore = create((set, get) => ({
@@ -37,7 +38,7 @@ export const useWorkoutStore = create((set, get) => ({
   ritmoAnterior: 0,
   mitadCompletada: false,
   advertenciaCamara: null,
-  vozActiva: true,
+  sonidosActivos: true,
   musicaActiva: false,
   avisoMusica: null,
   pausado: false,
@@ -60,13 +61,9 @@ export const useWorkoutStore = create((set, get) => ({
     set((state) => ({
       facingMode: state.facingMode === 'user' ? 'environment' : 'user',
     })),
-
   setCamaraActiva: (camaraActiva) => set({ camaraActiva }),
-
   setErrorCamara: (errorCamara) => set({ errorCamara }),
-
   setReintentoCamara: (reintentoCamara) => set({ reintentoCamara }),
-
   setCamaraHabilitada: (valor) => {
     const habilitada = Boolean(valor);
     guardarCamaraHabilitada(habilitada);
@@ -77,15 +74,14 @@ export const useWorkoutStore = create((set, get) => ({
     });
     if (!habilitada && get().pausadoPor === 'faltaPose') get().reanudar();
   },
-
-  seleccionarClaseDinamica: (clase) => set({
-    claseActual: clase,
-    claseSeleccionadaId: clase.id,
-    bloqueActual: 0,
-    ejercicioActual: clase.bloques[0]?.ejercicio,
-    totales: totalesVacios(clase),
-  }),
-
+  seleccionarClaseDinamica: (clase) =>
+    set({
+      claseActual: clase,
+      claseSeleccionadaId: clase.id,
+      bloqueActual: 0,
+      ejercicioActual: clase.bloques[0]?.ejercicio,
+      totales: totalesVacios(clase),
+    }),
   seleccionarClase: (claseId) => {
     if (get().faseActual !== 'CALIBRACION') return;
     const clase = obtenerClase(claseId);
@@ -101,16 +97,13 @@ export const useWorkoutStore = create((set, get) => ({
 
   iniciarRutina: (claseId, historialAnterior = null) => {
     clearInterval(get().timerRef);
-    playStart();
-
+    if (get().sonidosActivos) playStart();
     const clase = obtenerClase(claseId) || get().claseActual || CLASE_INICIAL;
     const base = estadoInicialCircuito(Date.now(), clase);
-
     let ritmo = 0;
     if (historialAnterior && historialAnterior.duracion_sec > 0) {
       ritmo = historialAnterior.total_reps / historialAnterior.duracion_sec;
     }
-
     set({
       ...base,
       claseActual: clase,
@@ -134,17 +127,28 @@ export const useWorkoutStore = create((set, get) => ({
       pausadoPorAntesDemo: null,
     });
 
+    let ultimoSegundoPip = null;
+
     const interval = setInterval(() => {
       const actual = get();
       if (actual.pausado) return;
-
       const resultado = avanzarCircuito(actual, Date.now(), actual.claseActual);
+
+      if (
+        actual.sonidosActivos &&
+        actual.tiempoRestante <= 3 &&
+        actual.tiempoRestante > 0 &&
+        actual.tiempoRestante !== ultimoSegundoPip
+      ) {
+        ultimoSegundoPip = actual.tiempoRestante;
+        playCountdownPip(actual.tiempoRestante);
+      }
+
       if (!resultado) return;
 
       set(resultado.estado);
       if (resultado.estado.faseActual) set({ faseRepeticion: 'ARRIBA' });
-      reproducirSonido(resultado.sonido);
-
+      if (actual.sonidosActivos) reproducirSonido(resultado.sonido);
       if (resultado.estado.faseActual === 'FIN') {
         clearInterval(get().timerRef);
       }
@@ -154,17 +158,17 @@ export const useWorkoutStore = create((set, get) => ({
   },
 
   registrarRepeticion: (perfecta = false) => {
-    playCoin();
-    set((estado) => {
-      const combo = estado.combo + 1;
-      return {
-        repeticiones: estado.repeticiones + 1,
-        combo,
-        mejorCombo: Math.max(estado.mejorCombo, combo),
-        perfectas: estado.perfectas + (perfecta ? 1 : 0),
-        flashPerfecta: estado.flashPerfecta + (perfecta ? 1 : 0),
-      };
-    });
+    const combo = get().combo + 1;
+    if (get().sonidosActivos) {
+      playRep(combo, perfecta);
+    }
+    set((estado) => ({
+      repeticiones: estado.repeticiones + 1,
+      combo,
+      mejorCombo: Math.max(estado.mejorCombo, combo),
+      perfectas: estado.perfectas + (perfecta ? 1 : 0),
+      flashPerfecta: estado.flashPerfecta + (perfecta ? 1 : 0),
+    }));
   },
 
   quitarRepeticion: () =>
@@ -174,7 +178,6 @@ export const useWorkoutStore = create((set, get) => ({
     })),
 
   setFaseRepeticion: (faseRepeticion) => set({ faseRepeticion }),
-
   abrirDemo: (ejercicio) => {
     const { faseActual, ejercicioActual, pausado, pausadoPor, pausadoEn } = get();
     if (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO') return;
@@ -189,7 +192,6 @@ export const useWorkoutStore = create((set, get) => ({
       faseRepeticion: 'ARRIBA',
     });
   },
-
   cerrarDemo: () => {
     const { pausadoAntesDemo, pausadoPorAntesDemo } = get();
     set({
@@ -202,21 +204,26 @@ export const useWorkoutStore = create((set, get) => ({
     if (!pausadoAntesDemo) get().reanudar();
   },
 
-  setMensajeForma: (mensaje) => set({ mensajeForma: mensaje }),
+  setMensajeForma: (mensaje) => {
+    if (mensaje && mensaje !== get().mensajeForma && get().sonidosActivos) {
+      playAlert();
+    }
+    set({ mensajeForma: mensaje });
+  },
 
   setScoreForma: (scoreForma) => set({ scoreForma }),
 
-  setAdvertenciaCamara: (advertenciaCamara) => set({ advertenciaCamara }),
+  setAdvertenciaCamara: (advertenciaCamara) => {
+    if (advertenciaCamara && advertenciaCamara !== get().advertenciaCamara && get().sonidosActivos) {
+      playAlert();
+    }
+    set({ advertenciaCamara });
+  },
 
   setProgresoFase: (progresoFase) => set({ progresoFase }),
-
   setRitmoAnterior: (ritmo) => set({ ritmoAnterior: ritmo }),
-
-
-  setVozActiva: (vozActiva) => set({ vozActiva }),
-
+  setSonidosActivos: (sonidosActivos) => set({ sonidosActivos }),
   setMusicaActiva: (musicaActiva) => set({ musicaActiva }),
-
   setAvisoMusica: (avisoMusica) => set({ avisoMusica }),
 
   pausar: (por = 'manual') => {
@@ -224,7 +231,6 @@ export const useWorkoutStore = create((set, get) => ({
     if (pausado || (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO')) return;
     set({ pausado: true, pausadoPor: por, pausadoEn: Date.now() });
   },
-
   reanudar: () => {
     const { pausado, pausadoEn, finFaseEn } = get();
     if (!pausado) return;
@@ -236,12 +242,10 @@ export const useWorkoutStore = create((set, get) => ({
       finFaseEn: finFaseEn == null ? null : finFaseEn + delta,
     });
   },
-
   togglePausa: () => {
     if (get().pausado) get().reanudar();
     else get().pausar('manual');
   },
-
   detenerRutina: () => {
     clearInterval(get().timerRef);
     const clase = get().claseActual || CLASE_INICIAL;

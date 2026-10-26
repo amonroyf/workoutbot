@@ -104,7 +104,7 @@ export default function WorkoutUI() {
     subtitulo,
     pausado,
     pausadoPor,
-    vozActiva,
+    sonidosActivos,
     musicaActiva,
     avisoMusica,
     faseRepeticion,
@@ -112,7 +112,7 @@ export default function WorkoutUI() {
     demoAbierta,
     demoEjercicio,
     togglePausa,
-    setVozActiva,
+    setSonidosActivos,
     setMusicaActiva,
     abrirDemo,
     cerrarDemo,
@@ -269,12 +269,12 @@ export default function WorkoutUI() {
         </button>
         <div className="flex gap-2">
           <button
-            onClick={() => setVozActiva(!vozActiva)}
-            aria-pressed={vozActiva}
-            aria-label={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
-            title={vozActiva ? 'Silenciar la voz' : 'Activar la voz'}
+            onClick={() => setSonidosActivos(!sonidosActivos)}
+            aria-pressed={sonidosActivos}
+            aria-label={sonidosActivos ? 'Silenciar efectos' : 'Activar efectos'}
+            title={sonidosActivos ? 'Silenciar efectos' : 'Activar efectos'}
             className={`flex h-14 w-14 items-center justify-center rounded-boton border border-white/10 backdrop-blur-md transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100 ${
-              vozActiva ? 'bg-marca-500/20 text-marca-300' : 'bg-tinta-950/80 text-tinta-500'
+              sonidosActivos ? 'bg-marca-500/20 text-marca-300' : 'bg-tinta-950/80 text-tinta-500'
             }`}
           >
             <Icono nombre="voz" tamano={20} />
