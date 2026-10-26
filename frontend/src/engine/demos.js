@@ -69,596 +69,341 @@ function ajustar(base, cambios) {
   return resultado;
 }
 
+// Nuevas definiciones de posturas biomecánicamente correctas
+
 const SENTADILLA_ARRIBA = pose(
-  p(0.5, 0.22),
-  p(0.5, 0.3),
-  p(0.47, 0.34),
-  p(0.5, 0.34),
-  p(0.52, 0.42),
-  p(0.56, 0.42),
-  p(0.57, 0.48),
-  p(0.61, 0.48),
-  p(0.47, 0.52),
-  p(0.5, 0.52),
-  p(0.49, 0.7),
-  p(0.52, 0.7),
-  p(0.52, 0.88),
-  p(0.55, 0.88)
+  p(0.5, 0.22), p(0.5, 0.3), p(0.44, 0.34), p(0.56, 0.34),
+  p(0.4, 0.42), p(0.6, 0.42), p(0.36, 0.5), p(0.64, 0.5),
+  p(0.44, 0.52), p(0.56, 0.52), p(0.4, 0.7), p(0.6, 0.7),
+  p(0.38, 0.88), p(0.62, 0.88)
 );
 
-const SENTADILLA_ABAJO = pose(
-  p(0.53, 0.34),
-  p(0.5, 0.42),
-  p(0.47, 0.45),
-  p(0.5, 0.45),
-  p(0.55, 0.5),
-  p(0.59, 0.5),
-  p(0.61, 0.55),
-  p(0.65, 0.55),
-  p(0.39, 0.6),
-  p(0.42, 0.6),
-  p(0.57, 0.7),
-  p(0.6, 0.7),
-  p(0.52, 0.88),
-  p(0.55, 0.88)
-);
-
-const FLEXION_ARRIBA = pose(
-  p(0.25, 0.68),
-  p(0.31, 0.7),
-  p(0.34, 0.71),
-  p(0.34, 0.74),
-  p(0.34, 0.82),
-  p(0.34, 0.82),
-  p(0.34, 0.94),
-  p(0.34, 0.94),
-  p(0.55, 0.74),
-  p(0.55, 0.78),
-  p(0.7, 0.76),
-  p(0.7, 0.8),
-  p(0.85, 0.78),
-  p(0.85, 0.82)
-);
-
-const FLEXION_ABAJO = pose(
-  p(0.25, 0.76),
-  p(0.31, 0.78),
-  p(0.34, 0.78),
-  p(0.34, 0.81),
-  p(0.29, 0.86),
-  p(0.29, 0.86),
-  p(0.34, 0.94),
-  p(0.34, 0.94),
-  p(0.55, 0.82),
-  p(0.55, 0.86),
-  p(0.7, 0.84),
-  p(0.7, 0.88),
-  p(0.85, 0.86),
-  p(0.85, 0.9)
-);
-
-const JUMPING_JACK_CERRADO = pose(
-  p(0.5, 0.23),
-  p(0.5, 0.32),
-  p(0.44, 0.34),
-  p(0.56, 0.34),
-  p(0.42, 0.44),
-  p(0.58, 0.44),
-  p(0.41, 0.55),
-  p(0.59, 0.55),
-  p(0.46, 0.55),
-  p(0.54, 0.55),
-  p(0.47, 0.72),
-  p(0.53, 0.72),
-  p(0.47, 0.9),
-  p(0.53, 0.9)
-);
-
-const JUMPING_JACK_ABIERTO = pose(
-  p(0.5, 0.23),
-  p(0.5, 0.32),
-  p(0.44, 0.34),
-  p(0.56, 0.34),
-  p(0.34, 0.22),
-  p(0.66, 0.22),
-  p(0.24, 0.08),
-  p(0.76, 0.08),
-  p(0.46, 0.55),
-  p(0.54, 0.55),
-  p(0.36, 0.72),
-  p(0.64, 0.72),
-  p(0.28, 0.9),
-  p(0.72, 0.9)
-);
-
-const ESTIRAMIENTO_ARRIBA = pose(
-  p(0.5, 0.18),
-  p(0.5, 0.28),
-  p(0.44, 0.3),
-  p(0.56, 0.3),
-  p(0.42, 0.16),
-  p(0.58, 0.16),
-  p(0.42, 0.04),
-  p(0.58, 0.04),
-  p(0.46, 0.5),
-  p(0.54, 0.5),
-  p(0.47, 0.7),
-  p(0.53, 0.7),
-  p(0.47, 0.9),
-  p(0.53, 0.9)
-);
-
-const ESTIRAMIENTO_LADO = pose(
-  p(0.58, 0.2),
-  p(0.54, 0.29),
-  p(0.48, 0.31),
-  p(0.6, 0.31),
-  p(0.4, 0.42),
-  p(0.72, 0.18),
-  p(0.38, 0.55),
-  p(0.78, 0.1),
-  p(0.46, 0.5),
-  p(0.54, 0.5),
-  p(0.47, 0.7),
-  p(0.53, 0.7),
-  p(0.47, 0.9),
-  p(0.53, 0.9)
-);
-
-const ZANCADA_ARRIBA = pose(
-  p(0.5, 0.22),
-  p(0.5, 0.3),
-  p(0.47, 0.34),
-  p(0.5, 0.34),
-  p(0.52, 0.42),
-  p(0.56, 0.42),
-  p(0.57, 0.48),
-  p(0.61, 0.48),
-  p(0.45, 0.54),
-  p(0.5, 0.54),
-  p(0.38, 0.68),
-  p(0.58, 0.68),
-  p(0.28, 0.88),
-  p(0.62, 0.88)
-);
-
-const ZANCADA_ABAJO = pose(
-  p(0.5, 0.32),
-  p(0.5, 0.4),
-  p(0.47, 0.44),
-  p(0.5, 0.44),
-  p(0.55, 0.5),
-  p(0.6, 0.5),
-  p(0.62, 0.55),
-  p(0.66, 0.55),
-  p(0.44, 0.62),
-  p(0.49, 0.62),
-  p(0.36, 0.8),
-  p(0.6, 0.68),
-  p(0.28, 0.88),
-  p(0.62, 0.88)
-);
-
-const PLANCHA_FIRME = pose(
-  p(0.25, 0.68),
-  p(0.31, 0.7),
-  p(0.34, 0.71),
-  p(0.34, 0.74),
-  p(0.34, 0.82),
-  p(0.34, 0.82),
-  p(0.34, 0.94),
-  p(0.34, 0.94),
-  p(0.55, 0.74),
-  p(0.55, 0.78),
-  p(0.7, 0.76),
-  p(0.7, 0.8),
-  p(0.85, 0.78),
-  p(0.85, 0.82)
-);
-
-const PLANCHA_ALTA = pose(
-  p(0.25, 0.675),
-  p(0.31, 0.695),
-  p(0.34, 0.705),
-  p(0.34, 0.735),
-  p(0.34, 0.815),
-  p(0.34, 0.815),
-  p(0.34, 0.935),
-  p(0.34, 0.935),
-  p(0.55, 0.735),
-  p(0.55, 0.775),
-  p(0.7, 0.755),
-  p(0.7, 0.795),
-  p(0.85, 0.775),
-  p(0.85, 0.815)
-);
-
-const RODILLAS_NEUTRO = pose(
-  p(0.5, 0.23),
-  p(0.5, 0.32),
-  p(0.44, 0.34),
-  p(0.56, 0.34),
-  p(0.42, 0.46),
-  p(0.58, 0.46),
-  p(0.45, 0.58),
-  p(0.55, 0.58),
-  p(0.46, 0.55),
-  p(0.54, 0.55),
-  p(0.47, 0.72),
-  p(0.53, 0.72),
-  p(0.47, 0.9),
-  p(0.53, 0.9)
-);
-
-const RODILLA_IZQ_ARRIBA = pose(
-  p(0.5, 0.23),
-  p(0.5, 0.32),
-  p(0.44, 0.34),
-  p(0.56, 0.34),
-  p(0.4, 0.44),
-  p(0.58, 0.42),
-  p(0.36, 0.54),
-  p(0.62, 0.34),
-  p(0.46, 0.55),
-  p(0.54, 0.55),
-  p(0.42, 0.55),
-  p(0.53, 0.72),
-  p(0.4, 0.68),
-  p(0.53, 0.9)
-);
-
-const RODILLA_DER_ARRIBA = pose(
-  p(0.5, 0.23),
-  p(0.5, 0.32),
-  p(0.44, 0.34),
-  p(0.56, 0.34),
-  p(0.42, 0.42),
-  p(0.6, 0.44),
-  p(0.38, 0.34),
-  p(0.64, 0.54),
-  p(0.46, 0.55),
-  p(0.54, 0.55),
-  p(0.47, 0.72),
-  p(0.58, 0.55),
-  p(0.47, 0.9),
-  p(0.6, 0.68)
-);
-
-const PUENTE_ABAJO = pose(
-  p(0.22, 0.78),
-  p(0.3, 0.8),
-  p(0.34, 0.8),
-  p(0.34, 0.82),
-  p(0.42, 0.82),
-  p(0.42, 0.84),
-  p(0.5, 0.84),
-  p(0.5, 0.86),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.65, 0.64),
-  p(0.65, 0.66),
-  p(0.7, 0.88),
-  p(0.7, 0.9)
-);
-
-const PUENTE_ARRIBA = pose(
-  p(0.22, 0.78),
-  p(0.3, 0.8),
-  p(0.34, 0.8),
-  p(0.34, 0.82),
-  p(0.42, 0.82),
-  p(0.42, 0.84),
-  p(0.5, 0.84),
-  p(0.5, 0.86),
-  p(0.55, 0.7),
-  p(0.55, 0.72),
-  p(0.65, 0.58),
-  p(0.65, 0.6),
-  p(0.7, 0.88),
-  p(0.7, 0.9)
-);
-
-const ABDOMINAL_ABAJO = pose(
-  p(0.22, 0.78),
-  p(0.3, 0.8),
-  p(0.34, 0.8),
-  p(0.34, 0.82),
-  p(0.3, 0.7),
-  p(0.3, 0.72),
-  p(0.26, 0.66),
-  p(0.26, 0.68),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.65, 0.65),
-  p(0.65, 0.67),
-  p(0.7, 0.88),
-  p(0.7, 0.9)
-);
-
-const ABDOMINAL_ARRIBA = pose(
-  p(0.26, 0.66),
-  p(0.32, 0.7),
-  p(0.36, 0.72),
-  p(0.36, 0.74),
-  p(0.32, 0.62),
-  p(0.32, 0.64),
-  p(0.28, 0.58),
-  p(0.28, 0.6),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.65, 0.65),
-  p(0.65, 0.67),
-  p(0.7, 0.88),
-  p(0.7, 0.9)
-);
-
-const SUMO_ARRIBA = ajustar(SENTADILLA_ARRIBA, {
-  caderaI: { x: 0.44 },
-  caderaD: { x: 0.56 },
-  rodillaI: { x: 0.34 },
-  rodillaD: { x: 0.66 },
-  tobilloI: { x: 0.26 },
-  tobilloD: { x: 0.74 },
+const SENTADILLA_ABAJO = ajustar(SENTADILLA_ARRIBA, {
+  cabeza: { y: 0.36 }, cuello: { y: 0.44 },
+  hombroI: { y: 0.48 }, hombroD: { y: 0.48 },
+  codoI: { x: 0.38, y: 0.52 }, codoD: { x: 0.62, y: 0.52 },
+  munecaI: { x: 0.48, y: 0.55 }, munecaD: { x: 0.52, y: 0.55 },
+  caderaI: { y: 0.65 }, caderaD: { y: 0.65 },
+  rodillaI: { x: 0.32, y: 0.65 }, rodillaD: { x: 0.68, y: 0.65 },
 });
 
+const FLEXION_ARRIBA = pose(
+  p(0.2, 0.6), p(0.28, 0.62), p(0.3, 0.63), p(0.3, 0.65),
+  p(0.3, 0.8), p(0.3, 0.8), p(0.3, 0.94), p(0.3, 0.94),
+  p(0.5, 0.68), p(0.5, 0.7), p(0.7, 0.75), p(0.7, 0.77),
+  p(0.9, 0.82), p(0.9, 0.84)
+);
+
+const FLEXION_ABAJO = ajustar(FLEXION_ARRIBA, {
+  cabeza: { y: 0.78 }, cuello: { y: 0.8 },
+  hombroI: { y: 0.81 }, hombroD: { y: 0.83 },
+  caderaI: { y: 0.76 }, caderaD: { y: 0.78 },
+  codoI: { x: 0.22, y: 0.75 }, codoD: { x: 0.22, y: 0.75 }
+});
+
+const JUMPING_JACK_CERRADO = pose(
+  p(0.5, 0.2), p(0.5, 0.28), p(0.44, 0.3), p(0.56, 0.3),
+  p(0.42, 0.42), p(0.58, 0.42), p(0.4, 0.52), p(0.6, 0.52),
+  p(0.46, 0.5), p(0.54, 0.5), p(0.46, 0.7), p(0.54, 0.7),
+  p(0.46, 0.9), p(0.54, 0.9)
+);
+
+const JUMPING_JACK_ABIERTO = ajustar(JUMPING_JACK_CERRADO, {
+  codoI: { x: 0.3, y: 0.25 }, codoD: { x: 0.7, y: 0.25 },
+  munecaI: { x: 0.4, y: 0.1 }, munecaD: { x: 0.6, y: 0.1 },
+  rodillaI: { x: 0.35 }, rodillaD: { x: 0.65 },
+  tobilloI: { x: 0.25 }, tobilloD: { x: 0.75 }
+});
+
+const ESTIRAMIENTO_ARRIBA = ajustar(JUMPING_JACK_ABIERTO, {
+  munecaI: { x: 0.48, y: 0.05 },
+  munecaD: { x: 0.52, y: 0.05 },
+  tobilloI: { x: 0.4, y: 0.9 },
+  tobilloD: { x: 0.6, y: 0.9 }
+});
+
+const ESTIRAMIENTO_LADO = ajustar(ESTIRAMIENTO_ARRIBA, {
+  cabeza: { x: 0.6 },
+  cuello: { x: 0.58 },
+  hombroI: { x: 0.52 },
+  hombroD: { x: 0.64 },
+  codoI: { x: 0.48, y: 0.2 },
+  codoD: { x: 0.8, y: 0.3 },
+  munecaI: { x: 0.62, y: 0.15 },
+  munecaD: { x: 0.68, y: 0.15 }
+});
+
+const ZANCADA_ARRIBA = pose(
+  p(0.5, 0.2), p(0.5, 0.28), p(0.48, 0.3), p(0.48, 0.32),
+  p(0.45, 0.4), p(0.45, 0.42), p(0.48, 0.48), p(0.48, 0.5),
+  p(0.48, 0.52), p(0.48, 0.54), p(0.38, 0.7), p(0.58, 0.7),
+  p(0.35, 0.88), p(0.65, 0.88)
+);
+
+const ZANCADA_ABAJO = ajustar(ZANCADA_ARRIBA, {
+  cabeza: { y: 0.35 },
+  cuello: { y: 0.43 },
+  hombroI: { y: 0.45 },
+  hombroD: { y: 0.47 },
+  codoI: { y: 0.55 },
+  codoD: { y: 0.57 },
+  munecaI: { y: 0.63 },
+  munecaD: { y: 0.65 },
+  caderaI: { y: 0.67 },
+  caderaD: { y: 0.69 },
+  rodillaI: { x: 0.35, y: 0.75 },
+  rodillaD: { x: 0.48, y: 0.85 },
+  tobilloI: { x: 0.35, y: 0.88 },
+  tobilloD: { x: 0.65, y: 0.88 }
+});
+
+const PLANCHA_FIRME = pose(
+  p(0.2, 0.6), p(0.28, 0.62), p(0.3, 0.63), p(0.3, 0.65),
+  p(0.3, 0.75), p(0.3, 0.75), p(0.4, 0.75), p(0.4, 0.75),
+  p(0.55, 0.68), p(0.55, 0.7), p(0.75, 0.72), p(0.75, 0.74),
+  p(0.9, 0.75), p(0.9, 0.77)
+);
+
+const PLANCHA_ALTA = ajustar(PLANCHA_FIRME, {
+  codoI: { y: 0.78 },
+  codoD: { y: 0.78 },
+  munecaI: { x: 0.3, y: 0.94 },
+  munecaD: { x: 0.3, y: 0.94 },
+  caderaI: { y: 0.55 },
+  caderaD: { y: 0.57 },
+  rodillaI: { y: 0.65 },
+  rodillaD: { y: 0.67 },
+  tobilloI: { y: 0.75 },
+  tobilloD: { y: 0.77 }
+});
+
+const RODILLAS_NEUTRO = JUMPING_JACK_CERRADO;
+const RODILLA_IZQ_ARRIBA = ajustar(RODILLAS_NEUTRO, {
+  codoI: { x: 0.35, y: 0.4 },
+  munecaI: { x: 0.4, y: 0.3 },
+  codoD: { x: 0.65, y: 0.5 },
+  munecaD: { x: 0.6, y: 0.6 },
+  rodillaI: { y: 0.5 },
+  tobilloI: { y: 0.65 }
+});
+const RODILLA_DER_ARRIBA = ajustar(RODILLAS_NEUTRO, {
+  codoD: { x: 0.65, y: 0.4 },
+  munecaD: { x: 0.6, y: 0.3 },
+  codoI: { x: 0.35, y: 0.5 },
+  munecaI: { x: 0.4, y: 0.6 },
+  rodillaD: { y: 0.5 },
+  tobilloD: { y: 0.65 }
+});
+
+const PUENTE_ABAJO = pose(
+  p(0.2, 0.8), p(0.28, 0.82), p(0.3, 0.83), p(0.3, 0.85),
+  p(0.4, 0.85), p(0.4, 0.87), p(0.5, 0.88), p(0.5, 0.9),
+  p(0.55, 0.84), p(0.55, 0.86), p(0.7, 0.65), p(0.7, 0.67),
+  p(0.8, 0.88), p(0.8, 0.9)
+);
+
+const PUENTE_ARRIBA = ajustar(PUENTE_ABAJO, {
+  caderaI: { y: 0.65 },
+  caderaD: { y: 0.67 },
+  rodillaI: { x: 0.75, y: 0.6 },
+  rodillaD: { x: 0.75, y: 0.62 }
+});
+
+const ABDOMINAL_ABAJO = PUENTE_ABAJO;
+const ABDOMINAL_ARRIBA = ajustar(ABDOMINAL_ABAJO, {
+  cabeza: { x: 0.35, y: 0.65 },
+  cuello: { x: 0.4, y: 0.68 },
+  hombroI: { x: 0.42, y: 0.7 },
+  hombroD: { x: 0.42, y: 0.72 },
+  codoI: { x: 0.38, y: 0.6 },
+  codoD: { x: 0.38, y: 0.62 },
+  munecaI: { x: 0.33, y: 0.65 },
+  munecaD: { x: 0.33, y: 0.67 }
+});
+
+const SUMO_ARRIBA = ajustar(SENTADILLA_ARRIBA, {
+  tobilloI: { x: 0.2 },
+  tobilloD: { x: 0.8 }
+});
 const SUMO_ABAJO = ajustar(SENTADILLA_ABAJO, {
-  caderaI: { x: 0.42, y: 0.62 },
-  caderaD: { x: 0.58, y: 0.62 },
-  rodillaI: { x: 0.3, y: 0.72 },
-  rodillaD: { x: 0.7, y: 0.72 },
-  tobilloI: { x: 0.24, y: 0.88 },
-  tobilloD: { x: 0.76, y: 0.88 },
+  rodillaI: { x: 0.2 },
+  rodillaD: { x: 0.8 },
+  tobilloI: { x: 0.2 },
+  tobilloD: { x: 0.8 }
 });
 
 const DIAMANTE_ARRIBA = ajustar(FLEXION_ARRIBA, {
-  codoI: { x: 0.3, y: 0.82 },
-  codoD: { x: 0.37, y: 0.82 },
-  munecaI: { x: 0.39, y: 0.94 },
-  munecaD: { x: 0.41, y: 0.94 },
+  munecaI: { x: 0.32 },
+  munecaD: { x: 0.32 }
 });
-
 const DIAMANTE_ABAJO = ajustar(FLEXION_ABAJO, {
-  codoI: { x: 0.26, y: 0.88 },
-  codoD: { x: 0.36, y: 0.88 },
-  munecaI: { x: 0.39, y: 0.94 },
-  munecaD: { x: 0.41, y: 0.94 },
+  codoI: { x: 0.32, y: 0.7 },
+  codoD: { x: 0.32, y: 0.7 },
+  munecaI: { x: 0.32 },
+  munecaD: { x: 0.32 }
 });
 
-const PUENTE_UNA_ABAJO = ajustar(PUENTE_ABAJO, {
-  rodillaD: { x: 0.78, y: 0.7 },
-  tobilloD: { x: 0.9, y: 0.66 },
+const ESCALADOR_IZQ = ajustar(PLANCHA_ALTA, {
+  rodillaI: { x: 0.45, y: 0.75 },
+  tobilloI: { x: 0.4, y: 0.8 }
 });
-
-const PUENTE_UNA_ARRIBA = ajustar(PUENTE_ARRIBA, {
-  rodillaD: { x: 0.78, y: 0.58 },
-  tobilloD: { x: 0.9, y: 0.54 },
-});
-
-const ESCALADOR_IZQ = ajustar(PLANCHA_FIRME, {
-  rodillaI: { x: 0.48, y: 0.82 },
-  tobilloI: { x: 0.42, y: 0.88 },
-});
-
-const ESCALADOR_DER = ajustar(PLANCHA_FIRME, {
-  rodillaD: { x: 0.48, y: 0.82 },
-  tobilloD: { x: 0.42, y: 0.88 },
+const ESCALADOR_DER = ajustar(PLANCHA_ALTA, {
+  rodillaD: { x: 0.45, y: 0.77 },
+  tobilloD: { x: 0.4, y: 0.82 }
 });
 
 const PLANCHA_LATERAL_FIRME = pose(
-  p(0.22, 0.55),
-  p(0.3, 0.58),
-  p(0.34, 0.6),
-  p(0.34, 0.62),
-  p(0.34, 0.72),
-  p(0.38, 0.52),
-  p(0.34, 0.84),
-  p(0.42, 0.42),
-  p(0.55, 0.66),
-  p(0.55, 0.68),
-  p(0.7, 0.72),
-  p(0.7, 0.74),
-  p(0.85, 0.78),
-  p(0.85, 0.8)
+  p(0.4, 0.4), p(0.43, 0.45), p(0.45, 0.48), p(0.45, 0.48),
+  p(0.45, 0.65), p(0.3, 0.45), p(0.45, 0.75), p(0.2, 0.3),
+  p(0.6, 0.55), p(0.6, 0.55), p(0.75, 0.65), p(0.75, 0.65),
+  p(0.9, 0.75), p(0.9, 0.75)
 );
 
 const PLANCHA_LATERAL_ALTA = ajustar(PLANCHA_LATERAL_FIRME, {
-  caderaI: { y: 0.64 },
-  caderaD: { y: 0.66 },
-  rodillaI: { y: 0.7 },
-  rodillaD: { y: 0.72 },
-  tobilloI: { y: 0.76 },
-  tobilloD: { y: 0.78 },
+  caderaI: { y: 0.5 },
+  caderaD: { y: 0.5 }
 });
 
 const SUPERMAN_ABAJO = pose(
-  p(0.25, 0.72),
-  p(0.32, 0.74),
-  p(0.36, 0.74),
-  p(0.36, 0.76),
-  p(0.26, 0.74),
-  p(0.26, 0.76),
-  p(0.16, 0.74),
-  p(0.16, 0.76),
-  p(0.55, 0.78),
-  p(0.55, 0.8),
-  p(0.7, 0.8),
-  p(0.7, 0.82),
-  p(0.85, 0.82),
-  p(0.85, 0.84)
+  p(0.2, 0.8), p(0.28, 0.82), p(0.3, 0.83), p(0.3, 0.85),
+  p(0.26, 0.74), p(0.26, 0.76), p(0.16, 0.74), p(0.16, 0.76),
+  p(0.55, 0.78), p(0.55, 0.8), p(0.7, 0.8), p(0.7, 0.82),
+  p(0.85, 0.82), p(0.85, 0.84)
 );
 
-const SUPERMAN_ARRIBA = pose(
-  p(0.25, 0.66),
-  p(0.32, 0.7),
-  p(0.36, 0.7),
-  p(0.36, 0.72),
-  p(0.26, 0.68),
-  p(0.26, 0.7),
-  p(0.16, 0.64),
-  p(0.16, 0.66),
-  p(0.55, 0.76),
-  p(0.55, 0.78),
-  p(0.7, 0.76),
-  p(0.7, 0.78),
-  p(0.85, 0.74),
-  p(0.85, 0.76)
-);
-
-const DEAD_BUG_A = pose(
-  p(0.22, 0.8),
-  p(0.3, 0.8),
-  p(0.34, 0.8),
-  p(0.34, 0.82),
-  p(0.32, 0.68),
-  p(0.32, 0.7),
-  p(0.3, 0.56),
-  p(0.3, 0.58),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.65, 0.64),
-  p(0.65, 0.66),
-  p(0.7, 0.88),
-  p(0.7, 0.9)
-);
-
-const DEAD_BUG_B = pose(
-  p(0.22, 0.8),
-  p(0.3, 0.8),
-  p(0.34, 0.8),
-  p(0.34, 0.82),
-  p(0.32, 0.68),
-  p(0.26, 0.78),
-  p(0.3, 0.56),
-  p(0.16, 0.74),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.7, 0.82),
-  p(0.65, 0.64),
-  p(0.86, 0.84),
-  p(0.7, 0.88)
-);
-
-const HOLLOW_ABAJO = pose(
-  p(0.22, 0.74),
-  p(0.3, 0.76),
-  p(0.34, 0.76),
-  p(0.34, 0.78),
-  p(0.28, 0.68),
-  p(0.28, 0.7),
-  p(0.2, 0.62),
-  p(0.2, 0.64),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.7, 0.76),
-  p(0.7, 0.78),
-  p(0.85, 0.7),
-  p(0.85, 0.72)
-);
-
-const HOLLOW_ARRIBA = ajustar(HOLLOW_ABAJO, {
+const SUPERMAN_ARRIBA = ajustar(SUPERMAN_ABAJO, {
   cabeza: { y: 0.7 },
-  cuello: { y: 0.73 },
+  cuello: { y: 0.72 },
   hombroI: { y: 0.73 },
   hombroD: { y: 0.75 },
-  munecaI: { y: 0.58 },
-  munecaD: { y: 0.6 },
-  rodillaI: { y: 0.72 },
-  rodillaD: { y: 0.74 },
-  tobilloI: { y: 0.66 },
-  tobilloD: { y: 0.68 },
+  codoI: { y: 0.7 },
+  codoD: { y: 0.72 },
+  munecaI: { y: 0.68 },
+  munecaD: { y: 0.7 },
+  rodillaI: { y: 0.75 },
+  rodillaD: { y: 0.77 },
+  tobilloI: { y: 0.72 },
+  tobilloD: { y: 0.74 }
 });
 
+const DEAD_BUG_A = ajustar(PUENTE_ABAJO, {
+  codoI: { y: 0.6 },
+  munecaI: { y: 0.4 },
+  codoD: { y: 0.85 },
+  munecaD: { x: 0.1, y: 0.85 },
+  rodillaI: { x: 0.55, y: 0.5 },
+  tobilloI: { x: 0.7, y: 0.5 },
+  rodillaD: { y: 0.85 },
+  tobilloD: { x: 0.9, y: 0.85 }
+});
+
+const DEAD_BUG_B = ajustar(PUENTE_ABAJO, {
+  codoD: { y: 0.6 },
+  munecaD: { y: 0.4 },
+  codoI: { y: 0.85 },
+  munecaI: { x: 0.1, y: 0.85 },
+  rodillaD: { x: 0.55, y: 0.5 },
+  tobilloD: { x: 0.7, y: 0.5 },
+  rodillaI: { y: 0.85 },
+  tobilloI: { x: 0.9, y: 0.85 }
+});
+
+const HOLLOW_ABAJO = ajustar(PUENTE_ABAJO, {
+  codoI: { y: 0.85 },
+  munecaI: { x: 0.1, y: 0.85 },
+  codoD: { y: 0.85 },
+  munecaD: { x: 0.1, y: 0.85 },
+  rodillaI: { y: 0.85 },
+  tobilloI: { x: 0.9, y: 0.85 },
+  rodillaD: { y: 0.85 },
+  tobilloD: { x: 0.9, y: 0.85 }
+});
+const HOLLOW_ARRIBA = ajustar(HOLLOW_ABAJO, {
+  cabeza: { y: 0.65 },
+  cuello: { y: 0.7 },
+  hombroI: { y: 0.73 },
+  hombroD: { y: 0.75 },
+  codoI: { y: 0.7 },
+  munecaI: { x: 0.15, y: 0.6 },
+  codoD: { y: 0.7 },
+  munecaD: { x: 0.15, y: 0.6 },
+  rodillaI: { y: 0.75 },
+  tobilloI: { x: 0.85, y: 0.7 },
+  rodillaD: { y: 0.75 },
+  tobilloD: { x: 0.85, y: 0.7 }});
 const WALL_SIT = pose(
-  p(0.3, 0.25),
-  p(0.3, 0.33),
-  p(0.3, 0.37),
-  p(0.3, 0.39),
-  p(0.38, 0.45),
-  p(0.38, 0.47),
-  p(0.42, 0.52),
-  p(0.42, 0.54),
-  p(0.3, 0.58),
-  p(0.3, 0.6),
-  p(0.52, 0.6),
-  p(0.52, 0.62),
-  p(0.52, 0.88),
-  p(0.52, 0.9)
+  p(0.2, 0.25), p(0.2, 0.33), p(0.22, 0.35), p(0.22, 0.37),
+  p(0.25, 0.45), p(0.25, 0.47),
+  p(0.3, 0.55), p(0.3, 0.57),
+  p(0.22, 0.65), p(0.22, 0.67),
+  p(0.5, 0.65), p(0.5, 0.67),
+  p(0.5, 0.9), p(0.5, 0.9)
 );
 
 const WALL_SIT_ALTO = ajustar(WALL_SIT, {
-  caderaI: { y: 0.56 },
-  caderaD: { y: 0.58 },
-  rodillaI: { y: 0.58 },
-  rodillaD: { y: 0.6 },
-});
-
-const BIRD_DOG_A = pose(
-  p(0.2, 0.52),
-  p(0.28, 0.56),
-  p(0.32, 0.6),
-  p(0.32, 0.62),
-  p(0.32, 0.75),
-  p(0.32, 0.77),
-  p(0.32, 0.9),
-  p(0.32, 0.92),
-  p(0.55, 0.6),
-  p(0.55, 0.62),
-  p(0.55, 0.8),
-  p(0.55, 0.82),
-  p(0.55, 0.92),
-  p(0.55, 0.94)
+  caderaI: { y: 0.55 },
+  caderaD: { y: 0.57 },
+  rodillaI: { y: 0.55 },
+  rodillaD: { y: 0.57 }
+});const BIRD_DOG_A = pose(
+  p(0.2, 0.4),
+  p(0.28, 0.42),
+  p(0.32, 0.45), p(0.32, 0.47),
+  p(0.3, 0.65), p(0.3, 0.67),
+  p(0.3, 0.85), p(0.3, 0.87),
+  p(0.6, 0.45), p(0.6, 0.47),
+  p(0.6, 0.65), p(0.6, 0.67),
+  p(0.6, 0.85), p(0.6, 0.87)
 );
 
 const BIRD_DOG_B = ajustar(BIRD_DOG_A, {
-  codoD: { x: 0.22, y: 0.58 },
-  munecaD: { x: 0.12, y: 0.54 },
-  rodillaD: { x: 0.7, y: 0.58 },
-  tobilloD: { x: 0.85, y: 0.56 },
+  codoI: { x: 0.2, y: 0.45 },
+  munecaI: { x: 0.1, y: 0.45 },
+  rodillaD: { x: 0.75, y: 0.47 },
+  tobilloD: { x: 0.9, y: 0.47 }
 });
 
 // --- Rutinas de escritorio: figuras de pie, solo tren superior.
 // Base: brazos caidos, piernas juntas (postura frente a la cámara).
 const ESCRITORIO_BASE = pose(
-  p(0.5, 0.16),
-  p(0.5, 0.25),
-  p(0.44, 0.3),
-  p(0.56, 0.3),
-  p(0.42, 0.42),
-  p(0.58, 0.42),
-  p(0.41, 0.54),
-  p(0.59, 0.54),
-  p(0.46, 0.54),
-  p(0.54, 0.54),
-  p(0.47, 0.72),
-  p(0.53, 0.72),
-  p(0.47, 0.9),
-  p(0.53, 0.9)
+  p(0.2, 0.15),
+  p(0.2, 0.2),
+  p(0.25, 0.22),
+  p(0.25, 0.28),
+  p(0.35, 0.3),
+  p(0.35, 0.3),
+  p(0.45, 0.3),
+  p(0.45, 0.3),
+  p(0.5, 0.3),
+  p(0.5, 0.3),
+  p(0.6, 0.3),
+  p(0.6, 0.3),
+  p(0.65, 0.3),
+  p(0.65, 0.3)
 );
 
 // Rotación de torso: hombros girados a cada lado.
 const ROTACION_TORSO_IZQ = ajustar(ESCRITORIO_BASE, {
-  cabeza: { x: 0.44, y: 0.16 },
-  cuello: { x: 0.46, y: 0.25 },
-  hombroI: { x: 0.38, y: 0.3 },
+  cabeza: { x: 0.4, y: 0.2 },
+  hombroI: { x: 0.35, y: 0.3 },
   hombroD: { x: 0.5, y: 0.3 },
-  codoI: { x: 0.34, y: 0.4 },
-  codoD: { x: 0.46, y: 0.4 },
-  munecaI: { x: 0.3, y: 0.48 },
-  munecaD: { x: 0.42, y: 0.48 },
+  codoI: { x: 0.3, y: 0.45 },
+  codoD: { x: 0.45, y: 0.45 },
+  munecaI: { x: 0.35, y: 0.5 },
+  munecaD: { x: 0.4, y: 0.5 }
 });
 
 const ROTACION_TORSO_DER = ajustar(ESCRITORIO_BASE, {
-  cabeza: { x: 0.56, y: 0.16 },
-  cuello: { x: 0.54, y: 0.25 },
+  cabeza: { x: 0.6, y: 0.2 },
   hombroI: { x: 0.5, y: 0.3 },
-  hombroD: { x: 0.62, y: 0.3 },
-  codoI: { x: 0.54, y: 0.4 },
-  codoD: { x: 0.66, y: 0.4 },
-  munecaI: { x: 0.58, y: 0.48 },
-  munecaD: { x: 0.7, y: 0.48 },
+  hombroD: { x: 0.65, y: 0.3 },
+  codoI: { x: 0.55, y: 0.45 },
+  codoD: { x: 0.7, y: 0.45 },
+  munecaI: { x: 0.6, y: 0.5 },
+  munecaD: { x: 0.65, y: 0.5 }
 });
 
-
+// --- DEMOS BASE CON POSTURAS ACTUALIZADAS ---
 const DEMOS_BASE = Object.freeze({
   SENTADILLAS: Object.freeze({
     nombre: 'Sentadilla',
@@ -887,7 +632,7 @@ const DEMOS_BASE = Object.freeze({
     nombre: 'Bird dog',
     vista: 'perfil',
     cicloMs: 2600,
-    pistas: ['Manos y rodillas en el piso', 'Estira brazo y pierna opuestos', 'No gires la cadera'],
+    pistas: ['Manos y rodillas en el piso', 'Estira brazo y pierna opuestos', 'No gire la cadera'],
     keyframes: Object.freeze([
       { t: 0, pose: BIRD_DOG_A },
       { t: 0.4, pose: BIRD_DOG_B },
@@ -899,7 +644,7 @@ const DEMOS_BASE = Object.freeze({
     nombre: 'Rotación de torso',
     vista: 'frontal',
     cicloMs: 2400,
-    pistas: ['Gira el torso a un lado', 'Lleva la mano al hombro contrario', 'Vuelve al centro y alterna'],
+    pistas: ['Gire el torso a un lado', 'Lleve la mano al hombro contrario', 'Vuelva al centro y alterne'],
     keyframes: Object.freeze([
       { t: 0, pose: ROTACION_TORSO_IZQ },
       { t: 0.3, pose: ESCRITORIO_BASE },
@@ -910,6 +655,7 @@ const DEMOS_BASE = Object.freeze({
   }),
 });
 
+// Mapeo de grupos a demo por defecto
 const BASE_POR_GRUPO = Object.freeze({
   piernas: 'SENTADILLAS',
   'glúteos': 'PUENTE_GLUTEO',

@@ -711,11 +711,20 @@ export function detectarPatadaFrontal(landmarks, estado) {
 // Step touch / skater: alterna el pie que sale por fuera de la cadera. Cuenta
 // un paso por cada lado nuevo.
 export function detectarPressHombro(landmarks, estado) {
-  const visibles = [11, 12, 15, 16];
+  // 1. Exigimos ver los codos (13, 14) además de hombros y muñecas
+  const visibles = [11, 12, 13, 14, 15, 16];
   if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
+    return resultado(estado, { mensaje: 'Muestra hombros, codos y manos' }, false);
   }
 
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+
+  // 2. Medimos la extensión real del brazo (ángulo del codo)
+  const anguloI = calculateAngle(normalizados[11], normalizados[13], normalizados[15]);
+  const anguloD = calculateAngle(normalizados[12], normalizados[14], normalizados[16]);
+  const promedioCodos = (anguloI + anguloD) / 2;
+
+  // 3. Medimos el recorrido vertical (como ya tenías)
   const hombroY = centroY(landmarks, [11, 12]);
   const munecaY = centroY(landmarks, [15, 16]);
   const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
@@ -723,15 +732,26 @@ export function detectarPressHombro(landmarks, estado) {
 
   let { fase } = estado;
   let repeticion = false;
+  let mensaje = null;
 
   if (relativo > UMBRAL_PRESS_ARRIBA) {
-    if (fase === 'ABAJO') repeticion = true;
-    fase = 'ARRIBA';
+    // Para que cuente ARRIBA, los codos deben estar casi estirados (> 140°)
+    if (promedioCodos < 140) {
+      mensaje = 'Estira por completo los brazos hacia arriba';
+    } else {
+      if (fase === 'ABAJO') repeticion = true;
+      fase = 'ARRIBA';
+    }
   } else if (relativo < UMBRAL_PRESS_ABAJO) {
-    fase = 'ABAJO';
+    // Para que cuente ABAJO, los codos deben bajar y flexionarse (< 110°)
+    if (promedioCodos > 110) {
+      mensaje = 'Baja más los codos (a 90 grados)';
+    } else {
+      fase = 'ABAJO';
+    }
   }
 
-  return resultado(estado, { fase, mensaje: null }, repeticion);
+  return resultado(estado, { fase, mensaje }, repeticion);
 }
 
 // Curl de bíceps: las muñecas suben del nivel de la cadera al de los hombros.
