@@ -70,6 +70,7 @@ export function crearEstadoDetector() {
     anguloD: null,
     ladoActivo: null,
     scoreForma: null,
+    progresoFase: 0,
     filtroBase: new OneEuroFilter({ minCutoff: 0.5, beta: 0.01 }),
   };
 }
@@ -109,7 +110,11 @@ function cuerpoHorizontal(hombro, cadera) {
 }
 
 function resultado(estado, cambios, repeticion = false) {
-  return { estado: { ...estado, ...cambios }, repeticion };
+  const merged = { ...estado, ...cambios };
+  if (cambios.progresoFase === undefined) {
+    merged.progresoFase = merged.fase === 'ABAJO' ? 1 : 0;
+  }
+  return { estado: merged, repeticion };
 }
 
 export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
@@ -165,9 +170,11 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
     scoreForma = scoreForma != null ? Math.min(scoreForma, 60) : 60;
   }
 
+  const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - UMBRAL_ANGULO_ABAJO)));
+
   return resultado(
     estado,
-    { fase, baseY, sentado, tiempoZonaBajaMs, mensaje, scoreForma },
+    { fase, baseY, sentado, tiempoZonaBajaMs, mensaje, scoreForma, progresoFase },
     repeticion
   );
 }
@@ -204,7 +211,8 @@ export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
     scoreForma = calcularScoreForma('FLEXIONES', landmarks);
   }
 
-  return resultado(estado, { fase, mensaje, scoreForma }, repeticion);
+  const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - UMBRAL_ANGULO_ABAJO)));
+  return resultado(estado, { fase, mensaje, scoreForma, progresoFase }, repeticion);
 }
 
 export function detectarJumpingJack(landmarks, estado, ahoraMs = Date.now()) {
@@ -275,7 +283,8 @@ export function detectarZancada(landmarks, estado, ahoraMs = Date.now()) {
     }
   }
 
-  return resultado(estado, { fase, baseY, mensaje }, repeticion);
+  const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - UMBRAL_ANGULO_ABAJO)));
+  return resultado(estado, { fase, baseY, mensaje, progresoFase }, repeticion);
 }
 
 export function detectarPlancha(landmarks, estado) {

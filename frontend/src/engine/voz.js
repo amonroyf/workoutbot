@@ -295,6 +295,11 @@ const ENFRIAMIENTO = [
   'Enfriamiento. Respira profundo y suelta los músculos.',
 ];
 
+const FINISHER = [
+  '¡Técnica impecable! Desbloqueaste el minuto de fuego. ¡Vamos con todo!',
+  '¡Esa es la actitud! Te has ganado un desafío extra. A quemar.',
+];
+
 const RESPIRACION = [
   'Respira profundo, lento. Suelta el aire.',
   'Inhala por la nariz, exhala suave.',
@@ -321,6 +326,7 @@ const BANCOS = {
    ATASCADO,
    ON_FIRE,
    SEGURIDAD,
+   FINISHER,
  };
 
 function elegirDe(lista, indice) {
@@ -361,4 +367,5 @@ export const EVENTOS_VOZ = Object.freeze([
   'ATASCADO',
   'ON_FIRE',
   'SEGURIDAD',
+  'FINISHER',
 ]);

@@ -40,6 +40,7 @@ export default function App() {
   const [guiaVisible, setGuiaVisible] = useState(() => !guiaVista());
   const [onboardingVisible, setOnboardingVisible] = useState(() => !onboardingVisto());
   const [resumenIntentado, setResumenIntentado] = useState(false);
+  const [estadoGuardado, setEstadoGuardado] = useState('idle'); // 'idle' | 'guardando' | 'error' | 'exito'
   const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
@@ -52,7 +53,6 @@ export default function App() {
   const setReintentoCamara = useWorkoutStore((state) => state.setReintentoCamara);
   const seleccionarClase = useWorkoutStore((state) => state.seleccionarClase);
   const soportaPantallaCompleta = puedeEntrarEnPantallaCompleta() && !esIos();
-  const enviadoRef = useRef(false);
   const abiertoRef = useRef(false);
   const ultimoErrorCamaraRef = useRef(null);
 
@@ -161,7 +161,7 @@ export default function App() {
       con_camara: camaraHabilitada,
     });
     solicitarPantallaCompleta();
-    iniciarRutina(clase.id);
+    iniciarRutina(clase.id, resumen?.ultima || resumenActual?.ultima || null);
   }, [iniciarRutina, camaraHabilitada]);
 
   const handleSalir = useCallback(async () => {
@@ -197,62 +197,75 @@ export default function App() {
     track('login', { metodo: 'google' });
   }, []);
 
+  // Reset del estado de guardado al salir de la fase FIN
   useEffect(() => {
     if (faseActual !== 'FIN') {
-      enviadoRef.current = false;
-      return;
+      setEstadoGuardado('idle');
     }
-    if (!user || enviadoRef.current) return;
+  }, [faseActual]);
 
-    enviadoRef.current = true;
+  const guardarEntrenamiento = useCallback(async () => {
+    const actual = auth.currentUser || user;
+    if (!actual) return;
+
+    setEstadoGuardado('guardando');
     setCargandoResumen(true);
     const estado = useWorkoutStore.getState();
     const total = calcularTotal(estado.totales);
 
-    auth.currentUser
-      .getIdToken()
-      .then((token) =>
-        fetch('/api/v1/workout/finish', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            score: total,
-            total_reps: total,
-            perfectas: estado.perfectas,
-            mejor_combo: estado.mejorCombo,
-            duracion_sec: duracionClase(estado.claseActual),
-            clase_id: estado.claseActual.id,
-            clase_nombre: estado.claseActual.nombre,
-          }),
-        })
-      )
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        track('class_complete', {
+    try {
+      const token = await actual.getIdToken();
+      const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const res = await fetch('/api/v1/workout/finish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          score: total,
+          total_reps: total,
+          perfectas: estado.perfectas,
+          mejor_combo: estado.mejorCombo,
+          duracion_sec: duracionClase(estado.claseActual),
           clase_id: estado.claseActual.id,
           clase_nombre: estado.claseActual.nombre,
-          repeticiones: total,
-          perfectas: estado.perfectas,
-          duracion_sec: duracionClase(estado.claseActual),
-          mejor_combo: estado.mejorCombo,
-        });
-        if (data.resumen) {
-          setResumen(data.resumen);
-          setResumenActual(data.resumen);
-        }
-      })
-      .catch((err) => {
-        console.error('No se pudo guardar el entrenamiento:', err);
-        track('workout_save_error', { detalle: resumirError(err) });
-      })
-      .finally(() => setCargandoResumen(false));
-  }, [faseActual, user]);
+          timezone: zonaHoraria,
+        }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      track('class_complete', {
+        clase_id: estado.claseActual.id,
+        clase_nombre: estado.claseActual.nombre,
+        repeticiones: total,
+        perfectas: estado.perfectas,
+        duracion_sec: duracionClase(estado.claseActual),
+        mejor_combo: estado.mejorCombo,
+      });
+
+      if (data.resumen) {
+        setResumen(data.resumen);
+        setResumenActual(data.resumen);
+      }
+      setEstadoGuardado('exito');
+    } catch (err) {
+      console.error('No se pudo guardar el entrenamiento:', err);
+      track('workout_save_error', { detalle: resumirError(err) });
+      setEstadoGuardado('error');
+    } finally {
+      setCargandoResumen(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (faseActual === 'FIN' && estadoGuardado === 'idle' && user) {
+      guardarEntrenamiento();
+    }
+  }, [faseActual, estadoGuardado, user, guardarEntrenamiento]);
 
   if (loading) {
     return (
@@ -276,6 +289,24 @@ export default function App() {
     onboardingVisible &&
     resumenIntentado &&
     esPrimeraVez(resumen);
+
+  if (faseActual === 'FIN' && estadoGuardado === 'error') {
+    return (
+      <div className="flex h-dvh w-full flex-col items-center justify-center bg-fondo px-6 text-center text-tinta-100">
+        <Icono nombre="alerta" tamano={48} className="mb-4 text-error-400" />
+        <h2 className="text-3xl font-black">Error de conexión</h2>
+        <p className="mt-3 max-w-sm text-sm text-tinta-300">
+          No tienes internet en este momento. Tu entrenamiento está pausado y seguro.
+        </p>
+        <button
+          onClick={guardarEntrenamiento}
+          className="mt-6 min-h-14 rounded-ficha bg-marca-500 px-8 text-lg font-black text-black transition hover:bg-marca-400"
+        >
+          Reintentar guardado
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
@@ -315,7 +346,9 @@ export default function App() {
         />
       )}
       <WorkoutUI />
-      <SummaryScreen resumen={resumenActual} cargando={cargandoResumen} />
+      {estadoGuardado === 'exito' && (
+        <SummaryScreen resumen={resumenActual} cargando={cargandoResumen} />
+      )}
       <ConsentimientoAnalitica onAceptar={alAceptarAnalitica} />
     </div>
   );

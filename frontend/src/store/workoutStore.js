@@ -33,6 +33,8 @@ export const useWorkoutStore = create((set, get) => ({
   timerRef: null,
   mensajeForma: null,
   scoreForma: null,
+  progresoFase: 0,
+  ritmoAnterior: 0,
   subtitulo: null,
   vozActiva: true,
   musicaActiva: false,
@@ -88,18 +90,26 @@ export const useWorkoutStore = create((set, get) => ({
     });
   },
 
-  iniciarRutina: (claseId) => {
+  iniciarRutina: (claseId, historialAnterior = null) => {
     clearInterval(get().timerRef);
     playStart();
 
     const clase = obtenerClase(claseId) || get().claseActual || CLASE_INICIAL;
     const base = estadoInicialCircuito(Date.now(), clase);
+
+    let ritmo = 0;
+    if (historialAnterior && historialAnterior.duracion_sec > 0) {
+      ritmo = historialAnterior.total_reps / historialAnterior.duracion_sec;
+    }
+
     set({
       ...base,
       claseActual: clase,
       claseSeleccionadaId: clase.id,
       mensajeForma: null,
       scoreForma: null,
+      progresoFase: 0,
+      ritmoAnterior: ritmo,
       subtitulo: null,
       pausado: false,
       pausadoPor: null,
@@ -186,6 +196,10 @@ export const useWorkoutStore = create((set, get) => ({
 
   setScoreForma: (scoreForma) => set({ scoreForma }),
 
+  setProgresoFase: (progresoFase) => set({ progresoFase }),
+
+  setRitmoAnterior: (ritmo) => set({ ritmoAnterior: ritmo }),
+
   setSubtitulo: (subtitulo) => set({ subtitulo }),
 
   setVozActiva: (vozActiva) => set({ vozActiva }),
@@ -233,6 +247,8 @@ export const useWorkoutStore = create((set, get) => ({
       timerRef: null,
       mensajeForma: null,
       scoreForma: null,
+      progresoFase: 0,
+      ritmoAnterior: 0,
       subtitulo: null,
       pausado: false,
       pausadoPor: null,

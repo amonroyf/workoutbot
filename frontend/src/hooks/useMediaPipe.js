@@ -83,6 +83,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const registrarRepeticion = useWorkoutStore((state) => state.registrarRepeticion);
   const setMensajeForma = useWorkoutStore((state) => state.setMensajeForma);
   const setScoreForma = useWorkoutStore((state) => state.setScoreForma);
+  const setProgresoFase = useWorkoutStore((state) => state.setProgresoFase);
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio) => {
     ctx.clearRect(0, 0, width, height);
@@ -152,12 +153,14 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
       estadoDetector.current = crearEstadoDetector();
       reiniciarFiltros(filtrosLandmarks.current);
       setScoreForma(null);
+      setProgresoFase(0);
     }
     const resultado = detector(landmarks, estadoDetector.current, ahoraMs);
     estadoDetector.current = resultado.estado;
     useWorkoutStore.getState().setFaseRepeticion(resultado.estado.fase);
     actualizarMensaje(resultado.estado.mensaje);
     setScoreForma(resultado.estado.scoreForma ?? null);
+    setProgresoFase(resultado.estado.progresoFase ?? 0);
 
     if (resultado.repeticion && ahoraMs - ultimaRepMs.current >= COOLDOWN_REP_MS) {
       ultimaRepMs.current = ahoraMs;
@@ -165,7 +168,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
       const perfecta = !resultado.estado.mensaje && (score == null || score >= UMBRAL_SCORE_PERFECTO);
       registrarRepeticion(perfecta);
     }
-  }, [registrarRepeticion, actualizarMensaje, setScoreForma]);
+  }, [registrarRepeticion, actualizarMensaje, setScoreForma, setProgresoFase]);
 
   useEffect(() => {
     if (!habilitada) {
@@ -283,6 +286,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
             reiniciarFiltros(filtrosLandmarks.current);
             actualizarMensaje(null);
             setScoreForma(null);
+      setProgresoFase(0);
             estado.setFaseRepeticion('ARRIBA');
           }
         }

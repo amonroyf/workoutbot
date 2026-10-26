@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var zonaCOT = time.FixedZone("COT", -5*60*60)
+
 func checkinEn(fecha string, hora int, reps int) Checkin {
 	dia, _ := time.ParseInLocation("2006-01-02", fecha, zonaCOT)
 	return Checkin{
@@ -23,7 +25,7 @@ func checkinEn(fecha string, hora int, reps int) Checkin {
 
 func TestResumenVacio(t *testing.T) {
 	ahora := time.Date(2026, 10, 21, 9, 0, 0, 0, zonaCOT)
-	r := construirResumen(nil, ahora)
+	r := construirResumen(nil, ahora, "America/Bogota")
 
 	if r.Hoy || r.Racha != 0 || r.DiasSemana != 0 || r.TotalSesiones != 0 {
 		t.Fatalf("resumen vacio inesperado: %+v", r)
@@ -45,7 +47,7 @@ func TestRachaYMetaSemanal(t *testing.T) {
 		checkinEn("2026-10-21", 18, 13),
 	}
 
-	r := construirResumen(checkins, ahora)
+	r := construirResumen(checkins, ahora, "America/Bogota")
 
 	if !r.Hoy {
 		t.Fatal("hoy debe estar marcado")
@@ -74,7 +76,7 @@ func TestRachaSeMantieneSiHoyNoHaEntrenado(t *testing.T) {
 		checkinEn("2026-10-20", 8, 11),
 	}
 
-	r := construirResumen(checkins, ahora)
+	r := construirResumen(checkins, ahora, "America/Bogota")
 
 	if r.Hoy {
 		t.Fatal("hoy no debe estar marcado")
@@ -89,7 +91,7 @@ func TestRachaSeMantieneSiHoyNoHaEntrenado(t *testing.T) {
 
 func TestSemanaEmpiezaLunesYMarcaHoy(t *testing.T) {
 	ahora := time.Date(2026, 10, 21, 9, 0, 0, 0, zonaCOT)
-	r := construirResumen(nil, ahora)
+	r := construirResumen(nil, ahora, "America/Bogota")
 
 	if r.Semana[0].Fecha != "2026-10-19" || r.Semana[0].Etiqueta != "L" {
 		t.Fatalf("inicio de semana inesperado: %+v", r.Semana[0])
@@ -108,7 +110,7 @@ func TestFechaVaciaUsaCreadoEn(t *testing.T) {
 	c.Fecha = ""
 	c.CreadoEn = time.Date(2026, 10, 21, 8, 0, 0, 0, zonaCOT)
 
-	r := construirResumen([]Checkin{c}, ahora)
+	r := construirResumen([]Checkin{c}, ahora, "America/Bogota")
 
 	if !r.Hoy || r.Racha != 1 {
 		t.Fatalf("debia contar el checkin por creado_en: %+v", r)

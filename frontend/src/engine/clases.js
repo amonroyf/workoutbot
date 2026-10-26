@@ -1,3 +1,4 @@
+import { GRUPOS_EJERCICIOS } from './ejercicios.js';
 // Catálogo de clases grupales funcionales de WorkoutBot.
 //
 // Cuatro arquetipos (fuerza, hiit, combat, core) con sesiones rápidas y
@@ -54,6 +55,18 @@ function bloque(ejercicio, trabajo, descanso = 0, intensidad = 'media', pistaVoz
   });
 }
 
+export function generarTabata(ejercicios) {
+  return ejercicios.map((ej) =>
+    bloque(ej, 20, 10, 'alta')
+  );
+}
+
+export function generarCircuito(ejercicios, trabajo, descanso, intensidad = 'media') {
+  return ejercicios.map((ej) =>
+    bloque(ej, trabajo, descanso, intensidad)
+  );
+}
+
 function seccion(id, nombre, nombreCorto, tipo, bloques, extra = {}) {
   return Object.freeze({
     id,
@@ -70,6 +83,7 @@ function seccion(id, nombre, nombreCorto, tipo, bloques, extra = {}) {
 const ACTIVACION = 'activacion';
 const PRINCIPAL = 'principal';
 const ENFRIAMIENTO = 'enfriamiento';
+const FINISHER = 'finisher';
 
 function activacion(bloques, pistaVoz) {
   return seccion('activacion', 'Activación funcional', 'Activación', ACTIVACION, bloques, {
@@ -79,6 +93,10 @@ function activacion(bloques, pistaVoz) {
 
 function calma(bloques, pistaVoz) {
   return seccion('enfriamiento', 'Vuelta a la calma', 'Calma', ENFRIAMIENTO, bloques, { pistaVoz });
+}
+
+export function finisherCondicional(bloques, pistaVoz) {
+  return seccion('finisher_1', 'Burnout Final', 'Burnout', FINISHER, bloques, { pistaVoz });
 }
 
 function base(id, nombre, arquetipo, nivel, extra) {
@@ -298,27 +316,27 @@ const HIIT_20 = base('hiit-20', 'HIIT 20', 'hiit', 'intermedio', {
   cues: ['Descanso activo, no te sientes', 'Última ronda, esta es la buena'],
   secciones: [
     activacion([
-      bloque('SENTADILLAS', 45, 0, 'suave', 'Sentadillas progresivas.'),
-      bloque('FLEXIONES', 30, 0, 'suave', 'Flexiones controladas.'),
-      bloque('RODILLAS_ALTAS', 30, 0, 'media', 'Rodillas altas.'),
-      bloque('MOUNTAIN_CLIMBER', 30, 0, 'media', 'Escaladores suaves.'),
+      bloque('piernas', 45, 0, 'suave', 'Sentadillas progresivas.'),
+      bloque('empuje', 30, 0, 'suave', 'Flexiones controladas.'),
+      bloque('cardio', 30, 0, 'media', 'Rodillas altas.'),
+      bloque('cardio', 30, 0, 'media', 'Escaladores suaves.'),
     ], 'Activación funcional de tres minutos.'),
     seccion('pico', 'Bloque 1', 'Bloque 1', PRINCIPAL, [
-      bloque('SENTADILLA_SALTO', 40, 20, 'alta', 'Sentadilla con salto.'),
-      bloque('ESCALADOR', 40, 20, 'alta', 'Escaladores.'),
-      bloque('BURPEE', 40, 20, 'alta', 'Burpees, versión sin salto si prefieres.'),
-      bloque('MOUNTAIN_CLIMBER', 40, 20, 'alta', 'Mountain climber.'),
-      bloque('RODILLAS_ALTAS', 40, 60, 'alta', 'Rodillas altas.'),
+      bloque('potencia', 40, 20, 'alta', 'Sentadilla con salto.'),
+      bloque('cardio', 40, 20, 'alta', 'Escaladores.'),
+      bloque('potencia', 40, 20, 'alta', 'Burpees, versión sin salto si prefieres.'),
+      bloque('cardio', 40, 20, 'alta', 'Mountain climber.'),
+      bloque('cardio', 40, 60, 'alta', 'Rodillas altas.'),
     ], { pistaVoz: 'Bloque uno: todo lo que tengas.' }),
     seccion('recuperacion', 'Descanso activo', 'Descanso', 'recuperacion', [
       bloque('MARCHA_SUAVE', 45, 15, 'suave', 'Camina y recupera.'),
       bloque('RESPIRACION_DIAFRAGMATICA', 30, 0, 'suave', 'Recupera el aliento.'),
     ], { pistaVoz: 'Descanso entre bloques. Respira.' }),
     seccion('pico2', 'Bloque 2', 'Bloque 2', PRINCIPAL, [
-      bloque('FLEXIONES', 40, 20, 'alta', 'Flexiones, codos a 45.'),
-      bloque('ZANCADAS', 40, 20, 'alta', 'Zancadas alternas.'),
-      bloque('MOUNTAIN_CLIMBER', 40, 20, 'alta', 'Mountain climber.'),
-      bloque('JUMPING_JACKS', 40, 40, 'alta', 'Jumping jacks finales.'),
+      bloque('empuje', 40, 20, 'alta', 'Flexiones, codos a 45.'),
+      bloque('piernas', 40, 20, 'alta', 'Zancadas alternas.'),
+      bloque('cardio', 40, 20, 'alta', 'Mountain climber.'),
+      bloque('cardio', 40, 40, 'alta', 'Jumping jacks finales.'),
     ], { pistaVoz: 'Bloque dos: última parte.' }),
     calma([
       bloque('MARCHA_SUAVE', 45, 0, 'suave', 'Baja el pulso.'),
@@ -559,6 +577,14 @@ function congelarLista(lista) {
   return Object.freeze(lista.map((item) => Object.freeze({ ...item })));
 }
 
+function resolverEjercicio(ejercicio_o_grupo) {
+  if (GRUPOS_EJERCICIOS[ejercicio_o_grupo]) {
+    const opciones = GRUPOS_EJERCICIOS[ejercicio_o_grupo];
+    return opciones[Math.floor(Math.random() * opciones.length)];
+  }
+  return ejercicio_o_grupo;
+}
+
 export function compilarClase(clase) {
   const totalSecciones = clase.secciones.length;
   const bloques = [];
@@ -578,6 +604,7 @@ export function compilarClase(clase) {
         bloques.push(
           Object.freeze({
             ...bloque,
+            ejercicio: resolverEjercicio(bloque.ejercicio),
             descanso,
             seccionId: seccion.id,
             seccionNombre: seccion.nombre,
@@ -620,11 +647,13 @@ export const CLASE_POR_DEFECTO = CLASES[0];
 export const CLASE_INICIAL = obtenerClase('core-5') || CLASE_POR_DEFECTO;
 
 export function obtenerClase(id) {
-  return CLASES.find((clase) => clase.id === id) || null;
+  const base = CLASES_BASE.find((clase) => clase.id === id);
+  if (!base) return null;
+  return compilarClase(base);
 }
 
 export function clasesDeArquetipo(arquetipo) {
-  return CLASES.filter((clase) => clase.arquetipo === arquetipo);
+  return CLASES_BASE.filter((clase) => clase.arquetipo === arquetipo).map((clase) => compilarClase(clase));
 }
 
 export function resumenSecciones(clase) {

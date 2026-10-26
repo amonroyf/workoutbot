@@ -48,6 +48,7 @@ type finishWorkoutRequest struct {
 	DuracionSec int    `json:"duracion_sec"`
 	ClaseID     string `json:"clase_id"`
 	ClaseNombre string `json:"clase_nombre"`
+	Timezone    string `json:"timezone"`
 }
 
 func main() {
@@ -153,7 +154,13 @@ func finishWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 		req.ClaseNombre = "Entrenamiento"
 	}
 
-	ahora := time.Now().In(zonaCOT)
+	loc := time.UTC
+	if req.Timezone != "" {
+		if l, err := time.LoadLocation(req.Timezone); err == nil {
+			loc = l
+		}
+	}
+	ahora := time.Now().In(loc)
 	logData := WorkoutLog{
 		UID:         uid,
 		Date:        ahora,
@@ -167,7 +174,7 @@ func finishWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	checkinData := Checkin{
 		UID:         uid,
-		Fecha:       fechaCOT(ahora),
+		Fecha:       ahora.Format("2006-01-02"),
 		CreadoEn:    ahora,
 		ClaseID:     req.ClaseID,
 		ClaseNombre: req.ClaseNombre,
@@ -190,7 +197,7 @@ func finishWorkoutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resumen, err := obtenerResumen(ctx, uid)
+	resumen, err := obtenerResumen(ctx, uid, req.Timezone)
 	if err != nil {
 		log.Printf("Error calculando resumen: %v", err)
 	}
@@ -287,7 +294,7 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 
-	resumen, err := obtenerResumen(ctx, uid)
+	resumen, err := obtenerResumen(ctx, uid, "")
 	if err != nil {
 		log.Printf("Error leyendo resumen: %v", err)
 		responderError(w, "internal_error", "Error leyendo el progreso", http.StatusInternalServerError)
@@ -301,8 +308,8 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func obtenerResumen(ctx context.Context, uid string) (Resumen, error) {
-	iter := firestoreClient.Collection("checkins").Where("uid", "==", uid).Limit(400).Documents(ctx)
+func obtenerResumen(ctx context.Context, uid string, tz string) (Resumen, error) {
+	iter := firestoreClient.Collection("checkins").Where("uid", "==", uid).Limit(2000).Documents(ctx)
 	checkins := make([]Checkin, 0, 32)
 	for {
 		doc, err := iter.Next()
@@ -318,7 +325,7 @@ func obtenerResumen(ctx context.Context, uid string) (Resumen, error) {
 		}
 		checkins = append(checkins, checkin)
 	}
-	return construirResumen(checkins, time.Now()), nil
+	return construirResumen(checkins, time.Now(), tz), nil
 }
 
 func limitarTexto(texto string, max int) string {

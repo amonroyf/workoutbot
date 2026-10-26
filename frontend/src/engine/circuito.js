@@ -185,9 +185,26 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
     };
   }
 
-  const siguienteIndice = indice + 1;
+  let siguienteIndice = indice + 1;
+
+  // LÓGICA DE FINISHER ADAPTATIVO
   if (siguienteIndice < clase.bloques.length) {
-    const siguiente = clase.bloques[siguienteIndice];
+    let siguiente = clase.bloques[siguienteIndice];
+
+    if (siguiente.seccionTipo === 'finisher') {
+      const mereceFinisher = estado.mejorCombo >= 5 && estado.perfectas >= 10;
+
+      if (!mereceFinisher) {
+        while (siguienteIndice < clase.bloques.length && clase.bloques[siguienteIndice].seccionTipo === 'finisher') {
+          siguienteIndice++;
+        }
+        if (siguienteIndice >= clase.bloques.length) {
+          return { estado: { faseActual: 'FIN', tiempoRestante: 0, finFaseEn: null, totales }, sonido: 'silbato' };
+        }
+        siguiente = clase.bloques[siguienteIndice];
+      }
+    }
+
     return {
       estado: {
         faseActual: 'TRABAJO',

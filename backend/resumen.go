@@ -7,8 +7,6 @@ import (
 
 const metaSemanal = 3
 
-var zonaCOT = time.FixedZone("COT", -5*60*60)
-
 type Checkin struct {
 	UID         string    `firestore:"uid" json:"-"`
 	Fecha       string    `firestore:"fecha" json:"fecha"`
@@ -51,26 +49,33 @@ type Resumen struct {
 	Anterior      *SesionResumen `json:"anterior"`
 }
 
-func fechaCOT(t time.Time) string {
-	return t.In(zonaCOT).Format("2006-01-02")
+func fechaLocal(t time.Time, loc *time.Location) string {
+	return t.In(loc).Format("2006-01-02")
 }
 
-func inicioSemanaCOT(t time.Time) time.Time {
-	local := t.In(zonaCOT)
-	local = time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, zonaCOT)
+func inicioSemanaLocal(t time.Time, loc *time.Location) time.Time {
+	local := t.In(loc)
+	local = time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc)
 	offset := (int(local.Weekday()) + 6) % 7
 	return local.AddDate(0, 0, -offset)
 }
 
-func construirResumen(checkins []Checkin, ahora time.Time) Resumen {
-	ahora = ahora.In(zonaCOT)
-	hoy := fechaCOT(ahora)
+func construirResumen(checkins []Checkin, ahora time.Time, reqTz string) Resumen {
+	loc := time.UTC
+	if reqTz != "" {
+		if l, err := time.LoadLocation(reqTz); err == nil {
+			loc = l
+		}
+	}
+
+	ahora = ahora.In(loc)
+	hoy := fechaLocal(ahora, loc)
 
 	dias := make(map[string]bool, len(checkins))
 	for _, checkin := range checkins {
 		fecha := checkin.Fecha
 		if fecha == "" && !checkin.CreadoEn.IsZero() {
-			fecha = fechaCOT(checkin.CreadoEn)
+			fecha = fechaLocal(checkin.CreadoEn, loc)
 		}
 		if fecha != "" {
 			dias[fecha] = true
@@ -98,17 +103,17 @@ func construirResumen(checkins []Checkin, ahora time.Time) Resumen {
 		cursor = ahora.AddDate(0, 0, -1)
 	}
 	racha := 0
-	for dias[fechaCOT(cursor)] {
+	for dias[fechaLocal(cursor, loc)] {
 		racha++
 		cursor = cursor.AddDate(0, 0, -1)
 	}
 
-	inicio := inicioSemanaCOT(ahora)
+	inicio := inicioSemanaLocal(ahora, loc)
 	etiquetas := []string{"L", "M", "M", "J", "V", "S", "D"}
 	semana := make([]DiaResumen, 0, 7)
 	diasSemana := 0
 	for i := 0; i < 7; i++ {
-		fecha := fechaCOT(inicio.AddDate(0, 0, i))
+		fecha := fechaLocal(inicio.AddDate(0, 0, i), loc)
 		hecha := dias[fecha]
 		if hecha {
 			diasSemana++

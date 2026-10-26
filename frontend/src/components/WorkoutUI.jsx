@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { progresoCircuito, progresoSecciones } from '../engine/circuito';
 import { duracionClase, formatearReloj, obtenerArquetipo } from '../engine/clases';
@@ -19,22 +19,43 @@ import DemoEjercicio from './DemoEjercicio';
 import MinijuegoTecho from './MinijuegoTecho';
 import MarcoEncuadre from './MarcoEncuadre';
 
-function AnilloRep({ fase, color = '#4ade80' }) {
-  const radio = 36; // Aumentado de 24 a 36
+function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], ritmoFantasma = 0 }) {
+  const radio = 36;
   const circunferencia = 2 * Math.PI * radio;
-  const avance = fase === 'ABAJO' ? 1 : 0;
+  const avance = Math.max(0, Math.min(1, progresoFase));
+
+  const [transcurrido, setTranscurrido] = useState(0);
+  useEffect(() => {
+    if (ritmoFantasma <= 0) return;
+    let anim;
+    const inicio = performance.now();
+    const loop = (ahora) => {
+      setTranscurrido((ahora - inicio) / 1000);
+      anim = requestAnimationFrame(loop);
+    };
+    anim = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(anim);
+  }, [ritmoFantasma]);
+
+  const avanceFantasma = ritmoFantasma > 0 ? (transcurrido * ritmoFantasma) % 1 : 0;
+  const anguloFantasma = avanceFantasma * 360 - 90;
+  const fantasmaX = 44 + radio * Math.cos((anguloFantasma * Math.PI) / 180);
+  const fantasmaY = 44 + radio * Math.sin((anguloFantasma * Math.PI) / 180);
+
+  const scale = fase === 'ABAJO' ? 1.05 : 1;
+  const opacidad = fase === 'ABAJO' ? 1 : 0.6;
 
   return (
-    <div className="relative h-24 w-24 drop-shadow-xl">
+    <div
+      className="relative h-24 w-24 drop-shadow-xl transition-all"
+      style={{
+        transform: `scale(${scale})`,
+        opacity: opacidad,
+        transitionDuration: `${fase === 'ABAJO' ? tempo[0] : tempo[1]}s`,
+      }}
+    >
       <svg viewBox="0 0 88 88" className="h-full w-full -rotate-90">
-        <circle
-          cx="44"
-          cy="44"
-          r={radio}
-          fill="none"
-          stroke="rgba(255, 255, 255, 0.15)"
-          strokeWidth="10"
-        />
+        <circle cx="44" cy="44" r={radio} fill="none" stroke="rgba(255, 255, 255, 0.15)" strokeWidth="10" />
         <circle
           cx="44"
           cy="44"
@@ -45,8 +66,11 @@ function AnilloRep({ fase, color = '#4ade80' }) {
           strokeLinecap="round"
           strokeDasharray={circunferencia}
           strokeDashoffset={circunferencia * (1 - avance)}
-          className="transition-all duration-300 ease-out"
+          className="transition-all duration-100 ease-linear"
         />
+        {ritmoFantasma > 0 && (
+          <circle cx={fantasmaX} cy={fantasmaY} r="4" fill="rgba(255,255,255,0.9)" />
+        )}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center text-xs font-black uppercase tracking-widest text-white">
         {fase}
@@ -66,6 +90,7 @@ export default function WorkoutUI() {
     ejercicioActual,
     mensajeForma,
     scoreForma,
+    progresoFase,
     subtitulo,
     pausado,
     pausadoPor,
@@ -83,6 +108,7 @@ export default function WorkoutUI() {
     cerrarDemo,
     camaraHabilitada,
     setCamaraHabilitada,
+    ritmoAnterior,
   } = useWorkoutStore();
 
   useMusica();
@@ -114,6 +140,7 @@ export default function WorkoutUI() {
         ? 'Ubica la cámara de frente'
         : null;
   const esTiempo = esDeTiempo(ejercicioActual);
+  const ejercicioTempo = EJERCICIOS_CATALOGO[ejercicioActual]?.tempo || [2, 1];
   const consigna = consignaEjercicio(ejercicioActual);
   const bloque = claseActual.bloques?.[bloqueActual] || null;
   const esCompleta = Boolean(bloque?.seccionNombre);
@@ -133,14 +160,15 @@ export default function WorkoutUI() {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   };
 
-  // Minijuego somatosensorial: el wall sit se juega sosteniendo un techo
-  // virtual con la postura.
+  const EJERCICIOS_ISOMETRICOS = ['WALL_SIT', 'PLANCHA', 'PLANCHA_LATERAL', 'HOLLOW_HOLD', 'SUPERMAN'];
+
+  // Minijuego somatosensorial: el techo virtual se sostiene con la postura
   const mostrarTecho =
     faseActual === 'TRABAJO' &&
     !pausado &&
     !demoAbierta &&
     camaraHabilitada &&
-    ejercicioActual === 'WALL_SIT';
+    EJERCICIOS_ISOMETRICOS.includes(ejercicioActual);
 
   return (
     <div style={estiloGel(claseActual.arquetipo)} className="absolute inset-0 z-10 text-tinta-100">
@@ -289,8 +317,8 @@ export default function WorkoutUI() {
           mostrarTecho ? (
             <div className="mt-4 w-full max-w-sm">
               <MinijuegoTecho />
-              <p className="mt-2 text-sm font-bold text-tinta-300 uppercase tracking-widest">
-                Rodillas a 90°
+              <p className="mt-2 text-sm font-bold uppercase tracking-widest text-tinta-300">
+                ¡Mantén la tensión!
               </p>
             </div>
           ) : esTiempo ? (
@@ -319,7 +347,7 @@ export default function WorkoutUI() {
               </div>
 
               <div className="flex flex-col items-center gap-3 shrink-0">
-                <AnilloRep fase={faseRepeticion} color={colorAnillo} />
+                <AnilloRep fase={faseRepeticion} progresoFase={progresoFase} color={colorAnillo} tempo={ejercicioTempo} ritmoFantasma={ritmoAnterior} />
                 {combo >= 3 && (
                   <span className="rounded-chip bg-racha-500 px-3 py-1.5 text-xs font-black text-black shadow-foco">
                     {combo >= 5 ? <Icono nombre="fuego" tamano={12} className="inline" /> : null}
