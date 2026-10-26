@@ -87,23 +87,25 @@ const FINISHER = 'finisher';
 
 const MAPA_ACTIVACION = {
   piernas: ['SENTADILLAS', 'ZANCADAS'],
-  empuje: ['FLEXIONES', 'ROTACION_TORSO'],
-  tiron: ['REMO', 'BIRD_DOG'],
-  core_frontal: ['BIRD_DOG', 'DEAD_BUG'],
-  core_lateral: ['ROTACION_TORSO', 'PLANCHA_LATERAL'],
-  cardio: ['MARCHA_SUAVE', 'RODILLAS_ALTAS'],
-  potencia: ['SENTADILLAS', 'JUMPING_JACKS']
+  empuje: ['FLEXIONES', 'PRESS_HOMBRO'],
+  tiron: ['REMO', 'PESO_MUERTO'],
+  core_frontal: ['PLANCHA', 'PUENTE_GLUTEO'],
+  core_lateral: ['ROTACION_TORSO'],
+  cardio: ['JUMPING_JACKS', 'RODILLAS_ALTAS'],
+  combat: ['GOLPE_DIRECTO', 'ROTACION_TORSO']
 };
 
 const MAPA_ENFRIAMIENTO = {
-  piernas: ['ESTIRAMIENTO_CUADRICEPS', 'ESTIRAMIENTO_ISQUIOS'],
-  empuje: ['ESTIRAMIENTO_GENERAL', 'POSTURA_NINO'],
-  tiron: ['POSTURA_NINO', 'ESTIRAMIENTO_GENERAL'],
-  core_frontal: ['POSTURA_NINO', 'ESTIRAMIENTO_GENERAL'],
-  core_lateral: ['ESTIRAMIENTO_GENERAL'],
-  cardio: ['MARCHA_SUAVE', 'RESPIRACION_DIAFRAGMATICA'],
-  potencia: ['ESTIRAMIENTO_ISQUIOS', 'MARCHA_SUAVE']
+  piernas: ['WALL_SIT', 'SENTADILLA_SUMO'],
+  empuje: ['PLANCHA', 'ROTACION_TORSO'],
+  tiron: ['PESO_MUERTO', 'SUPERMAN'],
+  core_frontal: ['PUENTE_GLUTEO', 'PLANCHA'],
+  core_lateral: ['PLANCHA_LATERAL', 'ROTACION_TORSO'],
+  cardio: ['WALL_SIT', 'PLANCHA'],
+  combat: ['ROTACION_TORSO', 'PLANCHA']
 };
+
+
 
 function activacion(bloques, pistaVoz) {
   return seccion('activacion', 'Activación funcional', 'Activación', ACTIVACION, bloques, {
@@ -214,7 +216,7 @@ const CLASE_MAESTRA_HIIT = base('hiit', 'HIIT', 'hiit', 'multinivel', {
   secciones: [
     activacionDinamica('Activación metabólica.'),
     seccion('pico', 'Bloque 1', 'Bloque 1', PRINCIPAL, [
-      bloque('potencia', 40, 20, 'alta', ''),
+      bloque('combat', 40, 20, 'alta', ''),
       bloque('cardio', 40, 20, 'alta', ''),
     ], { rondas: 3, descansoRonda: 30 }),
     seccion('core', 'Core', 'Core', PRINCIPAL, [

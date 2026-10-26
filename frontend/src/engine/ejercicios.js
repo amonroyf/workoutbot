@@ -578,6 +578,19 @@ export const EJERCICIOS_CATALOGO = Object.freeze({
   }),
 
   // --- Spinning / ritmo: cardio sin impacto en el sitio.
+  GOLPE_DIRECTO: Object.freeze({
+    id: 'GOLPE_DIRECTO',
+    nombre: 'Golpe directo',
+    grupo: 'combat',
+    nivel: 'intermedio',
+    equipamiento: 'ninguno',
+    vista: 'perfil',
+    detector: 'golpe_directo',
+    modo: 'reps',
+    demo: 'stick',
+    tempo: [0.5, 0.5],
+    pistas: ['Guardia alta', 'Gira la cadera', 'Extiende el brazo'],
+  }),
 });
 
 export const MODIFICACIONES = Object.freeze({
@@ -673,11 +686,11 @@ export function intensidadEjercicio(id) {
 }
 
 export const GRUPOS_EJERCICIOS = {
-  piernas: ['SENTADILLAS', 'ZANCADAS', 'SENTADILLA_SUMO'],
+  piernas: ['SENTADILLAS', 'ZANCADAS', 'SENTADILLA_SUMO', 'WALL_SIT'],
   empuje: ['FLEXIONES', 'FLEXION_DIAMANTE', 'PRESS_HOMBRO'],
-  tiron: ['REMO', 'PESO_MUERTO'],
-  core_frontal: ['PLANCHA', 'ABDOMINALES', 'DEAD_BUG', 'V_UP'],
-  core_lateral: ['PLANCHA_LATERAL', 'RUSSIAN_TWIST'],
-  cardio: ['JUMPING_JACKS', 'RODILLAS_ALTAS', 'MOUNTAIN_CLIMBER', 'ESCALADOR'],
-  potencia: ['SENTADILLA_SALTO', 'BURPEE'],
+  tiron: ['REMO', 'PESO_MUERTO', 'SUPERMAN'],
+  core_frontal: ['PLANCHA', 'ABDOMINALES', 'PUENTE_GLUTEO'],
+  core_lateral: ['PLANCHA_LATERAL', 'ROTACION_TORSO'],
+  cardio: ['JUMPING_JACKS', 'RODILLAS_ALTAS', 'MOUNTAIN_CLIMBER'],
+  combat: ['GOLPE_DIRECTO', 'RODILLAZO', 'PATADA_FRONTAL']
 };
