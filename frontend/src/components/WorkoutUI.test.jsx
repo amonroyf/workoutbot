@@ -35,7 +35,7 @@ function preparar(overrides = {}) {
     avisoMusica: null,
     flashPerfecta: 0,
     faseRepeticion: 'ARRIBA',
-    vozActiva: false,
+    sonidosActivos: false,
     musicaActiva: false,
     ...overrides,
   });
@@ -103,21 +103,17 @@ describe('WorkoutUI — cambios de UX sobre el feed de cámara', () => {
     expect(container).toBeTruthy();
   });
 
-  it('destaca el botón Pausa con área táctil de 56px y apaga el estado visual de Voz', () => {
+  it('destaca el botón Pausa con área táctil de 56px', () => {
     render(<WorkoutUI />);
     const pausa = screen.getByText('Pausa').closest('button');
     expect(claseConInclude(pausa, 'min-h-14')).toBe(true);
     expect(claseConInclude(pausa, 'shadow-flotante')).toBe(true);
-
-    const btnVoz = screen.getByLabelText('Activar la voz');
-    expect(claseConInclude(btnVoz, 'h-14 w-14')).toBe(true);
-    expect(claseConInclude(btnVoz, 'text-tinta-500')).toBe(true);
   });
 
-  it('usa botones solo-ícono con estado activo en Voz y Música', () => {
-    preparar({ vozActiva: true, musicaActiva: true });
+  it('usa botones solo-ícono con estado activo en Sonidos y Música', () => {
+    preparar({ sonidosActivos: true, musicaActiva: true });
     render(<WorkoutUI />);
-    const btnVoz = screen.getByLabelText('Silenciar la voz');
+    const btnVoz = screen.getByLabelText('Silenciar efectos');
     const btnMusica = screen.getByLabelText('Apagar la música');
     expect(claseConInclude(btnVoz, 'text-marca-300')).toBe(true);
     expect(claseConInclude(btnMusica, 'bg-marca-500/20')).toBe(true);

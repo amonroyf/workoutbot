@@ -141,6 +141,7 @@ export default function WorkoutUI() {
     setCamaraHabilitada,
     ritmoAnterior,
     advertenciaCamara,
+    detenerRutina, // <--- AGREGADO PARA BOTÓN ABORTAR
   } = useWorkoutStore();
 
   useMusica();
@@ -468,6 +469,14 @@ export default function WorkoutUI() {
               Seguir sin cámara
             </button>
           )}
+          {/* NUEVO: Botón Abortar clase */}
+          <button
+            type="button"
+            onClick={detenerRutina}
+            className="mt-6 min-h-11 rounded-boton border border-error-500/40 bg-error-500/10 px-6 text-sm font-bold text-error-400 transition hover:bg-error-500/20"
+          >
+            Abortar clase
+          </button>
         </div>
       )}
 

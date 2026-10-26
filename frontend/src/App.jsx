@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './firebase';
 import { useWorkoutStore } from './store/workoutStore';
-import { avanzarCircuito } from './engine/circuito';
 import { calcularTotal } from './engine/score';
 import { duracionClase } from './engine/clases';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
@@ -19,13 +18,16 @@ import {
   solicitarPantallaCompleta,
 } from './engine/pantallaCompleta';
 import CameraFeed from './components/CameraFeed';
-import WorkoutUI from './components/WorkoutUI';
-import SummaryScreen from './components/SummaryScreen';
-import LoginScreen from './components/LoginScreen';
-import PantallaInicio from './components/PantallaInicio';
 import Onboarding from './components/Onboarding';
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
+import MainLayout from './components/MainLayout';
 import { track } from './engine/analytics';
+import {
+  encolarGuardado,
+  listarGuardadosPendientes,
+  eliminarGuardadoPendiente,
+  sincronizarPendientes,
+} from './engine/guardadoOffline';
 
 function resumirError(error) {
   return String(error?.message || error || 'Error desconocido').slice(0, 120);
@@ -40,7 +42,7 @@ export default function App() {
   const [guiaVisible, setGuiaVisible] = useState(() => !guiaVista());
   const [onboardingVisible, setOnboardingVisible] = useState(() => !onboardingVisto());
   const [resumenIntentado, setResumenIntentado] = useState(false);
-  const [estadoGuardado, setEstadoGuardado] = useState('idle'); // 'idle' | 'guardando' | 'exito'
+  const [estadoGuardado, setEstadoGuardado] = useState('idle');
   const [pendientesSync, setPendientesSync] = useState(0);
   const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
@@ -78,8 +80,6 @@ export default function App() {
     }
   }, []);
 
-  // Al abrir la app o recuperar conexión: vacía la cola offline antes de
-  // pedir el progreso al servidor, para que el resultado ya la incluya.
   const sincronizarPendientesAhora = useCallback(async () => {
     const actual = auth.currentUser;
     if (!actual) return;
@@ -119,7 +119,6 @@ export default function App() {
     sincronizarPendientesAhora();
   }, [user, sincronizarPendientesAhora]);
 
-  // Recupera la conexión: manda lo que había quedado en la cola local.
   useEffect(() => {
     const sincronizar = () => sincronizarPendientesAhora();
     window.addEventListener('online', sincronizar);
@@ -205,7 +204,7 @@ export default function App() {
     });
     solicitarPantallaCompleta();
     iniciarRutina(clase.id, resumen?.ultima || resumenActual?.ultima || null);
-  }, [iniciarRutina, camaraHabilitada]);
+  }, [iniciarRutina, camaraHabilitada, resumen, resumenActual]);
 
   const handleSalir = useCallback(async () => {
     track('logout');
@@ -240,16 +239,12 @@ export default function App() {
     track('login', { metodo: 'google' });
   }, []);
 
-  // Reset del estado de guardado al salir de la fase FIN
   useEffect(() => {
     if (faseActual !== 'FIN') {
       setEstadoGuardado('idle');
     }
   }, [faseActual]);
 
-  // Guardado offline-first: si el POST falla (sin internet, WiFi glacil), el
-  // cuerpo viaja a una cola local (IndexedDB) y se sincroniza solo después.
-  // El usuario SIEMPRE ve su resumen, calculado localmente en el store.
   const guardarEntrenamiento = useCallback(async () => {
     const actual = auth.currentUser || user;
     if (!actual) return;
@@ -307,7 +302,6 @@ export default function App() {
         console.error('No se pudo encolar el guardado local:', errCola);
         setPendientesSync((n) => n + 1);
       }
-      // Optimistic UI: directo al resumen, la cola se vacía sola al volver.
       setEstadoGuardado('exito');
     }
   }, [user]);
@@ -318,9 +312,6 @@ export default function App() {
     }
   }, [faseActual, estadoGuardado, user, guardarEntrenamiento]);
 
-  // Sincronización de tiempo real: atrapa el throttling del navegador en
-  // segundo plano. Al volver, el reloj se adelanta el tiempo "robado" sin
-  // pausar ni interrumpir al usuario.
   useEffect(() => {
     const sincronizar = () => {
       if (document.hidden) return;
@@ -362,31 +353,6 @@ export default function App() {
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
       <CameraFeed />
-      {faseActual === 'CALIBRACION' && (
-        <PantallaInicio
-          user={user}
-          plan={plan}
-          resumen={resumen}
-          cargandoResumen={cargandoResumen}
-          claseActual={claseActual}
-          errorCamara={errorCamara}
-          camaraActiva={camaraActiva}
-          camaraHabilitada={camaraHabilitada}
-          onReintentarCamara={() => setReintentoCamara(reintentoCamara + 1)}
-          onActivarCamara={activarCamara}
-          onDesactivarCamara={desactivarCamara}
-          onEmpezar={handleEmpezarClase}
-          onSeleccionarClase={elegirClase}
-          onGuardarPlan={guardarPlanSemanal}
-          onSalir={handleSalir}
-          mostrarGuia={mostrarGuia}
-          onCerrarGuia={() => {
-            marcarGuiaVista();
-            setGuiaVisible(false);
-          }}
-          soportaPantallaCompleta={soportaPantallaCompleta}
-        />
-      )}
       {mostrarOnboarding && (
         <Onboarding
           plan={plan}
@@ -396,7 +362,30 @@ export default function App() {
           onSinCamara={desactivarCamara}
         />
       )}
-      <WorkoutUI />
+      <MainLayout
+        user={user}
+        resumen={resumen}
+        resumenActual={resumenActual}
+        cargandoResumen={cargandoResumen}
+        plan={plan}
+        onGuardarPlan={guardarPlanSemanal}
+        onSeleccionarClase={elegirClase}
+        onEmpezar={handleEmpezarClase}
+        onActivarCamara={activarCamara}
+        onDesactivarCamara={desactivarCamara}
+        onReintentarCamara={() => setReintentoCamara(reintentoCamara + 1)}
+        onSalida={handleSalir}
+        errorCamara={errorCamara}
+        camaraActiva={camaraActiva}
+        camaraHabilitada={camaraHabilitada}
+        soportaPantallaCompleta={soportaPantallaCompleta}
+        claseActual={claseActual}
+        mostrarGuia={mostrarGuia}
+        onCerrarGuia={() => {
+          marcarGuiaVista();
+          setGuiaVisible(false);
+        }}
+      />
       {estadoGuardado === 'exito' && (
         <SummaryScreen
           resumen={resumenActual}
