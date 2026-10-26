@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from './firebase';
 import { useWorkoutStore } from './store/workoutStore';
+import { avanzarCircuito } from './engine/circuito';
 import { calcularTotal } from './engine/score';
 import { duracionClase } from './engine/clases';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
@@ -39,7 +40,8 @@ export default function App() {
   const [guiaVisible, setGuiaVisible] = useState(() => !guiaVista());
   const [onboardingVisible, setOnboardingVisible] = useState(() => !onboardingVisto());
   const [resumenIntentado, setResumenIntentado] = useState(false);
-  const [estadoGuardado, setEstadoGuardado] = useState('idle'); // 'idle' | 'guardando' | 'error' | 'exito'
+  const [estadoGuardado, setEstadoGuardado] = useState('idle'); // 'idle' | 'guardando' | 'exito'
+  const [pendientesSync, setPendientesSync] = useState(0);
   const [plan, setPlan] = useState(() => cargarPlan(undefined, auth.currentUser?.uid));
   const faseActual = useWorkoutStore((state) => state.faseActual);
   const iniciarRutina = useWorkoutStore((state) => state.iniciarRutina);
@@ -76,9 +78,53 @@ export default function App() {
     }
   }, []);
 
+  // Al abrir la app o recuperar conexión: vacía la cola offline antes de
+  // pedir el progreso al servidor, para que el resultado ya la incluya.
+  const sincronizarPendientesAhora = useCallback(async () => {
+    const actual = auth.currentUser;
+    if (!actual) return;
+    try {
+      const pendientes = await listarGuardadosPendientes();
+      setPendientesSync(pendientes.length);
+      if (pendientes.length === 0) return;
+
+      track('workout_sync_retry', { pendientes: pendientes.length });
+      const token = await actual.getIdToken();
+      const resultado = await sincronizarPendientes({
+        listar: listarGuardadosPendientes,
+        eliminar: eliminarGuardadoPendiente,
+        enviar: async (registro) => {
+          const res = await fetch('/api/v1/workout/finish', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(registro.cuerpo),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json().catch(() => ({}));
+          if (data.resumen) setResumen(data.resumen);
+        },
+      });
+      setPendientesSync(resultado.pendientes);
+      if (resultado.enviados > 0) await cargarResumen();
+    } catch (err) {
+      console.error('No se pudo sincronizar el guardado local:', err);
+    }
+  }, [cargarResumen]);
+
   useEffect(() => {
-    if (user) cargarResumen();
-  }, [user, cargarResumen]);
+    if (!user) return;
+    sincronizarPendientesAhora();
+  }, [user, sincronizarPendientesAhora]);
+
+  // Recupera la conexión: manda lo que había quedado en la cola local.
+  useEffect(() => {
+    const sincronizar = () => sincronizarPendientesAhora();
+    window.addEventListener('online', sincronizar);
+    return () => window.removeEventListener('online', sincronizar);
+  }, [sincronizarPendientesAhora]);
 
   useEffect(() => {
     if (faseActual === 'TRABAJO' || faseActual === 'CALIBRACION') {
@@ -201,48 +247,49 @@ export default function App() {
     }
   }, [faseActual]);
 
+  // Guardado offline-first: si el POST falla (sin internet, WiFi glacil), el
+  // cuerpo viaja a una cola local (IndexedDB) y se sincroniza solo después.
+  // El usuario SIEMPRE ve su resumen, calculado localmente en el store.
   const guardarEntrenamiento = useCallback(async () => {
     const actual = auth.currentUser || user;
     if (!actual) return;
 
     setEstadoGuardado('guardando');
-    setCargandoResumen(true);
     const estado = useWorkoutStore.getState();
     const total = calcularTotal(estado.totales);
 
+    const cuerpo = {
+      score: total,
+      total_reps: total,
+      perfectas: estado.perfectas,
+      mejor_combo: estado.mejorCombo,
+      duracion_sec: duracionClase(estado.claseActual),
+      clase_id: estado.claseActual.id,
+      clase_nombre: estado.claseActual.nombre,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+
+    track('class_complete', {
+      clase_id: cuerpo.clase_id,
+      clase_nombre: cuerpo.clase_nombre,
+      repeticiones: total,
+      perfectas: estado.perfectas,
+      duracion_sec: cuerpo.duracion_sec,
+      mejor_combo: estado.mejorCombo,
+    });
+
     try {
       const token = await actual.getIdToken();
-      const zonaHoraria = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
       const res = await fetch('/api/v1/workout/finish', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          score: total,
-          total_reps: total,
-          perfectas: estado.perfectas,
-          mejor_combo: estado.mejorCombo,
-          duracion_sec: duracionClase(estado.claseActual),
-          clase_id: estado.claseActual.id,
-          clase_nombre: estado.claseActual.nombre,
-          timezone: zonaHoraria,
-        }),
+        body: JSON.stringify(cuerpo),
       });
-
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-
-      track('class_complete', {
-        clase_id: estado.claseActual.id,
-        clase_nombre: estado.claseActual.nombre,
-        repeticiones: total,
-        perfectas: estado.perfectas,
-        duracion_sec: duracionClase(estado.claseActual),
-        mejor_combo: estado.mejorCombo,
-      });
 
       if (data.resumen) {
         setResumen(data.resumen);
@@ -250,11 +297,18 @@ export default function App() {
       }
       setEstadoGuardado('exito');
     } catch (err) {
-      console.error('No se pudo guardar el entrenamiento:', err);
+      console.error('Sin conexión: el entrenamiento quedó en cola local.', err);
       track('workout_save_error', { detalle: resumirError(err) });
-      setEstadoGuardado('error');
-    } finally {
-      setCargandoResumen(false);
+      try {
+        await encolarGuardado(cuerpo);
+        const pendientes = await listarGuardadosPendientes();
+        setPendientesSync(pendientes.length);
+      } catch (errCola) {
+        console.error('No se pudo encolar el guardado local:', errCola);
+        setPendientesSync((n) => n + 1);
+      }
+      // Optimistic UI: directo al resumen, la cola se vacía sola al volver.
+      setEstadoGuardado('exito');
     }
   }, [user]);
 
@@ -263,6 +317,24 @@ export default function App() {
       guardarEntrenamiento();
     }
   }, [faseActual, estadoGuardado, user, guardarEntrenamiento]);
+
+  // Sincronización de tiempo real: atrapa el throttling del navegador en
+  // segundo plano. Al volver, el reloj se adelanta el tiempo "robado" sin
+  // pausar ni interrumpir al usuario.
+  useEffect(() => {
+    const sincronizar = () => {
+      if (document.hidden) return;
+      useWorkoutStore.getState().sincronizarReloj();
+    };
+    document.addEventListener('visibilitychange', sincronizar);
+    window.addEventListener('focus', sincronizar);
+    window.addEventListener('pageshow', sincronizar);
+    return () => {
+      document.removeEventListener('visibilitychange', sincronizar);
+      window.removeEventListener('focus', sincronizar);
+      window.removeEventListener('pageshow', sincronizar);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -286,24 +358,6 @@ export default function App() {
     onboardingVisible &&
     resumenIntentado &&
     esPrimeraVez(resumen);
-
-  if (faseActual === 'FIN' && estadoGuardado === 'error') {
-    return (
-      <div className="flex h-dvh w-full flex-col items-center justify-center bg-fondo px-6 text-center text-tinta-100">
-        <Icono nombre="alerta" tamano={48} className="mb-4 text-error-400" />
-        <h2 className="text-3xl font-black">Error de conexión</h2>
-        <p className="mt-3 max-w-sm text-sm text-tinta-300">
-          No tienes internet en este momento. Tu entrenamiento está pausado y seguro.
-        </p>
-        <button
-          onClick={guardarEntrenamiento}
-          className="mt-6 min-h-14 rounded-ficha bg-marca-500 px-8 text-lg font-black text-black transition hover:bg-marca-400"
-        >
-          Reintentar guardado
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
@@ -344,7 +398,11 @@ export default function App() {
       )}
       <WorkoutUI />
       {estadoGuardado === 'exito' && (
-        <SummaryScreen resumen={resumenActual} cargando={cargandoResumen} />
+        <SummaryScreen
+          resumen={resumenActual}
+          cargando={cargandoResumen}
+          pendienteSync={pendientesSync}
+        />
       )}
       <ConsentimientoAnalitica onAceptar={alAceptarAnalitica} />
     </div>

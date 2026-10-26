@@ -1,9 +1,17 @@
 let audioCtx = null;
 
 function getContext() {
+  if (typeof window === 'undefined') return null;
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch {
+      // Sin ctx (navegador sin soporte): los sonidos son best-effort y no
+      // deben tumbar el motor de la rutina.
+      return null;
+    }
   }
+  if (!audioCtx) return null;
   if (audioCtx.state === 'suspended') {
     audioCtx.resume();
   }
@@ -14,6 +22,7 @@ const ESCALA_COMBO = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.
 
 export function playRep(combo = 0, perfecta = false) {
   const ctx = getContext();
+  if (!ctx) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -52,6 +61,7 @@ export function playRep(combo = 0, perfecta = false) {
 
 export function playAlert() {
   const ctx = getContext();
+  if (!ctx) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -73,6 +83,7 @@ export function playAlert() {
 
 export function playCountdownPip(segundoRestante) {
   const ctx = getContext();
+  if (!ctx) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -96,6 +107,7 @@ export function playCountdownPip(segundoRestante) {
 
 export function playSideSwitch() {
   const ctx = getContext();
+  if (!ctx) return;
   const t = ctx.currentTime;
 
   [587.33, 880.0].forEach((freq, idx) => {
@@ -120,6 +132,7 @@ export function playSideSwitch() {
 
 export function playStart() {
   const ctx = getContext();
+  if (!ctx) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -135,6 +148,7 @@ export function playStart() {
 
 export function playWhistle() {
   const ctx = getContext();
+  if (!ctx) return;
   const t = ctx.currentTime;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();

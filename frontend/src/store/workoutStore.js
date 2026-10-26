@@ -226,6 +226,55 @@ export const useWorkoutStore = create((set, get) => ({
   setMusicaActiva: (musicaActiva) => set({ musicaActiva }),
   setAvisoMusica: (avisoMusica) => set({ avisoMusica }),
 
+  // Adelanta el reloj "robado" por el navegador (setInterval estrangulado en
+  // segundo plano). El reloj ya está anclado a fecha absoluta (finFaseEn), así
+  // que basta atravesar las fases vencidas de una vez y retomar donde el usuario
+  // matemáticamente debería estar. Silencioso: suena apenas el último silbato.
+  sincronizarReloj: () => {
+    const { pausado, faseActual, claseActual } = get();
+    if (pausado) return;
+    if (
+      faseActual !== 'TRABAJO' &&
+      faseActual !== 'DESCANSO' &&
+      faseActual !== 'CAMBIO_LADO'
+    )
+      return;
+
+    const LIMITE_FASES = (claseActual?.bloques?.length || 0) * 2 + 8;
+    let actual = get();
+    const sonidos = [];
+
+    for (let guard = 0; guard < LIMITE_FASES; guard += 1) {
+      const ahora = Date.now();
+      if (actual.finFaseEn == null || ahora < actual.finFaseEn) {
+        if (actual.finFaseEn != null) {
+          const restante = Math.max(0, Math.ceil((actual.finFaseEn - ahora) / 1000));
+          if (restante !== actual.tiempoRestante) set({ tiempoRestante: restante });
+        }
+        break;
+      }
+
+      // Las fases vencidas se encadenan a partir del fin PROGRAMADO de la fase
+      // anterior (no de "ahora"), para reproducir la linea de tiempo real que
+      // avanzó mientras el navegador no ejecutaba ticks. Sin esto, cada
+      // transición reiniciaría su duración desde ahora y el tiempo robado
+      // se perdería.
+      const resultado = avanzarCircuito(actual, actual.finFaseEn, actual.claseActual);
+      if (!resultado) break;
+      set({ ...resultado.estado, faseRepeticion: 'ARRIBA' });
+      if (resultado.sonido) sonidos.push(resultado.sonido);
+      actual = get();
+
+      if (actual.faseActual === 'FIN') {
+        clearInterval(get().timerRef);
+        break;
+      }
+    }
+
+    const ultimoSonido = sonidos[sonidos.length - 1];
+    if (ultimoSonido) reproducirSonido(ultimoSonido);
+  },
+
   pausar: (por = 'manual') => {
     const { pausado, faseActual } = get();
     if (pausado || (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO')) return;

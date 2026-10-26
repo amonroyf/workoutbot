@@ -1,5 +1,7 @@
 import { beforeEach, describe, it, expect } from 'vitest';
 import { useWorkoutStore } from './workoutStore';
+import { estadoInicialCircuito } from '../engine/circuito';
+import { CLASE_INICIAL, duracionClase } from '../engine/clases';
 
 beforeEach(() => {
   useWorkoutStore.getState().detenerRutina();
@@ -63,5 +65,64 @@ describe('toggleFacingMode', () => {
 
     useWorkoutStore.getState().toggleFacingMode();
     expect(useWorkoutStore.getState().facingMode).toBe('user');
+  });
+});
+
+describe('sincronizarReloj', () => {
+  it('avanza todas las fases vencidas hasta FIN si la clase termino en segundo plano', () => {
+    const clase = CLASE_INICIAL;
+    const inicioAtrasado = Date.now() - (duracionClase(clase) + 5) * 1000;
+    useWorkoutStore.setState({
+      ...estadoInicialCircuito(inicioAtrasado, clase),
+      claseActual: clase,
+      pausado: false,
+    });
+
+    useWorkoutStore.getState().sincronizarReloj();
+
+    const estado = useWorkoutStore.getState();
+    expect(estado.faseActual).toBe('FIN');
+    expect(estado.finFaseEn).toBe(null);
+  });
+
+  it('toma el relevo en la fase siguiente cuando solo paso un tramo en segundo plano', () => {
+    const clase = CLASE_INICIAL;
+    const haceUnTramo = Date.now() - 5 * 1000;
+    useWorkoutStore.setState({
+      ...estadoInicialCircuito(haceUnTramo, clase),
+      claseActual: clase,
+      pausado: false,
+    });
+
+    useWorkoutStore.getState().sincronizarReloj();
+
+    const estado = useWorkoutStore.getState();
+    const avanzadoLaFase =
+      estado.faseActual !== 'TRABAJO' || estado.bloqueActual !== 0 || estado.repeticiones === 0;
+    expect(avanzadoLaFase).toBe(true);
+    expect(estado.finFaseEn).toBeGreaterThan(Date.now());
+    expect(estado.tiempoRestante).toBeGreaterThan(0);
+  });
+
+  it('no adelanta el reloj si la rutina esta pausada', () => {
+    const clase = CLASE_INICIAL;
+    const haceUnTramo = Date.now() - 5 * 1000;
+    useWorkoutStore.setState({
+      ...estadoInicialCircuito(haceUnTramo, clase),
+      claseActual: clase,
+      pausado: true,
+      pausadoPor: 'manual',
+    });
+
+    useWorkoutStore.getState().sincronizarReloj();
+
+    const estado = useWorkoutStore.getState();
+    expect(estado.faseActual).toBe('TRABAJO');
+    expect(estado.finFaseEn).not.toBe(null);
+  });
+
+  it('no hace nada en CALIBRACION', () => {
+    useWorkoutStore.getState().sincronizarReloj();
+    expect(useWorkoutStore.getState().faseActual).toBe('CALIBRACION');
   });
 });

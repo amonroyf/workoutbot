@@ -397,9 +397,17 @@ export function generarClase(arquetipoId, minutos) {
 }
 
 export function obtenerClase(id) {
+  // Primero intenta el id de la maestra (p. ej. 'core'). Si no existe, intenta
+  // los ids derivados del plan semanal con formato '<arquetipo>-<minutos>'
+  // (p. ej. 'fuerza-10'), regresando una clase compilada del arquetipo dado.
   const base = CLASES_MAESTRAS.find((clase) => clase.id === id);
-  if (!base) return null;
-  return compilarClase(base);
+  if (base) return compilarClase(base);
+  const coincidencia = /^(\w+)-(\d{1,2})$/.exec(id);
+  if (coincidencia) {
+    const clase = generarClase(coincidencia[1], Number(coincidencia[2]));
+    if (clase) return clase;
+  }
+  return null;
 }
 
 export function clasesDeArquetipo(arquetipo) {

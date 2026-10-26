@@ -1,7 +1,7 @@
 import React from 'react';
 import { useWorkoutStore } from '../store/workoutStore';
 import { calcularTotal, calcularSegundos, separarTotales } from '../engine/score';
-import { esDeTiempo, nombreEjercicio } from '../engine/ejercicios';
+import { esDeTiempo, nombreEjercicio, EJERCICIOS_CATALOGO } from '../engine/ejercicios';
 import { formatearDuracion, obtenerArquetipo } from '../engine/clases';
 import { estiloGel } from '../theme';
 import { diferenciaReps, textoComparacion } from '../engine/progreso';
@@ -18,7 +18,145 @@ function valorDe(ejercicio, reps, segundos) {
   return `${reps[ejercicio] || 0}`;
 }
 
-export default function SummaryScreen({ resumen, cargando = false }) {
+// Ejes del radar, en el orden en que se trazan los ángulos del hexágono.
+const EJES_RADAR = ['Piernas', 'Empuje', 'Tirón', 'Core', 'Cardio', 'Combat'];
+
+// Mapeo del grupo del catálogo (nombres libres) a un eje del radar.
+function ejeRadarDeGrupo(grupo) {
+  switch (grupo) {
+    case 'piernas':
+    case 'glúteos':
+      return 'Piernas';
+    case 'pecho':
+    case 'hombros':
+      return 'Empuje';
+    case 'espalda':
+      return 'Tirón';
+    case 'cardio':
+      return 'Cardio';
+    case 'combat':
+    case 'combate':
+      return 'Combat';
+    default:
+      return 'Core';
+  }
+}
+
+// Gráfico hexagonal del volumen de trabajo por grupo muscular. Normaliza el
+// tiempo isométrico contra repeticiones dinámicas (1 rep ≈ 1.5 s de tensión)
+// y traza el esfuerzo máximo tocando el borde exterior del hexágono.
+function RadarFatiga({ totales, color }) {
+  const datos = { Piernas: 0, Empuje: 0, Tirón: 0, Core: 0, Cardio: 0, Combat: 0 };
+  let maximo = 0;
+
+  Object.entries(totales || {}).forEach(([ej, valor]) => {
+    const catalogo = EJERCICIOS_CATALOGO[ej];
+    if (!catalogo || !valor) return;
+
+    // 1 repetición ≈ 1.5 s de tensión: los segundos se dividen, el resto son reps.
+    const esfuerzo = esDeTiempo(ej) ? valor / 1.5 : valor;
+    const eje = ejeRadarDeGrupo(catalogo.grupo);
+
+    datos[eje] += esfuerzo;
+    if (datos[eje] > maximo) maximo = datos[eje];
+  });
+
+  if (maximo === 0) return null; // sin trabajo creado, no hay huella que trazar
+
+  const centro = 100;
+  const radioMax = 65; // margen para que las etiquetas no se corten
+  const angulos = [-90, -30, 30, 90, 150, 210].map((a) => (a * Math.PI) / 180);
+  const etiquetas = Object.keys(datos);
+  const valores = Object.values(datos);
+
+  const puntosUsuario = valores
+    .map((v, i) => {
+      const r = (v / maximo) * radioMax;
+      const x = centro + r * Math.cos(angulos[i]);
+      const y = centro + r * Math.sin(angulos[i]);
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  return (
+    <div className="mb-4 flex w-full max-w-sm flex-col items-center rounded-panel border border-linea bg-tinta-800/60 p-4">
+      <p className="mb-2 w-full text-left text-xs font-bold text-tinta-300">Desgaste Muscular</p>
+      <svg viewBox="0 0 200 200" className="h-48 w-48 overflow-visible drop-shadow-xl">
+        {[0.33, 0.66, 1].map((escala) => (
+          <polygon
+            key={escala}
+            points={angulos
+              .map(
+                (a) =>
+                  `${centro + radioMax * escala * Math.cos(a)},${
+                    centro + radioMax * escala * Math.sin(a)
+                  }`
+              )
+              .join(' ')}
+            fill="none"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="1"
+          />
+        ))}
+        {angulos.map((a, i) => (
+          <line
+            key={`eje-${i}`}
+            x1={centro}
+            y1={centro}
+            x2={centro + radioMax * Math.cos(a)}
+            y2={centro + radioMax * Math.sin(a)}
+            stroke="rgba(255,255,255,0.06)"
+          />
+        ))}
+        <polygon
+          points={puntosUsuario}
+          fill={color}
+          fillOpacity="0.25"
+          stroke={color}
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+        {valores.map((v, i) => {
+          if (v === 0) return null;
+          const r = (v / maximo) * radioMax;
+          return (
+            <circle
+              key={`nodo-${i}`}
+              cx={centro + r * Math.cos(angulos[i])}
+              cy={centro + r * Math.sin(angulos[i])}
+              r="3"
+              fill={color}
+            />
+          );
+        })}
+        {angulos.map((a, i) => {
+          const rTexto = radioMax + 18;
+          const xTexto = centro + rTexto * Math.cos(a);
+          const yTexto = centro + rTexto * Math.sin(a) + 4;
+          const resalte =
+            valores[i] >= maximo * 0.8
+              ? 'fill-white font-black'
+              : valores[i] > 0
+                ? 'fill-tinta-200 font-bold'
+                : 'fill-tinta-600 font-medium';
+          return (
+            <text
+              key={`texto-${i}`}
+              x={xTexto}
+              y={yTexto}
+              textAnchor="middle"
+              className={`text-[9px] uppercase tracking-widest ${resalte}`}
+            >
+              {etiquetas[i]}
+            </text>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+export default function SummaryScreen({ resumen, cargando = false, pendienteSync = 0 }) {
   const {
     faseActual,
     totales,
@@ -37,6 +175,7 @@ export default function SummaryScreen({ resumen, cargando = false }) {
   const delta = diferenciaReps(resumen);
   const comparacion = textoComparacion(resumen);
   const arquetipo = obtenerArquetipo(claseActual.arquetipo);
+  const colorGel = arquetipo?.color || '#ff6a2b';
 
   const grupos = claseActual.secciones
     ? claseActual.secciones.map((seccion, i) => ({
@@ -79,6 +218,20 @@ export default function SummaryScreen({ resumen, cargando = false }) {
       </p>
       <p className="relative fuente-display text-sm font-semibold text-tinta-200">{claseActual.nombre}</p>
       <h1 className="fuente-display mb-4 mt-1 text-3xl font-black md:text-4xl">Clase completada</h1>
+
+      {pendienteSync > 0 && (
+        <div
+          role="status"
+          className="relative mb-3 flex items-center gap-2 rounded-ficha border border-linea bg-tinta-800/60 px-3 py-2 text-left text-xs text-tinta-300"
+        >
+          <span className="h-2 w-2 shrink-0 rounded-full bg-aviso-400" />
+          <span>
+            {pendienteSync === 1
+              ? 'Sin conexión: tu sesión quedó guardada en el teléfono. Se sincronizará sola cuando vuelva internet.'
+              : `Sin conexión: ${pendienteSync} sesiones esperan sincronizarse. Se mandarán solas cuando vuelva internet.`}
+          </span>
+        </div>
+      )}
 
       {cargando && !resumen && (
         <div className="mb-4 w-full max-w-sm space-y-3 text-left">
@@ -141,6 +294,8 @@ export default function SummaryScreen({ resumen, cargando = false }) {
           <p className="text-2xl font-black text-marca-300">{perfectas}</p>
         </div>
       </div>
+
+      <RadarFatiga totales={totales} color={colorGel} />
 
       <div className="w-full max-w-sm space-y-3 text-left">
         {grupos.map((grupo) => (

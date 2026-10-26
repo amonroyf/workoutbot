@@ -311,11 +311,6 @@ export function useEntrenadorVoz(resumen = null) {
     }
   }, [vozActiva]);
 
-  useEffect(() => {
-    const alOcultar = () => {
-      if (document.hidden) useWorkoutStore.getState().pausar('manual');
-    };
-    document.addEventListener('visibilitychange', alOcultar);
-    return () => document.removeEventListener('visibilitychange', alOcultar);
-  }, []);
+  // El cambio de visibilidad lo maneja sincronizarReloj (store): al volver,
+  // el reloj se adelanta el tiempo "robado" en segundo plano sin pausar nada.
 }

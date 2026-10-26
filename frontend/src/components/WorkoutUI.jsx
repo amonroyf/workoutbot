@@ -42,11 +42,31 @@ function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], 
   const fantasmaX = 44 + radio * Math.cos((anguloFantasma * Math.PI) / 180);
   const fantasmaY = 44 + radio * Math.sin((anguloFantasma * Math.PI) / 180);
 
-  const ritmoActual = transcurrido > 0 ? (repsActuales + progresoFase) / transcurrido : 0;
-  const ganando = ritmoActual >= (ritmoFantasma * 0.95);
+  // Lógica de Urgencia (Ghost Pace): tres estados por delta exacto de reps
+  // entre el usuario y el fantasma.
+  const repsEsperadas = transcurrido * ritmoFantasma;
+  const repsReales = repsActuales + progresoFase;
+  const delta = repsReales - repsEsperadas;
 
-  const colorOrbe = ganando ? 'rgba(255, 255, 255, 0.7)' : '#ef4444';
-  const glowOrbe = ganando ? 'drop-shadow-md' : 'drop-shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse';
+  // Estado por defecto: Seguro (blanco sutil, sin brillo)
+  let colorOrbe = 'rgba(255, 255, 255, 0.6)';
+  let claseOrbe = 'scale-100 opacity-70 transition-all duration-300';
+  let radioOrbe = '4';
+
+  if (ritmoFantasma > 0 && transcurrido > 2) {
+    // 2 segundos de gracia al iniciar la fase
+    if (delta < 0) {
+      // Perdiendo: el fantasma lo superó. Rojo sangre, parpadeo rápido, ++ tamaño.
+      colorOrbe = '#ef4444';
+      claseOrbe = 'drop-shadow-[0_0_12px_rgba(239,68,68,1)] animate-pulse scale-125 opacity-100 transition-all duration-200';
+      radioOrbe = '5.5';
+    } else if (delta < 0.6) {
+      // Alerta de colisión: el fantasma recorta a menos de 0.6 reps. Naranja táctico.
+      colorOrbe = '#f97316';
+      claseOrbe = 'drop-shadow-[0_0_10px_rgba(249,115,22,0.85)] animate-pulse scale-110 opacity-90 transition-all duration-300';
+      radioOrbe = '4.5';
+    }
+  }
 
   const scale = fase === 'ABAJO' ? 1.05 : 1;
   const opacidad = fase === 'ABAJO' ? 1 : 0.6;
@@ -76,9 +96,10 @@ function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], 
         />
         {ritmoFantasma > 0 && (
           <circle
-            cx={fantasmaX} cy={fantasmaY} r={ganando ? "4" : "5.5"}
+            cx={fantasmaX} cy={fantasmaY} r={radioOrbe}
             fill={colorOrbe}
-            className={`transition-all duration-300 ${glowOrbe}`}
+            className={claseOrbe}
+            style={{ transformOrigin: `${fantasmaX}px ${fantasmaY}px` }}
           />
         )}
       </svg>
