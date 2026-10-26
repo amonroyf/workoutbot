@@ -171,7 +171,7 @@ export default function WorkoutUI() {
     abrirDemo(faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   };
 
-  const EJERCICIOS_ISOMETRICOS = ['WALL_SIT', 'PLANCHA', 'PLANCHA_LATERAL', 'HOLLOW_HOLD', 'SUPERMAN'];
+  const EJERCICIOS_ISOMETRICOS = ['WALL_SIT', 'PLANCHA', 'PLANCHA_LATERAL', 'SUPERMAN'];
 
   // Minijuego somatosensorial: el techo virtual se sostiene con la postura
   const mostrarTecho =

@@ -7,7 +7,10 @@ export const TIEMPO_DESCANSO = CLASE_POR_DEFECTO.bloques[0].descanso;
 export const DURACION_TOTAL = duracionClase(CLASE_POR_DEFECTO);
 
 export const EJERCICIOS_UNILATERALES = new Set([
-  'ZANCADAS', 'PLANCHA_LATERAL', 'BIRD_DOG', 'PATADA_LATERAL', 'PATADA_FRONTAL', 'RODILLAZO'
+  'ZANCADAS',
+  'PLANCHA_LATERAL',
+  'RODILLAZO',
+  'PATADA_FRONTAL',
 ]);
 
 export function totalesVacios(clase = CLASE_POR_DEFECTO) {
