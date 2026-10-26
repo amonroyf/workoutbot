@@ -6,6 +6,7 @@ import { CLASE_INICIAL, duracionClase } from '../engine/clases';
 beforeEach(() => {
   useWorkoutStore.getState().detenerRutina();
   useWorkoutStore.setState({
+    semillaOffset: 0,
     camaraHabilitada: true,
     camaraActiva: false,
     errorCamara: null,
@@ -68,10 +69,38 @@ describe('toggleFacingMode', () => {
   });
 });
 
+describe('aleatorizarClaseActual', () => {
+  it('regenera la clase sin cambiar su identidad ni su duracion', () => {
+    const antes = useWorkoutStore.getState().claseActual;
+
+    useWorkoutStore.getState().aleatorizarClaseActual();
+
+    const estado = useWorkoutStore.getState();
+    expect(estado.semillaOffset).toBe(1);
+    expect(estado.claseActual.id).toBe(antes.id);
+    expect(duracionClase(estado.claseActual)).toBe(duracionClase(antes));
+    expect(estado.bloqueActual).toBe(0);
+    expect(estado.faseActual).toBe('CALIBRACION');
+  });
+
+  it('acumula el offset en cada barajada', () => {
+    useWorkoutStore.getState().aleatorizarClaseActual();
+    useWorkoutStore.getState().aleatorizarClaseActual();
+    expect(useWorkoutStore.getState().semillaOffset).toBe(2);
+  });
+
+  it('no baraja fuera de CALIBRACION', () => {
+    useWorkoutStore.setState({ faseActual: 'TRABAJO', semillaOffset: 3 });
+    useWorkoutStore.getState().aleatorizarClaseActual();
+    expect(useWorkoutStore.getState().semillaOffset).toBe(3);
+  });
+});
+
 describe('sincronizarReloj', () => {
   it('avanza todas las fases vencidas hasta FIN si la clase termino en segundo plano', () => {
     const clase = CLASE_INICIAL;
-    const inicioAtrasado = Date.now() - (duracionClase(clase) + 5) * 1000;
+    // Margen amplio: los cambios de lado (unilaterales) suman extra al vuelo.
+    const inicioAtrasado = Date.now() - (duracionClase(clase) + 30) * 1000;
     useWorkoutStore.setState({
       ...estadoInicialCircuito(inicioAtrasado, clase),
       claseActual: clase,

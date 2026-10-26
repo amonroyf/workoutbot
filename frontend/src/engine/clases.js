@@ -267,10 +267,12 @@ function congelarLista(lista) {
   return Object.freeze(lista.map((item) => Object.freeze({ ...item })));
 }
 
-function obtenerSemillaDelDia(claseId) {
+function obtenerSemillaDelDia(claseId, offset = 0) {
   const hoy = new Date();
   const fechaStr = `${hoy.getFullYear()}-${hoy.getMonth()}-${hoy.getDate()}`;
-  const str = `${claseId}-${fechaStr}`;
+  // El offset muta el hash sin mover la fecha: cada offset produce una variante
+  // distinta pero reproducible de la misma clase del día.
+  const str = `${claseId}-${fechaStr}-${offset}`;
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
@@ -302,8 +304,8 @@ export function calmaDinamica(pistaVoz) {
   return { id: 'enfriamiento', dinamica: true, tipo: ENFRIAMIENTO, nombre: 'Vuelta a la calma', nombreCorto: 'Calma', pistaVoz, rondas: 1, bloques: [bloque('MARCHA_SUAVE', 40, 0, 'suave', ''), bloque('MARCHA_SUAVE', 40, 0, 'suave', ''), bloque('MARCHA_SUAVE', 40, 0, 'suave', ''), bloque('MARCHA_SUAVE', 40, 0, 'suave', '')] };
 }
 
-export function compilarClase(claseBase) {
-  const semilla = obtenerSemillaDelDia(claseBase.id);
+export function compilarClase(claseBase, offset = 0) {
+  const semilla = obtenerSemillaDelDia(claseBase.id, offset);
   const rng = crearGenerador(semilla);
 
   const gruposActivos = new Set();
@@ -378,7 +380,12 @@ export function compilarClase(claseBase) {
   return Object.freeze({
     ...claseBase,
     bloques: Object.freeze(bloquesFinales),
-    duracion: bloquesFinales.reduce((t, b) => t + b.trabajo + b.descanso, 0)
+    duracion: bloquesFinales.reduce((t, b) => t + b.trabajo + b.descanso, 0),
+    // Objetivo original de duración (segundos): lo usa el barajado para
+    // recompilar variantes que conserven exactamente la misma duración.
+    duracionObjetivo:
+      claseBase.duracionObjetivo ??
+      (claseBase.duracionMin ? claseBase.duracionMin * 60 : null),
   });
 }
 
@@ -389,22 +396,40 @@ export const CLASE_POR_DEFECTO = CLASES[0];
 // La puerta de entrada es la clase corta y amable de core.
 export const CLASE_INICIAL = generarClase('core', 5) || CLASE_POR_DEFECTO;
 
-export function generarClase(arquetipoId, minutos) {
+export function generarClase(arquetipoId, minutos, offset = 0) {
   const claseBase = CLASES_MAESTRAS.find((c) => c.arquetipo === arquetipoId);
   if (!claseBase) return null;
-  const claseAjustada = ajustarDuracion(claseBase, minutos * 60);
-  return compilarClase(claseAjustada);
+  const objetivoSeg = minutos * 60;
+  const claseAjustada = {
+    ...ajustarDuracion(claseBase, objetivoSeg),
+    duracionObjetivo: objetivoSeg,
+  };
+  return compilarClase(claseAjustada, offset);
 }
 
-export function obtenerClase(id) {
+// Re-arma una clase ya compilada con un offset de semilla distinto: conserva
+// arquetipo y duración objetivo exactos. Se referencia por la clase compilada
+// (no por id) porque las variantes ajustadas comparten el id de la maestra.
+export function barajarClase(claseCompilada, offset = 0) {
+  if (!claseCompilada) return null;
+  const base = CLASES_MAESTRAS.find((c) => c.arquetipo === claseCompilada.arquetipo);
+  if (!base) return null;
+  const objetivoSeg = claseCompilada.duracionObjetivo || duracionClase(claseCompilada);
+  return compilarClase(
+    { ...ajustarDuracion(base, objetivoSeg), duracionObjetivo: objetivoSeg },
+    offset
+  );
+}
+
+export function obtenerClase(id, offset = 0) {
   // Primero intenta el id de la maestra (p. ej. 'core'). Si no existe, intenta
   // los ids derivados del plan semanal con formato '<arquetipo>-<minutos>'
   // (p. ej. 'fuerza-10'), regresando una clase compilada del arquetipo dado.
   const base = CLASES_MAESTRAS.find((clase) => clase.id === id);
-  if (base) return compilarClase(base);
+  if (base) return compilarClase(base, offset);
   const coincidencia = /^(\w+)-(\d{1,2})$/.exec(id);
   if (coincidencia) {
-    const clase = generarClase(coincidencia[1], Number(coincidencia[2]));
+    const clase = generarClase(coincidencia[1], Number(coincidencia[2]), offset);
     if (clase) return clase;
   }
   return null;

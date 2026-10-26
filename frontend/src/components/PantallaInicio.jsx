@@ -132,6 +132,7 @@ export default function PantallaInicio({
 }) {
   const contenedorRef = useRef(null);
   const toggleFacingMode = useWorkoutStore((state) => state.toggleFacingMode);
+  const aleatorizarClaseActual = useWorkoutStore((state) => state.aleatorizarClaseActual);
   const [hojaAbierta, setHojaAbierta] = useState(false);
   const [verDetalle, setVerDetalle] = useState(false);
   const [instruccionesIos, setInstruccionesIos] = useState(false);
@@ -656,9 +657,20 @@ export default function PantallaInicio({
             </div>
 
             <div className="mt-4 rounded-panel border border-linea bg-panel p-3">
-              <p className="text-[10px] font-black uppercase tracking-[0.14em] text-marca-400">
-                Detalle de la clase
-              </p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-marca-400">
+                  Detalle de la clase
+                </p>
+                <button
+                  type="button"
+                  onClick={aleatorizarClaseActual}
+                  className="flex shrink-0 items-center gap-1 rounded-chip border border-linea bg-tinta-900 px-2 py-1 text-[10px] font-bold text-tinta-200 transition hover:bg-tinta-800"
+                  aria-label="Generar otra combinación de ejercicios"
+                >
+                  <Icono nombre="barajar" tamano={12} />
+                  Barajar rutina
+                </button>
+              </div>
               <p className="mt-1 text-base font-black text-tinta-100">
                 {claseActual.nombre}
               </p>

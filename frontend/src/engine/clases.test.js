@@ -4,6 +4,7 @@ import {
   CLASES,
   CLASE_INICIAL,
   CLASE_POR_DEFECTO,
+  generarClase,
   obtenerClase,
   obtenerArquetipo,
   clasesDeArquetipo,
@@ -13,6 +14,29 @@ import {
   formatearReloj,
   resumenSecciones,
 } from './clases';
+
+// Barajado procedural: cada offset de semilla es una variante distinta pero
+// reproducible de la clase del día.
+describe('barajado procedural (offset de semilla)', () => {
+  it('cada offset es reproducible dentro del mismo dia', () => {
+    const a1 = generarClase('core', 5, 0);
+    const a2 = generarClase('core', 5, 0);
+    const b1 = generarClase('core', 5, 1);
+    const b2 = generarClase('core', 5, 1);
+
+    const secuencia = (clase) => clase.bloques.map((b) => b.ejercicio).join('|');
+    expect(secuencia(a1)).toBe(secuencia(a2));
+    expect(secuencia(b1)).toBe(secuencia(b2));
+  });
+
+  it('el offset no cambia identidad del id ni la duracion', () => {
+    const sinBarajar = generarClase('core', 5, 0);
+    const barajada = generarClase('core', 5, 7);
+    expect(barajada.id).toBe(sinBarajar.id);
+    expect(duracionClase(barajada)).toBe(duracionClase(sinBarajar));
+    expect(barajada.bloques.length).toBe(sinBarajar.bloques.length);
+  });
+});
 import { obtenerEjercicio, esDeTiempo } from './ejercicios';
 
 const IDS_CLAVE = [

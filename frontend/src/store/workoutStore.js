@@ -8,7 +8,7 @@ import {
   playSideSwitch,
 } from '../engine/sounds';
 import { estadoInicialCircuito, avanzarCircuito, totalesVacios } from '../engine/circuito';
-import { CLASE_INICIAL, obtenerClase } from '../engine/clases';
+import { CLASE_INICIAL, obtenerClase, barajarClase } from '../engine/clases';
 import { guardarCamaraHabilitada, leerCamaraHabilitada } from '../engine/camara';
 
 const INTERVALO_TICK_MS = 250;
@@ -23,6 +23,7 @@ export const useWorkoutStore = create((set, get) => ({
   faseActual: 'CALIBRACION',
   claseActual: CLASE_INICIAL,
   claseSeleccionadaId: CLASE_INICIAL.id,
+  semillaOffset: 0,
   bloqueActual: 0,
   ejercicioActual: CLASE_INICIAL.bloques[0].ejercicio,
   tiempoRestante: 0,
@@ -82,13 +83,31 @@ export const useWorkoutStore = create((set, get) => ({
       ejercicioActual: clase.bloques[0]?.ejercicio,
       totales: totalesVacios(clase),
     }),
+  // Cambiar de clase reinicia la variante procedural (offset a 0).
   seleccionarClase: (claseId) => {
     if (get().faseActual !== 'CALIBRACION') return;
-    const clase = obtenerClase(claseId);
+    const clase = obtenerClase(claseId, 0);
     if (!clase) return;
     set({
       claseActual: clase,
       claseSeleccionadaId: clase.id,
+      semillaOffset: 0,
+      bloqueActual: 0,
+      ejercicioActual: clase.bloques[0].ejercicio,
+      totales: totalesVacios(clase),
+    });
+  },
+
+  // Re-genera la clase actual con la siguiente semilla procedural: los
+  // ejercicios cambian sin mover la clase base, la duración ni la fecha.
+  aleatorizarClaseActual: () => {
+    if (get().faseActual !== 'CALIBRACION') return;
+    const nuevoOffset = get().semillaOffset + 1;
+    const clase = barajarClase(get().claseActual, nuevoOffset);
+    if (!clase) return;
+    set({
+      claseActual: clase,
+      semillaOffset: nuevoOffset,
       bloqueActual: 0,
       ejercicioActual: clase.bloques[0].ejercicio,
       totales: totalesVacios(clase),
@@ -98,7 +117,13 @@ export const useWorkoutStore = create((set, get) => ({
   iniciarRutina: (claseId, historialAnterior = null) => {
     clearInterval(get().timerRef);
     if (get().sonidosActivos) playStart();
-    const clase = obtenerClase(claseId) || get().claseActual || CLASE_INICIAL;
+    // Si la clase ya está compilada en el store (elegida o barajada), se usa
+    // tal cual: un re-lookup por id devolvería la maestra sin ajuste de
+    // duración y desharía el barajado.
+    const clase =
+      get().claseActual?.id === claseId
+        ? get().claseActual
+        : obtenerClase(claseId) || get().claseActual || CLASE_INICIAL;
     const base = estadoInicialCircuito(Date.now(), clase);
     let ritmo = 0;
     if (historialAnterior && historialAnterior.duracion_sec > 0) {
