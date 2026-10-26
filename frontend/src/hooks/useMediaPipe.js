@@ -62,23 +62,27 @@ function obtenerAnguloVisible(landmarks, lados) {
   return { angulo: Math.round(angulo), vertice: b };
 }
 
-export const COOLDOWN_REP_MS = 300;
+// CONSTANTES DE DEFENSA CONTRA FALSOS POSITIVOS
+export const COOLDOWN_MINIMO_MS = 250;
+const DEBOUNCE_FASE_MS = 150; // Tiempo (ms) que debe sostener la postura para validar
 
 export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [modeloPose] = useState(() => elegirModeloPose());
-
   const landmarkerRef = useRef(null);
   const ultimoTimestampRef = useRef(-1);
-
   const filtrosLandmarks = useRef(crearFiltrosLandmarks());
   const estadoDetector = useRef(crearEstadoDetector());
   const ejercicioEnCurso = useRef(null);
-  const ultimaRepMs = useRef(0);
   const mensajeActual = useRef(null);
   const ultimaPoseMs = useRef(0);
   const faseAnterior = useRef(useWorkoutStore.getState().faseActual);
   const animFrameRef = useRef(null);
+
+  // Refuerzos anti-glitch
+  const ultimaRepMs = useRef(0);
+  const fasePendiente = useRef(null);
+  const inicioFasePendienteMs = useRef(0);
 
   const registrarRepeticion = useWorkoutStore((state) => state.registrarRepeticion);
   const setMensajeForma = useWorkoutStore((state) => state.setMensajeForma);
@@ -92,7 +96,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
     ctx.shadowBlur = 8;
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 4;
-
     for (const [i, j] of POSE_CONNECTIONS) {
       const a = landmarks[i];
       const b = landmarks[j];
@@ -103,7 +106,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
         ctx.stroke();
       }
     }
-
     if (ejercicio && LADOS_ANGULOS[ejercicio]) {
       const overlay = obtenerAnguloVisible(landmarks, LADOS_ANGULOS[ejercicio]);
       if (overlay) {
@@ -127,7 +129,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
           ctx.fillStyle = 'rgba(74, 222, 128, 0.35)';
           ctx.fill();
         }
-
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, 2 * Math.PI);
         ctx.fillStyle = color;
@@ -149,13 +150,17 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const procesarEjercicio = useCallback((landmarks, ejercicio, ahoraMs) => {
     const detector = obtenerDetector(ejercicio);
     if (!detector) return;
+
+    // Hard-Reset al cambiar de ejercicio
     if (ejercicioEnCurso.current !== ejercicio) {
       ejercicioEnCurso.current = ejercicio;
       estadoDetector.current = crearEstadoDetector();
       reiniciarFiltros(filtrosLandmarks.current);
       setScoreForma(null);
       setProgresoFase(0);
+      fasePendiente.current = null;
     }
+
     const resultado = detector(landmarks, estadoDetector.current, ahoraMs);
     estadoDetector.current = resultado.estado;
     useWorkoutStore.getState().setFaseRepeticion(resultado.estado.fase);
@@ -163,11 +168,32 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
     setScoreForma(resultado.estado.scoreForma ?? null);
     setProgresoFase(resultado.estado.progresoFase ?? 0);
 
-    if (resultado.repeticion && ahoraMs - ultimaRepMs.current >= COOLDOWN_REP_MS) {
-      ultimaRepMs.current = ahoraMs;
-      const score = resultado.estado.scoreForma;
-      const perfecta = !resultado.estado.mensaje && (score == null || score >= UMBRAL_SCORE_PERFECTO);
-      registrarRepeticion(perfecta);
+    // Sistema de Debounce (Validación Continua Bidireccional)
+    if (resultado.repeticion) {
+      fasePendiente.current = 'VALIDANDO';
+      inicioFasePendienteMs.current = ahoraMs;
+    }
+
+    if (fasePendiente.current === 'VALIDANDO') {
+      // Si el usuario rompe la postura antes de tiempo (vuelve a bajar/romper la línea), se anula
+      if (resultado.estado.fase === 'ABAJO') {
+        fasePendiente.current = null;
+      } else if (ahoraMs - inicioFasePendienteMs.current >= DEBOUNCE_FASE_MS) {
+        // El usuario sostuvo la fase. Evaluamos cooldown dinámico basado en Tempo
+        const tempo = EJERCICIOS_CATALOGO[ejercicio]?.tempo || [1.5, 1];
+        const tiempoRepEsperadoMs = (tempo[0] + tempo[1]) * 1000;
+        // Permite ir hasta un 40% más rápido que la voz, limitando spam imposible
+        const cooldownDinamicoMs = Math.max(COOLDOWN_MINIMO_MS, tiempoRepEsperadoMs * 0.6);
+
+        if (ahoraMs - ultimaRepMs.current >= cooldownDinamicoMs) {
+          ultimaRepMs.current = ahoraMs;
+          const score = resultado.estado.scoreForma;
+          const perfecta = !resultado.estado.mensaje && (score == null || score >= UMBRAL_SCORE_PERFECTO);
+          registrarRepeticion(perfecta);
+        }
+        // Limpiamos el candidato tras evaluar (éxito o rechazo por velocidad)
+        fasePendiente.current = null;
+      }
     }
   }, [registrarRepeticion, actualizarMensaje, setScoreForma, setProgresoFase]);
 
@@ -180,7 +206,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
       }
       return;
     }
-
     let activo = true;
     const inicializar = async () => {
       try {
@@ -213,7 +238,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
         console.error('Error inicializando MediaPipe:', error);
       }
     };
-
     inicializar();
 
     return () => {
@@ -264,7 +288,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
           if (vistaOptima && orientacionUsuario === vistaOptima && estado.advertenciaCamara === 'orientacion') {
             setAdvertenciaCamara(null);
           }
-
           if (vistaOptima && orientacionUsuario && vistaOptima !== orientacionUsuario && estado.faseActual === 'TRABAJO') {
             setAdvertenciaCamara('orientacion');
           }
@@ -287,7 +310,8 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
             reiniciarFiltros(filtrosLandmarks.current);
             actualizarMensaje(null);
             setScoreForma(null);
-      setProgresoFase(0);
+            setProgresoFase(0);
+            fasePendiente.current = null;
             estado.setFaseRepeticion('ARRIBA');
           }
         }

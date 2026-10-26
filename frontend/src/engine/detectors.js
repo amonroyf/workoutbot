@@ -3,7 +3,7 @@ import { OneEuroFilter } from './filters';
 import { calcularScoreForma } from './forma';
 import { EJERCICIOS_CATALOGO } from './ejercicios';
 
-export const UMBRAL_VISIBILIDAD = 0.5;
+export const UMBRAL_VISIBILIDAD = 0.65;
 export const UMBRAL_VALGO_RODILLA = 0.75; // Las rodillas no deben estar más juntas que el 75% de los tobillos
 export const UMBRAL_ANGULO_ARRIBA = 160;
 export const UMBRAL_ANGULO_ABAJO = 100;
@@ -84,7 +84,10 @@ function mejorLado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
     .map((indices) => ({ indices, vis: visibilidad(landmarks, indices) }))
     .filter((lado) => lado.vis > umbral)
     .sort((a, b) => b.vis - a.vis);
-  return validos[0] || null;
+  // Dictatorial: requiere que TODAS las articulaciones del lado sean visibles
+  // Si algún índice tiene visibility 0, descartamos ese lado
+  const todosVisibles = validos.length === lados.length;
+  return todosVisibles && validos[0] ? validos[0] : null;
 }
 
 function ladoMasFlexionado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
@@ -119,7 +122,10 @@ function resultado(estado, cambios, repeticion = false) {
 
 export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
   const lado = mejorLado(landmarks, LADOS_SENTADILLA);
-  if (!lado) return resultado(estado, {}, false);
+
+  // Purga estricta: Si MediaPipe no ve CLARAMENTE la cadera, rodilla y tobillo, 
+  // abortamos la evaluación. Forzamos el reset de 'fasePendiente' regresando false.
+  if (!lado) return resultado(estado, { mensaje: 'Encuadra tus rodillas y pies' }, false);
 
   const normalizados = normalizarLandmarks(landmarks) || landmarks;
   const [cadera, rodilla, tobillo] = lado.indices.map((i) => normalizados[i]);
@@ -204,9 +210,11 @@ export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
     scoreForma = null;
     mensaje = 'Colócate en plancha de perfil';
   } else if (angulo > UMBRAL_ANGULO_ARRIBA) {
+    // AQUÍ ESTÁ EL CANDADO BIDIRECCIONAL: Solo emite true si venía de ABAJO.
     if (fase === 'ABAJO') repeticion = true;
     fase = 'ARRIBA';
   } else if (angulo < UMBRAL_ANGULO_ABAJO && fase === 'ARRIBA') {
+    // Solo permite entrar a ABAJO si venía de ARRIBA
     fase = 'ABAJO';
     scoreForma = calcularScoreForma('FLEXIONES', landmarks);
   }
