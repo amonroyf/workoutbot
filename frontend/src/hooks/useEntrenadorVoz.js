@@ -93,12 +93,7 @@ export function useEntrenadorVoz(resumen = null) {
       const voz = elegirVoz();
       if (voz) utterance.voice = voz;
 
-      utterance.onstart = () => useWorkoutStore.getState().setSubtitulo(texto);
-      utterance.onend = () => {
-        const estado = useWorkoutStore.getState();
-        if (estado.subtitulo === texto) estado.setSubtitulo(null);
-      };
-      utterance.onerror = utterance.onend;
+      utterance.onerror = () => {};
 
       ultimaVoz.current = Date.now();
       sintesis.speak(utterance);
@@ -313,7 +308,6 @@ export function useEntrenadorVoz(resumen = null) {
   useEffect(() => {
     if (!vozActiva && puedeHablar()) {
       window.speechSynthesis.cancel();
-      useWorkoutStore.getState().setSubtitulo(null);
     }
   }, [vozActiva]);
 

@@ -300,6 +300,11 @@ const FINISHER = [
   '¡Esa es la actitud! Te has ganado un desafío extra. A quemar.',
 ];
 
+const CAMBIO_LADO = [
+  '¡Cambio de lado! Rápido.',
+  'Gira, cambia de pierna. Cinco segundos.',
+];
+
 const RESPIRACION = [
   'Respira profundo, lento. Suelta el aire.',
   'Inhala por la nariz, exhala suave.',
@@ -327,6 +332,7 @@ const BANCOS = {
    ON_FIRE,
    SEGURIDAD,
    FINISHER,
+   CAMBIO_LADO,
  };
 
 function elegirDe(lista, indice) {
@@ -368,4 +374,5 @@ export const EVENTOS_VOZ = Object.freeze([
   'ON_FIRE',
   'SEGURIDAD',
   'FINISHER',
+  'CAMBIO_LADO',
 ]);

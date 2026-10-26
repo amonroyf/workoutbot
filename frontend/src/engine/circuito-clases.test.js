@@ -20,18 +20,18 @@ describe('motor de una clase real', () => {
     expect(estado.claseId).toBe('core-5');
     expect(estado.bloqueActual).toBe(0);
     expect(estado.ejercicioActual).toBe('BIRD_DOG');
-    expect(estado.tiempoRestante).toBe(CORE_5.bloques[0].trabajo);
+    expect(estado.tiempoRestante).toBe(Math.ceil(CORE_5.bloques[0].trabajo / 2));
     expect(estado.totales).toEqual(totalesVacios(CORE_5));
   });
 
   it('avanza de un ejercicio de tiempo al siguiente sin descanso', () => {
     let { estado } = { estado: estadoInicialCircuito(0, CORE_5) };
-    const trabajo = CORE_5.bloques[0].trabajo;
+    const trabajo = Math.ceil(CORE_5.bloques[0].trabajo / 2);
 
     estado = aplicar(estado, trabajo * 1000).estado;
-    expect(estado.ejercicioActual).toBe('DEAD_BUG');
+    expect(estado.ejercicioActual).toBe('BIRD_DOG');
     expect(estado.totales.BIRD_DOG).toBe(trabajo);
-    expect(estado.faseActual).toBe('TRABAJO');
+    expect(estado.faseActual).toBe('CAMBIO_LADO');
   });
 
   it('acumula repeticiones manuales y pasa a descanso', () => {

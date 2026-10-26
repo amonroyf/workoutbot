@@ -6,6 +6,10 @@ export const TIEMPO_TRABAJO = CLASE_POR_DEFECTO.bloques[0].trabajo;
 export const TIEMPO_DESCANSO = CLASE_POR_DEFECTO.bloques[0].descanso;
 export const DURACION_TOTAL = duracionClase(CLASE_POR_DEFECTO);
 
+export const EJERCICIOS_UNILATERALES = new Set([
+  'ZANCADAS', 'PLANCHA_LATERAL', 'BIRD_DOG', 'PATADA_LATERAL', 'PATADA_FRONTAL', 'RODILLAZO'
+]);
+
 export function totalesVacios(clase = CLASE_POR_DEFECTO) {
   const totales = {};
   for (const bloque of clase.bloques) {
@@ -26,6 +30,12 @@ function descansoDe(bloque) {
   return bloque.descanso || 0;
 }
 
+function tiempoTrabajo(bloque) {
+  return EJERCICIOS_UNILATERALES.has(bloque.ejercicio)
+    ? Math.ceil(bloque.trabajo / 2)
+    : bloque.trabajo;
+}
+
 export function transcurridoCircuito(estado, clase = CLASE_POR_DEFECTO) {
   if (estado.faseActual === 'FIN') return duracionClase(clase);
   if (estado.faseActual === 'CALIBRACION') return 0;
@@ -40,7 +50,7 @@ export function transcurridoCircuito(estado, clase = CLASE_POR_DEFECTO) {
   }
 
   const transcurrido =
-    estado.faseActual === 'TRABAJO'
+    estado.faseActual === 'TRABAJO' || estado.faseActual === 'CAMBIO_LADO'
       ? previos + (bloque.trabajo - estado.tiempoRestante)
       : previos + bloque.trabajo + (descansoDe(bloque) - estado.tiempoRestante);
 
@@ -93,7 +103,7 @@ export function estacionesCircuito(estado, clase = CLASE_POR_DEFECTO) {
   const indice = indiceBloque(estado, clase);
 
   return clase.bloques.map((bloque, i) => {
-    if (estado.faseActual === 'DESCANSO') {
+    if (estado.faseActual === 'DESCANSO' || estado.faseActual === 'CAMBIO_LADO') {
       if (i <= indice) return { ejercicio: bloque.ejercicio, estado: 'completado' };
       if (i === indice + 1) return { ejercicio: bloque.ejercicio, estado: 'actual' };
       return { ejercicio: bloque.ejercicio, estado: 'pendiente' };
@@ -113,7 +123,7 @@ export function estacionesSeccion(estado, clase = CLASE_POR_DEFECTO) {
   const esFin = estado.faseActual === 'FIN';
   const esCalibracion = estado.faseActual === 'CALIBRACION';
   const referencia =
-    !esFin && !esCalibracion && estado.faseActual === 'DESCANSO'
+    !esFin && !esCalibracion && (estado.faseActual === 'DESCANSO' || estado.faseActual === 'CAMBIO_LADO')
       ? clase.bloques[indice + 1] || bloque
       : bloque;
   const seccionActual = referencia?.seccionIndex ?? 0;
@@ -136,16 +146,18 @@ export function estacionesSeccion(estado, clase = CLASE_POR_DEFECTO) {
 
 export function estadoInicialCircuito(ahoraMs, clase = CLASE_POR_DEFECTO) {
   const bloque = clase.bloques[0];
+  const tTrabajo = tiempoTrabajo(bloque);
   return {
     faseActual: 'TRABAJO',
     claseId: clase.id,
     bloqueActual: 0,
     ejercicioActual: bloque.ejercicio,
-    tiempoRestante: bloque.trabajo,
+    tiempoRestante: tTrabajo,
     repeticiones: 0,
     combo: 0,
     totales: totalesVacios(clase),
-    finFaseEn: ahoraMs + bloque.trabajo * 1000,
+    finFaseEn: ahoraMs + tTrabajo * 1000,
+    mitadCompletada: false,
   };
 }
 
@@ -163,14 +175,44 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
   const bloque = clase.bloques[indice];
   const esTrabajo = estado.faseActual === 'TRABAJO';
 
-  const totales = esTrabajo
-    ? {
-        ...estado.totales,
-        [estado.ejercicioActual]:
-          (estado.totales[estado.ejercicioActual] || 0) +
-          (esDeTiempo(estado.ejercicioActual) ? bloque.trabajo : estado.repeticiones),
-      }
-    : estado.totales;
+  let totales = estado.totales;
+  if (esTrabajo) {
+    totales = {
+      ...estado.totales,
+      [estado.ejercicioActual]:
+        (estado.totales[estado.ejercicioActual] || 0) +
+        (esDeTiempo(estado.ejercicioActual) ? tiempoTrabajo(bloque) : estado.repeticiones),
+    };
+  }
+
+  const esUnilateral = EJERCICIOS_UNILATERALES.has(bloque.ejercicio);
+  if (esTrabajo && esUnilateral && !estado.mitadCompletada) {
+    return {
+      estado: {
+        faseActual: 'CAMBIO_LADO',
+        tiempoRestante: 5,
+        finFaseEn: ahoraMs + 5000,
+        totales,
+        mitadCompletada: true,
+      },
+      sonido: 'silbato',
+    };
+  }
+
+  if (estado.faseActual === 'CAMBIO_LADO') {
+    const tTrabajo = tiempoTrabajo(bloque);
+    return {
+      estado: {
+        faseActual: 'TRABAJO',
+        tiempoRestante: tTrabajo,
+        finFaseEn: ahoraMs + tTrabajo * 1000,
+        repeticiones: 0,
+        combo: 0,
+        totales,
+      },
+      sonido: 'inicio',
+    };
+  }
 
   if (esTrabajo && descansoDe(bloque) > 0) {
     return {
@@ -180,6 +222,7 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
         finFaseEn: ahoraMs + descansoDe(bloque) * 1000,
         totales,
         combo: 0,
+        mitadCompletada: false,
       },
       sonido: 'silbato',
     };
@@ -187,13 +230,11 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
 
   let siguienteIndice = indice + 1;
 
-  // LÓGICA DE FINISHER ADAPTATIVO
   if (siguienteIndice < clase.bloques.length) {
     let siguiente = clase.bloques[siguienteIndice];
 
     if (siguiente.seccionTipo === 'finisher') {
-      const mereceFinisher = estado.mejorCombo >= 5 && estado.perfectas >= 10;
-
+      const mereceFinisher = (estado.mejorCombo || 0) >= 5 && (estado.perfectas || 0) >= 10;
       if (!mereceFinisher) {
         while (siguienteIndice < clase.bloques.length && clase.bloques[siguienteIndice].seccionTipo === 'finisher') {
           siguienteIndice++;
@@ -205,16 +246,18 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
       }
     }
 
+    const tSiguiente = tiempoTrabajo(siguiente);
     return {
       estado: {
         faseActual: 'TRABAJO',
         bloqueActual: siguienteIndice,
         ejercicioActual: siguiente.ejercicio,
-        tiempoRestante: siguiente.trabajo,
-        finFaseEn: ahoraMs + siguiente.trabajo * 1000,
+        tiempoRestante: tSiguiente,
+        finFaseEn: ahoraMs + tSiguiente * 1000,
         repeticiones: 0,
         combo: 0,
         totales,
+        mitadCompletada: false,
       },
       sonido: 'inicio',
     };

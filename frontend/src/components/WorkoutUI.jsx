@@ -19,7 +19,7 @@ import DemoEjercicio from './DemoEjercicio';
 import MinijuegoTecho from './MinijuegoTecho';
 import MarcoEncuadre from './MarcoEncuadre';
 
-function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], ritmoFantasma = 0 }) {
+function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], ritmoFantasma = 0, repsActuales = 0 }) {
   const radio = 36;
   const circunferencia = 2 * Math.PI * radio;
   const avance = Math.max(0, Math.min(1, progresoFase));
@@ -41,6 +41,12 @@ function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], 
   const anguloFantasma = avanceFantasma * 360 - 90;
   const fantasmaX = 44 + radio * Math.cos((anguloFantasma * Math.PI) / 180);
   const fantasmaY = 44 + radio * Math.sin((anguloFantasma * Math.PI) / 180);
+
+  const ritmoActual = transcurrido > 0 ? (repsActuales + progresoFase) / transcurrido : 0;
+  const ganando = ritmoActual >= (ritmoFantasma * 0.95);
+
+  const colorOrbe = ganando ? 'rgba(255, 255, 255, 0.7)' : '#ef4444';
+  const glowOrbe = ganando ? 'drop-shadow-md' : 'drop-shadow-[0_0_8px_rgba(239,68,68,0.9)] animate-pulse';
 
   const scale = fase === 'ABAJO' ? 1.05 : 1;
   const opacidad = fase === 'ABAJO' ? 1 : 0.6;
@@ -69,7 +75,11 @@ function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], 
           className="transition-all duration-100 ease-linear"
         />
         {ritmoFantasma > 0 && (
-          <circle cx={fantasmaX} cy={fantasmaY} r="4" fill="rgba(255,255,255,0.9)" />
+          <circle
+            cx={fantasmaX} cy={fantasmaY} r={ganando ? "4" : "5.5"}
+            fill={colorOrbe}
+            className={`transition-all duration-300 ${glowOrbe}`}
+          />
         )}
       </svg>
       <span className="absolute inset-0 flex items-center justify-center text-xs font-black uppercase tracking-widest text-white">
@@ -109,11 +119,12 @@ export default function WorkoutUI() {
     camaraHabilitada,
     setCamaraHabilitada,
     ritmoAnterior,
+    advertenciaCamara,
   } = useWorkoutStore();
 
   useMusica();
 
-  if (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO') return null;
+  if (faseActual !== 'TRABAJO' && faseActual !== 'DESCANSO' && faseActual !== 'CAMBIO_LADO') return null;
 
   const progreso = progresoCircuito(useWorkoutStore.getState(), claseActual);
   const seccionesProgreso = progresoSecciones(useWorkoutStore.getState(), claseActual);
@@ -124,8 +135,8 @@ export default function WorkoutUI() {
     : 0;
   const totalBloques = claseActual.bloques.length;
   const siguiente = claseActual.bloques[bloqueActual + 1]?.ejercicio;
-  const texto = subtitulo || mensajeForma;
-  const esCorreccion = Boolean(mensajeForma) && (!subtitulo || subtitulo === mensajeForma);
+  const texto = mensajeForma;
+  const esCorreccion = Boolean(mensajeForma);
   const ejercicioDemo = demoEjercicio || (faseActual === 'DESCANSO' ? siguiente : ejercicioActual);
   const demoVisible = obtenerDemo(ejercicioDemo);
   const modificaciones = modificacionesEjercicio(ejercicioDemo);
@@ -347,7 +358,7 @@ export default function WorkoutUI() {
               </div>
 
               <div className="flex flex-col items-center gap-3 shrink-0">
-                <AnilloRep fase={faseRepeticion} progresoFase={progresoFase} color={colorAnillo} tempo={ejercicioTempo} ritmoFantasma={ritmoAnterior} />
+                <AnilloRep fase={faseRepeticion} progresoFase={progresoFase} color={colorAnillo} tempo={ejercicioTempo} ritmoFantasma={ritmoAnterior} repsActuales={repeticiones} />
                 {combo >= 3 && (
                   <span className="rounded-chip bg-racha-500 px-3 py-1.5 text-xs font-black text-black shadow-foco">
                     {combo >= 5 ? <Icono nombre="fuego" tamano={12} className="inline" /> : null}
@@ -365,24 +376,35 @@ export default function WorkoutUI() {
               </div>
             </div>
           )
+        ) : faseActual === 'CAMBIO_LADO' ? (
+          <div className="mt-6 flex flex-col items-center">
+            <p className="text-4xl font-black text-marca-400 drop-shadow-lg tracking-widest uppercase">¡Cambio de lado!</p>
+          </div>
         ) : (
           <div className="mt-6 flex flex-col items-center">
             <p className="text-4xl font-black text-aviso-400 drop-shadow-lg tracking-widest uppercase">¡Descansa!</p>
           </div>
         )}
 
-        {texto && (
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-40 animate-pulse">
-            <p
-              className={`rounded-panel px-5 py-3 text-center text-lg font-black shadow-flotante border-2 ${
-                esCorreccion
-                  ? 'border-aviso-400 bg-aviso-500/95 text-black'
-                  : 'border-tinta-600 bg-tinta-950/90 text-tinta-100'
-              }`}
-            >
-              {esCorreccion && <Icono nombre="alerta" tamano={20} className="inline-block mr-2 -mt-1" />}
-              {texto}
+        {mensajeForma && (
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-40 animate-pulse pointer-events-none">
+            <p className="rounded-panel px-5 py-3 text-center text-lg font-black shadow-flotante border-2 border-aviso-400 bg-aviso-500/95 text-black">
+              <Icono nombre="alerta" tamano={20} className="inline-block mr-2 -mt-1" />
+              {mensajeForma}
             </p>
+          </div>
+        )}
+
+        {advertenciaCamara === 'faltaPose' && camaraHabilitada && !pausado && (
+          <div className="absolute top-24 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full bg-error-500/90 px-4 py-2 text-white shadow-flotante animate-pulse pointer-events-none">
+            <Icono nombre="camara" tamano={18} />
+            <span className="text-xs font-bold">No te veo. Ajusta el encuadre.</span>
+          </div>
+        )}
+        {advertenciaCamara === 'orientacion' && camaraHabilitada && !pausado && (
+          <div className="absolute top-24 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 rounded-full bg-aviso-500/90 px-4 py-2 text-black shadow-flotante animate-pulse pointer-events-none">
+            <Icono nombre="alerta" tamano={18} />
+            <span className="text-xs font-bold">Ponte de {vistaOptima === 'perfil' ? 'lado' : 'frente'}.</span>
           </div>
         )}
 
@@ -407,37 +429,7 @@ export default function WorkoutUI() {
       {pausado && !demoAbierta && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 overflow-y-auto bg-tinta-950/85 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center">
           <p className="text-6xl font-black">PAUSA</p>
-          <p className="text-xl text-tinta-200">
-            {pausadoPor === 'faltaPose'
-              ? 'No te veo. Ajusta el encuadre para seguir.'
-              : pausadoPor === 'orientacion'
-                ? 'Posición incorrecta.'
-                : 'Respira. Sigue cuando estés listo.'}
-          </p>
-
-          {pausadoPor === 'faltaPose' && (
-            <>
-              <MarcoEncuadre className="h-36 w-full max-w-xs" />
-              <p className="max-w-xs text-xs text-tinta-300">
-                Que se vean cabeza, manos y pies. Deja unos 2 metros y pon luz
-                de frente.
-              </p>
-            </>
-          )}
-
-          {pausadoPor === 'orientacion' && (
-            <div className="flex flex-col items-center gap-2">
-              <Icono nombre="camara" tamano={42} className="text-aviso-400" />
-              <p className="max-w-xs text-sm text-tinta-200">
-                {vistaOptima === 'perfil'
-                  ? 'Este ejercicio requiere que te pongas de LADO a la cámara.'
-                  : 'Este ejercicio requiere que mires de FRENTE a la cámara.'}
-              </p>
-              <p className="mt-2 text-xs font-bold text-marca-400">
-                Gira tu cuerpo, el tiempo seguirá automáticamente.
-              </p>
-            </div>
-          )}
+          <p className="text-xl text-tinta-200">Respira. Sigue cuando estés listo.</p>
 
           <button
             onClick={togglePausa}

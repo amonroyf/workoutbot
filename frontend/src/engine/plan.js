@@ -17,37 +17,37 @@ export const OBJETIVOS = Object.freeze([
     id: 'equilibrio',
     nombre: 'Equilibrio',
     descripcion: 'Fuerza, HIIT y core',
-    clases: Object.freeze(['fuerza-30', 'hiit-20', 'core-20']),
+    clases: Object.freeze(['fuerza', 'hiit', 'core']),
   }),
   Object.freeze({
     id: 'fuerza',
     nombre: 'Fuerza',
     descripcion: 'Fuerza total en tres sesiones',
-    clases: Object.freeze(['fuerza-30', 'fuerza-45', 'fuerza-10']),
+    clases: Object.freeze(['fuerza', 'fuerza', 'fuerza']),
   }),
   Object.freeze({
     id: 'cardio',
     nombre: 'Cardio',
     descripcion: 'HIIT y combat',
-    clases: Object.freeze(['hiit-20', 'hiit-30', 'combat-30']),
+    clases: Object.freeze(['hiit', 'combat', 'hiit']),
   }),
   Object.freeze({
     id: 'suave',
     nombre: 'Suave',
     descripcion: 'Core y fuerza sin impacto',
-    clases: Object.freeze(['core-10', 'core-20', 'fuerza-10']),
+    clases: Object.freeze(['core', 'core', 'fuerza']),
   }),
   Object.freeze({
     id: 'expreso',
     nombre: 'Exprés',
     descripcion: 'Sesiones de 5 a 10 minutos',
-    clases: Object.freeze(['core-5', 'hiit-10', 'fuerza-10']),
+    clases: Object.freeze(['core', 'hiit', 'fuerza']),
   }),
   Object.freeze({
     id: 'combate',
     nombre: 'Combat',
     descripcion: 'Golpes, patadas y acondicionamiento',
-    clases: Object.freeze(['combat-20', 'combat-30', 'hiit-20']),
+    clases: Object.freeze(['combat', 'combat', 'hiit']),
   }),
 ]);
 

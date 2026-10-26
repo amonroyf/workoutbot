@@ -84,6 +84,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const setMensajeForma = useWorkoutStore((state) => state.setMensajeForma);
   const setScoreForma = useWorkoutStore((state) => state.setScoreForma);
   const setProgresoFase = useWorkoutStore((state) => state.setProgresoFase);
+  const setAdvertenciaCamara = useWorkoutStore((state) => state.setAdvertenciaCamara);
 
   const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio) => {
     ctx.clearRect(0, 0, width, height);
@@ -259,13 +260,13 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
             ? EJERCICIOS_CATALOGO[ejercicioObjetivo]?.vista
             : null;
 
-          if (estado.pausado && estado.pausadoPor === 'faltaPose') estado.reanudar();
-          if (estado.pausado && estado.pausadoPor === 'orientacion' && orientacionUsuario === vistaOptima) {
-            estado.reanudar();
+          if (estado.advertenciaCamara === 'faltaPose') setAdvertenciaCamara(null);
+          if (vistaOptima && orientacionUsuario === vistaOptima && estado.advertenciaCamara === 'orientacion') {
+            setAdvertenciaCamara(null);
           }
 
-          if (vistaOptima && orientacionUsuario && vistaOptima !== orientacionUsuario && estado.faseActual === 'TRABAJO' && !estado.pausado) {
-            estado.pausar('orientacion');
+          if (vistaOptima && orientacionUsuario && vistaOptima !== orientacionUsuario && estado.faseActual === 'TRABAJO') {
+            setAdvertenciaCamara('orientacion');
           }
 
           const landmarksFiltrados = filtrarLandmarks(landmarks[0], filtrosLandmarks.current, ahora);
@@ -293,8 +294,8 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
 
         const activo = estado.faseActual === 'TRABAJO' || estado.faseActual === 'DESCANSO';
         const sinPoseMs = ahora - ultimaPoseMs.current;
-        if (activo && !estado.pausado && estado.camaraHabilitada && ultimaPoseMs.current > 0 && sinPoseMs > 2000) {
-          estado.pausar('faltaPose');
+        if (activo && estado.camaraHabilitada && ultimaPoseMs.current > 0 && sinPoseMs > 2000) {
+          setAdvertenciaCamara('faltaPose');
         }
       } catch (err) {
         console.error('Error procesando frame:', err);

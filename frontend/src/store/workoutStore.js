@@ -35,7 +35,8 @@ export const useWorkoutStore = create((set, get) => ({
   scoreForma: null,
   progresoFase: 0,
   ritmoAnterior: 0,
-  subtitulo: null,
+  mitadCompletada: false,
+  advertenciaCamara: null,
   vozActiva: true,
   musicaActiva: false,
   avisoMusica: null,
@@ -77,6 +78,14 @@ export const useWorkoutStore = create((set, get) => ({
     if (!habilitada && get().pausadoPor === 'faltaPose') get().reanudar();
   },
 
+  seleccionarClaseDinamica: (clase) => set({
+    claseActual: clase,
+    claseSeleccionadaId: clase.id,
+    bloqueActual: 0,
+    ejercicioActual: clase.bloques[0]?.ejercicio,
+    totales: totalesVacios(clase),
+  }),
+
   seleccionarClase: (claseId) => {
     if (get().faseActual !== 'CALIBRACION') return;
     const clase = obtenerClase(claseId);
@@ -110,7 +119,8 @@ export const useWorkoutStore = create((set, get) => ({
       scoreForma: null,
       progresoFase: 0,
       ritmoAnterior: ritmo,
-      subtitulo: null,
+      mitadCompletada: false,
+      advertenciaCamara: null,
       pausado: false,
       pausadoPor: null,
       pausadoEn: null,
@@ -196,11 +206,12 @@ export const useWorkoutStore = create((set, get) => ({
 
   setScoreForma: (scoreForma) => set({ scoreForma }),
 
+  setAdvertenciaCamara: (advertenciaCamara) => set({ advertenciaCamara }),
+
   setProgresoFase: (progresoFase) => set({ progresoFase }),
 
   setRitmoAnterior: (ritmo) => set({ ritmoAnterior: ritmo }),
 
-  setSubtitulo: (subtitulo) => set({ subtitulo }),
 
   setVozActiva: (vozActiva) => set({ vozActiva }),
 
@@ -249,7 +260,8 @@ export const useWorkoutStore = create((set, get) => ({
       scoreForma: null,
       progresoFase: 0,
       ritmoAnterior: 0,
-      subtitulo: null,
+      mitadCompletada: false,
+      advertenciaCamara: null,
       pausado: false,
       pausadoPor: null,
       pausadoEn: null,
