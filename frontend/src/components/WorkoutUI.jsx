@@ -18,6 +18,7 @@ import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
 import MinijuegoTecho from './MinijuegoTecho';
 import MarcoEncuadre from './MarcoEncuadre';
+import MascotaVirtual from './MascotaVirtual';
 
 function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], ritmoFantasma = 0, repsActuales = 0 }) {
   const radio = 36;
@@ -339,13 +340,6 @@ export default function WorkoutUI() {
           </p>
         )}
 
-        {mensajeVista && camaraHabilitada && (
-          <div className="mt-3 inline-flex items-center justify-center gap-2 rounded-chip border border-marca-500/40 bg-marca-500/15 px-4 py-2 text-xs font-black tracking-wide text-marca-300 shadow-foco">
-            <Icono nombre="camara" tamano={16} />
-            {mensajeVista}
-          </div>
-        )}
-
         {faseActual === 'TRABAJO' ? (
           mostrarTecho ? (
             <div className="mt-4 w-full max-w-sm">
@@ -379,7 +373,10 @@ export default function WorkoutUI() {
                 )}
               </div>
 
-              <div className="flex flex-col items-center gap-3 shrink-0">
+              <div className="flex flex-col items-center gap-3 shrink-0 relative">
+                <div className="absolute -top-20 z-50">
+                  <MascotaVirtual racha={3} />
+                </div>
                 <AnilloRep fase={faseRepeticion} progresoFase={progresoFase} color={colorAnillo} tempo={ejercicioTempo} ritmoFantasma={ritmoAnterior} repsActuales={repeticiones} />
                 {combo >= 3 && (
                   <span className="rounded-chip bg-racha-500 px-3 py-1.5 text-xs font-black text-black shadow-foco">
