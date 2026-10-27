@@ -22,6 +22,7 @@ import Onboarding from './components/Onboarding';
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
 import MainLayout from './components/MainLayout';
 import SummaryScreen from './components/SummaryScreen';
+import LoginScreen from './components/LoginScreen';
 import { track } from './engine/analytics';
 import {
   encolarGuardado,
