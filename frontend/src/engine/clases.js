@@ -254,11 +254,32 @@ const CLASE_MAESTRA_CORE = base('core', 'Core', 'core', 'multinivel', {
   ],
 });
 
+const CLASE_MAESTRA_PAUSA = base('pausa', 'Pausa Activa (Escritorio)', 'core', 'principiante', {
+  etiqueta: 'Libre',
+  duracionMin: 8,
+  descripcion: 'Alivio postural y descompresión sin sudor.',
+  secciones: [
+    seccion('sentado', 'Fase 1: Silla', 'Silla', PRINCIPAL, [
+      bloque('POSTURA_SILLA', 40, 10, 'suave', ''),
+      bloque('ESTIRAMIENTO_CUELLO', 40, 10, 'suave', ''),
+      bloque('ESTIRAMIENTO_MUNECA', 40, 10, 'suave', ''),
+      // Aquí está el truco: 35s de descanso para dar tiempo a pararse. El motor no necesita saber que es una transición.
+      bloque('ROTACION_TORSO', 40, 35, 'suave', ''), 
+    ], { rondas: 1 }),
+    seccion('de_pie', 'Fase 2: De Pie', 'De Pie', PRINCIPAL, [
+      bloque('PRESS_HOMBRO', 40, 15, 'suave', ''),
+      bloque('PESO_MUERTO', 40, 15, 'suave', ''),
+      bloque('MARCHA_SUAVE', 30, 0, 'suave', ''),
+    ], { rondas: 1 })
+  ],
+});
+
 const CLASES_MAESTRAS = Object.freeze([
   CLASE_MAESTRA_FUERZA,
   CLASE_MAESTRA_HIIT,
   CLASE_MAESTRA_COMBAT,
   CLASE_MAESTRA_CORE,
+  CLASE_MAESTRA_PAUSA,
 ]);
 
 
@@ -396,6 +417,63 @@ export const CLASE_POR_DEFECTO = CLASES[0];
 // La puerta de entrada es la clase corta y amable de core.
 export const CLASE_INICIAL = generarClase('core', 5) || CLASE_POR_DEFECTO;
 
+export const PAUSA_ACTIVA_OFICINA = Object.freeze({
+  id: 'PAUSA_ACTIVA_OFICINA',
+  nombre: 'Pausa Activa: Descompresión de Oficina',
+  descripcion: 'Movilidad suave, alivio postural y activación circulatoria sin sudor en menos de 10 minutos.',
+  categoria: 'pausa_activa',
+  duracionMinutos: 8,
+  requiereEsterilla: false,
+  tiempoTransicionSegundos: 30,
+  posicion: 'sentado',
+  bloques: Object.freeze([
+    // --- BLOQUE 1: SENTADO (Encuadre: Cabeza y torso) ---
+    Object.freeze({
+      ejercicio: 'POSTURA_SILLA',
+      trabajo: 45,
+      descanso: 15,
+      posicion: 'sentado',
+    }),
+    Object.freeze({
+      ejercicio: 'ESTIRAMIENTO_CUELLO',
+      trabajo: 40,
+      descanso: 15,
+      posicion: 'sentado',
+    }),
+    Object.freeze({
+      ejercicio: 'ESTIRAMIENTO_MUNECA',
+      trabajo: 40,
+      descanso: 15,
+      posicion: 'sentado',
+    }),
+    Object.freeze({
+      ejercicio: 'ROTACION_TORSO',
+      trabajo: 40,
+      descanso: 20,
+      posicion: 'sentado',
+    }),
+    // --- BLOQUE 2: DE PIE (Encuadre: Cuerpo entero) ---
+    Object.freeze({
+      ejercicio: 'PRESS_HOMBRO',
+      trabajo: 40,
+      descanso: 15,
+      posicion: 'de_pie',
+    }),
+    Object.freeze({
+      ejercicio: 'PESO_MUERTO',
+      trabajo: 45,
+      descanso: 15,
+      posicion: 'de_pie',
+    }),
+    Object.freeze({
+      ejercicio: 'RODILLAS_ALTAS',
+      trabajo: 40,
+      descanso: 15,
+      posicion: 'de_pie',
+    }),
+  ]),
+});
+
 export function generarClase(arquetipoId, minutos, offset = 0) {
   const claseBase = CLASES_MAESTRAS.find((c) => c.arquetipo === arquetipoId);
   if (!claseBase) return null;
@@ -486,3 +564,8 @@ export function formatearReloj(segundos) {
   const resto = total % 60;
   return `${minutos}:${String(resto).padStart(2, '0')}`;
 }
+
+export const CLASES_DISPONIBLES = Object.freeze([
+  CLASE_POR_DEFECTO,
+  PAUSA_ACTIVA_OFICINA,
+]);

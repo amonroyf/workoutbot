@@ -403,6 +403,75 @@ const ROTACION_TORSO_DER = ajustar(ESCRITORIO_BASE, {
   munecaD: { x: 0.65, y: 0.5 }
 });
 
+// --- Posturas de Oficina / Escritorio (Sentado) ---------------------------
+
+// Posición base sentado frente a la cámara (silla y pies apoyados)
+const SILLA_FRONTAL_BASE = pose(
+  p(0.5, 0.18), // cabeza
+  p(0.5, 0.26), // cuello
+  p(0.42, 0.3), // hombroI
+  p(0.58, 0.3), // hombroD
+  p(0.38, 0.44), // codoI
+  p(0.62, 0.44), // codoD
+  p(0.44, 0.54), // munecaI
+  p(0.56, 0.54), // munecaD
+  p(0.44, 0.58), // caderaI
+  p(0.56, 0.58), // caderaD
+  p(0.43, 0.72), // rodillaI
+  p(0.57, 0.72), // rodillaD
+  p(0.43, 0.88), // tobilloI
+  p(0.57, 0.88)  // tobilloD
+);
+
+// Cuello inclinado hacia la izquierda y derecha
+const CUELLO_IZQ = ajustar(SILLA_FRONTAL_BASE, {
+  cabeza: { x: 0.43, y: 0.20 },
+});
+
+const CUELLO_DER = ajustar(SILLA_FRONTAL_BASE, {
+  cabeza: { x: 0.57, y: 0.20 },
+});
+
+// Corrección postural: transición de encorvado a columna erguida
+const POSTURA_SILLA_ENCORVADO = ajustar(SILLA_FRONTAL_BASE, {
+  cabeza: { y: 0.22 },
+  cuello: { y: 0.29 },
+  hombroI: { x: 0.43, y: 0.33 },
+  hombroD: { x: 0.57, y: 0.33 },
+  munecaI: { y: 0.57 },
+  munecaD: { y: 0.57 },
+});
+
+const POSTURA_SILLA_ERGUIDO = ajustar(SILLA_FRONTAL_BASE, {
+  cabeza: { y: 0.16 },
+  cuello: { y: 0.24 },
+  hombroI: { x: 0.40, y: 0.28 },
+  hombroD: { x: 0.60, y: 0.28 },
+});
+
+// Estiramiento de muñeca sentado de perfil
+const SILLA_PERFIL_BASE = pose(
+  p(0.35, 0.20), // cabeza
+  p(0.35, 0.27), // cuello
+  p(0.36, 0.31), // hombroI
+  p(0.36, 0.33), // hombroD
+  p(0.52, 0.31), // codoI
+  p(0.45, 0.40), // codoD
+  p(0.68, 0.31), // munecaI
+  p(0.66, 0.33), // munecaD
+  p(0.35, 0.58), // caderaI
+  p(0.35, 0.60), // caderaD
+  p(0.54, 0.58), // rodillaI
+  p(0.54, 0.60), // rodillaD
+  p(0.54, 0.88), // tobilloI
+  p(0.54, 0.88)  // tobilloD
+);
+
+const MUNECA_ESTIRADA = ajustar(SILLA_PERFIL_BASE, {
+  munecaI: { x: 0.67, y: 0.27 },
+  munecaD: { x: 0.67, y: 0.29 },
+});
+
 // --- DEMOS BASE CON POSTURAS ACTUALIZADAS ---
 const DEMOS_BASE = Object.freeze({
   SENTADILLAS: Object.freeze({
@@ -651,6 +720,57 @@ const DEMOS_BASE = Object.freeze({
       { t: 0.6, pose: ROTACION_TORSO_DER },
       { t: 0.8, pose: ESCRITORIO_BASE },
       { t: 1, pose: ROTACION_TORSO_IZQ },
+    ]),
+  }),
+  ESTIRAMIENTO_CUELLO: Object.freeze({
+    nombre: 'Estiramiento de cuello',
+    vista: 'frontal',
+    cicloMs: 3600,
+    pistas: [
+      'Inclina la oreja hacia el hombro',
+      'Mantén ambos hombros relajados',
+      'Vuelve al centro y cambia de lado',
+    ],
+    keyframes: Object.freeze([
+      { t: 0, pose: SILLA_FRONTAL_BASE },
+      { t: 0.25, pose: CUELLO_IZQ },
+      { t: 0.45, pose: CUELLO_IZQ },
+      { t: 0.55, pose: SILLA_FRONTAL_BASE },
+      { t: 0.75, pose: CUELLO_DER },
+      { t: 0.90, pose: CUELLO_DER },
+      { t: 1, pose: SILLA_FRONTAL_BASE },
+    ]),
+  }),
+  ESTIRAMIENTO_MUNECA: Object.freeze({
+    nombre: 'Estiramiento de muñeca',
+    vista: 'perfil',
+    cicloMs: 3000,
+    pistas: [
+      'Extiende el brazo al frente',
+      'Tracciona suavemente los dedos hacia ti',
+      'Mantén el codo bloqueado',
+    ],
+    keyframes: Object.freeze([
+      { t: 0, pose: SILLA_PERFIL_BASE },
+      { t: 0.35, pose: MUNECA_ESTIRADA },
+      { t: 0.70, pose: MUNECA_ESTIRADA },
+      { t: 1, pose: SILLA_PERFIL_BASE },
+    ]),
+  }),
+  POSTURA_SILLA: Object.freeze({
+    nombre: 'Corrección postural',
+    vista: 'frontal',
+    cicloMs: 3200,
+    pistas: [
+      'Pies planos en el piso',
+      'Abre el pecho y retrae escápulas',
+      'Alarga la columna hacia el techo',
+    ],
+    keyframes: Object.freeze([
+      { t: 0, pose: POSTURA_SILLA_ENCORVADO },
+      { t: 0.35, pose: POSTURA_SILLA_ERGUIDO },
+      { t: 0.75, pose: POSTURA_SILLA_ERGUIDO },
+      { t: 1, pose: POSTURA_SILLA_ENCORVADO },
     ]),
   }),
 });

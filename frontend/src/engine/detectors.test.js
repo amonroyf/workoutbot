@@ -695,6 +695,9 @@ describe('DETECTORES', () => {
       'PRESS_HOMBRO',
       'REMO',
       'PESO_MUERTO',
+      'ESTIRAMIENTO_CUELLO',
+      'ESTIRAMIENTO_MUNECA',
+      'POSTURA_SILLA',
     ]);
   });
 });

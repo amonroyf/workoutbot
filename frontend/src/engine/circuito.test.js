@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   estadoInicialCircuito,
   avanzarCircuito,
+  avanzarTransicion,
   totalesVacios,
   transcurridoCircuito,
   progresoCircuito,
@@ -10,7 +11,7 @@ import {
   estacionesSeccion,
   DURACION_TOTAL,
 } from './circuito';
-import { CLASE_POR_DEFECTO, obtenerClase, duracionClase } from './clases';
+import { CLASE_POR_DEFECTO, obtenerClase, duracionClase, PAUSA_ACTIVA_OFICINA } from './clases';
 
 const BLOQUES = [
   { ejercicio: 'SENTADILLAS', trabajo: 30, descanso: 15 },
@@ -67,6 +68,73 @@ describe('estadoInicialCircuito', () => {
     const e = estadoInicialCircuito(0, obtenerClase('fuerza-10'));
     expect(e.ejercicioActual).toBe('SENTADILLAS');
     expect(e.tiempoRestante).toBeGreaterThan(0);
+  });
+
+  it('usa la posición del primer bloque si está declarada', () => {
+    const e = estadoInicialCircuito(0, PAUSA_ACTIVA_OFICINA);
+    expect(e.posicion).toBe('sentado');
+  });
+});
+
+describe('PAUSA_ACTIVA_OFICINA', () => {
+  it('genera una transición entre bloques sentado y de pie', () => {
+    const bloqueAnterior = PAUSA_ACTIVA_OFICINA.bloques[3];
+    const bloqueSiguiente = PAUSA_ACTIVA_OFICINA.bloques[4];
+    const tTrabajo = bloqueAnterior.trabajo;
+    const tDescanso = bloqueAnterior.descanso;
+    const tTransicion = bloqueSiguiente.tiempoTransicionSegundos || 30;
+
+    const ahoraMs = (tTrabajo + tDescanso) * 1000;
+    const estadoInicial = estadoInicialCircuito(0, PAUSA_ACTIVA_OFICINA);
+    estadoInicial.tiempoRestante = tTrabajo;
+    estadoInicial.finFaseEn = ahoraMs;
+    estadoInicial.totales = {};
+
+    // 1. Avanzar hasta el final del trabajo -> pasa a DESCANSO
+    let paso = avanzarCircuito(estadoInicial, ahoraMs, PAUSA_ACTIVA_OFICINA);
+    expect(paso.estado.faseActual).toBe('DESCANSO');
+    expect(paso.estado.tiempoRestante).toBe(tDescanso);
+
+    // 2. Avanzar durante el descanso -> detecta cambio de posición y pasa a TRANSICION
+    const estadoDescanso = { ...estadoInicial, ...paso.estado };
+    paso = avanzarCircuito(estadoDescanso, ahoraMs + tDescanso * 1000, PAUSA_ACTIVA_OFICINA);
+    expect(paso.estado.faseActual).toBe('TRANSICION');
+    expect(paso.estado.tiempoRestante).toBe(tTransicion);
+    expect(paso.estado.posicion).toBe('de_pie');
+    expect(paso.sonido).toBe('transicion');
+
+    // 3. Avanzar durante la transición -> expira y arranca TRABAJO de pie
+    const estadoTransicion = { ...estadoDescanso, ...paso.estado };
+    paso = avanzarTransicion(estadoTransicion, ahoraMs + (tDescanso + tTransicion) * 1000, PAUSA_ACTIVA_OFICINA);
+    expect(paso.estado.faseActual).toBe('TRABAJO');
+    expect(paso.estado.bloqueActual).toBe(4);
+    expect(paso.estado.ejercicioActual).toBe('PRESS_HOMBRO');
+    expect(paso.estado.posicion).toBe('de_pie');
+    expect(paso.sonido).toBe('inicio');
+  });
+
+  it('repite la transición si el detector no la valida', () => {
+    const tTrabajo = PAUSA_ACTIVA_OFICINA.bloques[3].trabajo;
+    const tDescanso = PAUSA_ACTIVA_OFICINA.bloques[3].descanso;
+    const tTransicion = PAUSA_ACTIVA_OFICINA.bloques[4].tiempoTransicionSegundos || 30;
+
+    const ahoraMs = (tTrabajo + tDescanso) * 1000;
+    const estadoInicial = estadoInicialCircuito(0, PAUSA_ACTIVA_OFICINA);
+    estadoInicial.tiempoRestante = tTrabajo;
+    estadoInicial.finFaseEn = ahoraMs;
+    estadoInicial.totales = {};
+
+    let paso = avanzarCircuito(estadoInicial, ahoraMs, PAUSA_ACTIVA_OFICINA);
+    expect(paso.estado.faseActual).toBe('DESCANSO');
+
+    const estadoDescanso = { ...estadoInicial, ...paso.estado };
+    paso = avanzarCircuito(estadoDescanso, ahoraMs + tDescanso * 1000, PAUSA_ACTIVA_OFICINA);
+    expect(paso.estado.faseActual).toBe('TRANSICION');
+
+    const estadoTrans = { ...estadoDescanso, ...paso.estado };
+    paso = avanzarTransicion(estadoTrans, ahoraMs + (tDescanso + tTransicion + 2) * 1000, PAUSA_ACTIVA_OFICINA);
+    const transicionVolver = avanzarCircuito(paso.estado, ahoraMs + (tDescanso + tTransicion + 4) * 1000, PAUSA_ACTIVA_OFICINA);
+    expect(transicionVolver.estado.faseActual).toBe('TRABAJO');
   });
 });
 

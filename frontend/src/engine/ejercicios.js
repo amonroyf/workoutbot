@@ -282,6 +282,63 @@ PATADA_FRONTAL: Object.freeze({
     tempo: [0.5, 0.5],
     pistas: ['Guardia alta', 'Gira la cadera', 'Extiende el brazo'],
   }),
+  ESTIRAMIENTO_CUELLO: Object.freeze({
+    id: 'ESTIRAMIENTO_CUELLO',
+    nombre: 'Estiramiento de Cuello',
+    grupo: 'movilidad',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    tempo: [2, 1],
+    detector: 'estiramiento_cuello',
+    modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Inclina suavemente, hombros abajo',
+    demo: 'stick',
+    pistas: [
+      'Inclina la oreja hacia el hombro suavemente',
+      'Mantén ambos hombros relajados y nivelados',
+      'Vuelve despacio al centro antes de cambiar de lado',
+    ],
+  }),
+  ESTIRAMIENTO_MUNECA: Object.freeze({
+    id: 'ESTIRAMIENTO_MUNECA',
+    nombre: 'Estiramiento de Muñeca',
+    grupo: 'movilidad',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'perfil',
+    tempo: [2, 1],
+    detector: 'estiramiento_muneca',
+    modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Codo estirado, tira hacia ti',
+    demo: 'stick',
+    pistas: [
+      'Extiende el brazo recto al frente a la altura del hombro',
+      'Tracciona con suavidad los dedos hacia el cuerpo',
+      'Mantén el codo completamente bloqueado',
+    ],
+  }),
+  POSTURA_SILLA: Object.freeze({
+    id: 'POSTURA_SILLA',
+    nombre: 'Corrección Postural en Silla',
+    grupo: 'espalda',
+    nivel: 'principiante',
+    equipamiento: 'ninguno',
+    vista: 'frontal',
+    tempo: [2, 1],
+    detector: 'postura_silla',
+    modo: 'tiempo',
+    consigna: 'Sostén',
+    consignaAyuda: 'Pecho abierto, espalda larga',
+    demo: 'stick',
+    pistas: [
+      'Apoya ambos pies planos sobre el piso',
+      'Abre el pecho y retrae suavemente las escápulas',
+      'Alarga la coronilla hacia el techo alejando hombros de orejas',
+    ],
+  }),
 });
 
 export const MODIFICACIONES = Object.freeze({SENTADILLAS: Object.freeze({ facil: 'Apóyate en una silla y baja menos', fuerte: 'Añade pausa abajo o prueba a una pierna' }),
@@ -303,7 +360,10 @@ PRESS_HOMBRO: Object.freeze({ facil: 'Sin peso y rango corto', fuerte: 'Con bote
 REMO: Object.freeze({ facil: 'Codos al costado y rango corto', fuerte: 'Con peso y pausa atrás' }),
 PESO_MUERTO: Object.freeze({ facil: 'Sin peso, cadera atrás y pecho arriba', fuerte: 'Con mochila cargada y pausa abajo' }),
 RODILLAZO: Object.freeze({ facil: 'Rodilla a media altura', fuerte: 'Rodilla más alta y con impulso' }),
-PATADA_FRONTAL: Object.freeze({ facil: 'Patada baja, rodilla flexionada', fuerte: 'Extiende más y baja con control' })
+PATADA_FRONTAL: Object.freeze({ facil: 'Patada baja, rodilla flexionada', fuerte: 'Extiende más y baja con control' }),
+ESTIRAMIENTO_CUELLO: Object.freeze({ facil: 'Menos rango', fuerte: 'Sostén más firme' }),
+ESTIRAMIENTO_MUNECA: Object.freeze({ facil: 'Menos rango', fuerte: 'Sostén más firme' }),
+POSTURA_SILLA: Object.freeze({ facil: 'Menos rango', fuerte: 'Sostén más firme' }),
 });
 
 export function obtenerEjercicio(id) {
@@ -361,5 +421,6 @@ export const GRUPOS_EJERCICIOS = {
   core_frontal: ['PLANCHA', 'ABDOMINALES', 'PUENTE_GLUTEO'],
   core_lateral: ['PLANCHA_LATERAL', 'ROTACION_TORSO'],
   cardio: ['JUMPING_JACKS', 'RODILLAS_ALTAS', 'MOUNTAIN_CLIMBER'],
-  combat: ['GOLPE_DIRECTO', 'RODILLAZO', 'PATADA_FRONTAL']
+  combat: ['GOLPE_DIRECTO', 'RODILLAZO', 'PATADA_FRONTAL'],
+  movilidad: ['ESTIRAMIENTO_CUELLO', 'ESTIRAMIENTO_MUNECA', 'POSTURA_SILLA']
 };

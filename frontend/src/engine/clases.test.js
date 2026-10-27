@@ -4,6 +4,8 @@ import {
   CLASES,
   CLASE_INICIAL,
   CLASE_POR_DEFECTO,
+  CLASES_DISPONIBLES,
+  PAUSA_ACTIVA_OFICINA,
   generarClase,
   obtenerClase,
   obtenerArquetipo,
@@ -54,10 +56,35 @@ const IDS_CLAVE = [
 ];
 
 describe('CLASES', () => {
-  it('tiene ids únicos y una clase por defecto', () => {
+  it('tiene ids únicos, una clase por defecto y las clases disponibles registradas', () => {
     const ids = CLASES.map((clase) => clase.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(CLASE_POR_DEFECTO).toBe(CLASES[0]);
+    expect(CLASES_DISPONIBLES).toContain(CLASE_POR_DEFECTO);
+    expect(CLASES_DISPONIBLES).toContain(PAUSA_ACTIVA_OFICINA);
+    expect(PAUSA_ACTIVA_OFICINA.id).toBe('PAUSA_ACTIVA_OFICINA');
+    expect(PAUSA_ACTIVA_OFICINA.categoria).toBe('pausa_activa');
+    expect(PAUSA_ACTIVA_OFICINA.bloques).toHaveLength(7);
+    expect(PAUSA_ACTIVA_OFICINA.bloques[0]).toMatchObject({ ejercicio: 'POSTURA_SILLA', posicion: 'sentado' });
+    expect(PAUSA_ACTIVA_OFICINA.bloques[4]).toMatchObject({ ejercicio: 'PRESS_HOMBRO', posicion: 'de_pie' });
+    expect(PAUSA_ACTIVA_OFICINA.tiempoTransicionSegundos).toBe(30);
+  });
+
+  it('usa ejercicios del catálogo y bloques válidos para PAUSA_ACTIVA_OFICINA', () => {
+    for (const bloque of PAUSA_ACTIVA_OFICINA.bloques) {
+      expect(obtenerEjercicio(bloque.ejercicio), bloque.ejercicio).toBeTruthy();
+      expect(bloque.trabajo).toBeGreaterThan(0);
+      expect(bloque.descanso).toBeGreaterThanOrEqual(0);
+    }
+    expect(PAUSA_ACTIVA_OFICINA.bloques[PAUSA_ACTIVA_OFICINA.bloques.length - 1].descanso).toBe(15);
+    expect(PAUSA_ACTIVA_OFICINA.bloques[PAUSA_ACTIVA_OFICINA.bloques.length - 1].ejercicio).toBe('RODILLAS_ALTAS');
+  });
+
+  it('intercambia posición entre los bloques sentado y de pie', () => {
+    const cambio = PAUSA_ACTIVA_OFICINA.bloques.findIndex((b) => b.posicion === 'de_pie');
+    expect(cambio).toBe(4);
+    expect(PAUSA_ACTIVA_OFICINA.bloques[cambio - 1].posicion).toBe('sentado');
+    expect(PAUSA_ACTIVA_OFICINA.bloques[cambio].posicion).toBe('de_pie');
   });
   it('abre con una clase corta para personas nuevas', () => {
     expect(CLASE_INICIAL.arquetipo).toBe('core');

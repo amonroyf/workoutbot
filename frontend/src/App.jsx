@@ -21,6 +21,7 @@ import CameraFeed from './components/CameraFeed';
 import Onboarding from './components/Onboarding';
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
 import MainLayout from './components/MainLayout';
+import SummaryScreen from './components/SummaryScreen';
 import { track } from './engine/analytics';
 import {
   encolarGuardado,

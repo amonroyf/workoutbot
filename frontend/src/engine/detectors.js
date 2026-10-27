@@ -46,6 +46,13 @@ export const UMBRAL_TORSO_VERTICAL = 0.1;
 export const UMBRAL_RODILLA_90_ALTA = 110;
 export const UMBRAL_RODILLA_90_BAJA = 70;
 
+// Pausas Activas / Escritorio -----------------------------------------
+export const UMBRAL_CUELLO_INCLINACION = 0.14; // Desnivel relativo al ancho de hombros
+export const UMBRAL_CUELLO_NEUTRO = 0.05;
+export const UMBRAL_DESNIVEL_HOMBROS = 0.08; // Máxima asimetría permitida entre hombros
+export const UMBRAL_CODO_ESTIRADO = 145; // Ángulo mínimo para validar brazo extendido
+export const UMBRAL_ALTURA_CUELLO_MIN = 0.22; // Ratio vertical cabeza-hombros (anti-encorvamiento)
+
 // Combat: golpe directo y patada frontal.
 export const UMBRAL_GOLPE_CODO = 150;
 export const UMBRAL_GOLPE_Y = 0.1;
@@ -808,6 +815,130 @@ export function detectarPesoMuerto(landmarks, estado) {
   return resultado(estado, { fase, mensaje }, repeticion);
 }
 
+// --- 1. Estiramiento de Cuello (Inclinación Lateral) ---------------------
+// Alterna inclinaciones de cabeza hacia cada hombro sin elevarlos.
+export function detectarEstiramientoCuello(landmarks, estado) {
+  const visibles = [11, 12];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra tu rostro y hombros en la cámara' }, false);
+  }
+
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const centroHombrosX = (landmarks[11].x + landmarks[12].x) / 2;
+  const desnivelHombros = Math.abs(landmarks[11].y - landmarks[12].y) / anchoHombros;
+
+  // Si el usuario encoge un hombro para compensar, se penaliza
+  if (desnivelHombros > UMBRAL_DESNIVEL_HOMBROS) {
+    return resultado(estado, { mensaje: 'Baja los hombros; inclina solo el cuello' }, false);
+  }
+
+  // Medición principal por orejas (7 y 8); si no están visibles, por desvío de nariz (0)
+  let inclinacion = 0;
+  if (esVisible(landmarks, [7, 8], UMBRAL_VISIBILIDAD)) {
+    inclinacion = (landmarks[7].y - landmarks[8].y) / anchoHombros;
+  } else if (landmarks[0]?.visibility > UMBRAL_VISIBILIDAD) {
+    inclinacion = (landmarks[0].x - centroHombrosX) / (anchoHombros * 0.5);
+  } else {
+    return resultado(estado, { mensaje: 'Muestra tu rostro claramente' }, false);
+  }
+
+  let { ladoActivo } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (inclinacion < -UMBRAL_CUELLO_INCLINACION) {
+    if (ladoActivo !== 'IZQ') {
+      repeticion = ladoActivo === 'DER';
+      ladoActivo = 'IZQ';
+    }
+  } else if (inclinacion > UMBRAL_CUELLO_INCLINACION) {
+    if (ladoActivo !== 'DER') {
+      repeticion = ladoActivo === 'IZQ';
+      ladoActivo = 'DER';
+    }
+  } else if (Math.abs(inclinacion) < UMBRAL_CUELLO_NEUTRO) {
+    ladoActivo = null;
+  } else {
+    mensaje = 'Regresa al centro antes de cambiar de lado';
+  }
+
+  return resultado(estado, { ladoActivo, mensaje }, repeticion);
+}
+
+// --- 2. Estiramiento de Muñeca y Antebrazo ------------------------------
+// Requiere codo completamente extendido al frente y mano visible.
+export function detectarEstiramientoMuneca(landmarks, estado) {
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const ladoIzq = [11, 13, 15];
+  const ladoDer = [12, 14, 16];
+
+  const visIzq = visibilidad(landmarks, ladoIzq);
+  const visDer = visibilidad(landmarks, ladoDer);
+
+  if (visIzq <= UMBRAL_VISIBILIDAD && visDer <= UMBRAL_VISIBILIDAD) {
+    return resultado(estado, { mensaje: 'Extiende un brazo al frente hacia la cámara' }, false);
+  }
+
+  const indices = visDer > visIzq ? ladoDer : ladoIzq;
+  const [hombro, codo, muneca] = indices.map((i) => normalizados[i]);
+  const anguloCodo = calculateAngle(hombro, codo, muneca);
+
+  let mensaje = null;
+  let scoreForma = null;
+
+  if (anguloCodo < UMBRAL_CODO_ESTIRADO) {
+    mensaje = 'Extiende el codo por completo al frente';
+    scoreForma = Math.max(40, Math.round((anguloCodo / UMBRAL_CODO_ESTIRADO) * 70));
+  } else {
+    mensaje = null;
+    scoreForma = 95;
+  }
+
+  return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
+}
+
+// --- 3. Corrección Postural en Silla -------------------------------------
+// Ejercicio de tiempo: detecta encorvamiento ("slouching") y asimetrías.
+export function detectarPosturaSilla(landmarks, estado) {
+  const visibles = [0, 11, 12];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Siéntate erguido frente a la cámara', scoreForma: null }, false);
+  }
+
+  const hombroIzq = landmarks[11];
+  const hombroDer = landmarks[12];
+  const nariz = landmarks[0];
+  const anchoHombros = Math.max(Math.abs(hombroDer.x - hombroIzq.x), 0.0001);
+  const centroHombrosX = (hombroIzq.x + hombroDer.x) / 2;
+  const centroHombrosY = (hombroIzq.y + hombroDer.y) / 2;
+
+  // 1. Simetría escapular
+  const asimetria = Math.abs(hombroIzq.y - hombroDer.y) / anchoHombros;
+  // 2. Centrado de cabeza
+  const desvioCabeza = Math.abs(nariz.x - centroHombrosX) / anchoHombros;
+  // 3. Elongación de cuello (distancia vertical nariz-hombros)
+  const elongacionCuello = (centroHombrosY - nariz.y) / anchoHombros;
+
+  let mensaje = null;
+  let penalizacion = 0;
+
+  if (asimetria > UMBRAL_DESNIVEL_HOMBROS) {
+    mensaje = 'Nivela ambos hombros';
+    penalizacion += 25;
+  } else if (desvioCabeza > 0.12) {
+    mensaje = 'Centra tu cabeza al frente';
+    penalizacion += 20;
+  } else if (elongacionCuello < UMBRAL_ALTURA_CUELLO_MIN) {
+    mensaje = 'Abre el pecho y alarga la columna';
+    penalizacion += 30;
+  }
+
+  const scoreForma = Math.max(20, Math.round(100 - penalizacion));
+  return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
+}
+
+// --- Combat ---------------------------------------------------------------
+
 export const DETECTORES = {
   WALL_SIT: detectarWallSit,
   SENTADILLAS: detectarSentadilla,
@@ -828,6 +959,9 @@ export const DETECTORES = {
   PRESS_HOMBRO: detectarPressHombro,
   REMO: detectarRemo,
   PESO_MUERTO: detectarPesoMuerto,
+  ESTIRAMIENTO_CUELLO: detectarEstiramientoCuello,
+  ESTIRAMIENTO_MUNECA: detectarEstiramientoMuneca,
+  POSTURA_SILLA: detectarPosturaSilla,
 };
 
 // Algunos ejercicios comparten detector (variantes y expresiones). El motor de
@@ -849,6 +983,9 @@ const DETECTORES_POR_NOMBRE = {
   golpe_directo: detectarGolpeDirecto,
   rodillazo: detectarRodillazo,
   patada_frontal: detectarPatadaFrontal,
+  estiramiento_cuello: detectarEstiramientoCuello,
+  estiramiento_muneca: detectarEstiramientoMuneca,
+  postura_silla: detectarPosturaSilla,
 };
 
 export function obtenerDetector(ejercicioId) {

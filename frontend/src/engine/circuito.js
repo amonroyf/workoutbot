@@ -96,11 +96,11 @@ export function progresoSecciones(estado, clase = CLASE_POR_DEFECTO) {
 
 export function estacionesCircuito(estado, clase = CLASE_POR_DEFECTO) {
   if (estado.faseActual === 'FIN') {
-    return clase.bloques.map((bloque) => ({ ejercicio: bloque.ejercicio, estado: 'completado' }));
+    return clase.bloques.map((bloque) => ({ ejercicio: bloque.ejercicio, estado: 'completado', posicion: bloque.posicion }));
   }
 
-  if (estado.faseActual === 'CALIBRACION') {
-    return clase.bloques.map((bloque) => ({ ejercicio: bloque.ejercicio, estado: 'pendiente' }));
+  if (estado.faseActual === 'CALIBRACION' || estado.faseActual === 'TRANSICION') {
+    return clase.bloques.map((bloque) => ({ ejercicio: bloque.ejercicio, estado: 'pendiente', posicion: bloque.posicion }));
   }
 
   const indice = indiceBloque(estado, clase);
@@ -161,6 +161,7 @@ export function estadoInicialCircuito(ahoraMs, clase = CLASE_POR_DEFECTO) {
     totales: totalesVacios(clase),
     finFaseEn: ahoraMs + tTrabajo * 1000,
     mitadCompletada: false,
+    posicion: bloque.posicion || 'sentado',
   };
 }
 
@@ -233,8 +234,24 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
 
   let siguienteIndice = indice + 1;
 
+  const posicionActual = bloque?.posicion || estado.posicion || 'sentado';
+
   if (siguienteIndice < clase.bloques.length) {
     let siguiente = clase.bloques[siguienteIndice];
+
+    if (siguiente.posicion && siguiente.posicion !== posicionActual && estado.faseActual !== 'TRANSICION') {
+      return {
+        estado: {
+          faseActual: 'TRANSICION',
+          tiempoRestante: siguiente.tiempoTransicionSegundos || clase.tiempoTransicionSegundos || 30,
+          finFaseEn: ahoraMs + (siguiente.tiempoTransicionSegundos || clase.tiempoTransicionSegundos || 30) * 1000,
+          posicion: siguiente.posicion,
+          totales,
+          mitadCompletada: false,
+        },
+        sonido: 'transicion',
+      };
+    }
 
     if (siguiente.seccionTipo === 'finisher') {
       const mereceFinisher = (estado.mejorCombo || 0) >= 5 && (estado.perfectas || 0) >= 10;
@@ -261,6 +278,7 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
         combo: 0,
         totales,
         mitadCompletada: false,
+        posicion: siguiente.posicion || posicionActual,
       },
       sonido: 'inicio',
     };
@@ -269,5 +287,38 @@ export function avanzarCircuito(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
   return {
     estado: { faseActual: 'FIN', tiempoRestante: 0, finFaseEn: null, totales },
     sonido: 'silbato',
+  };
+}
+
+export function avanzarTransicion(estado, ahoraMs, clase = CLASE_POR_DEFECTO) {
+  if (estado.faseActual !== 'TRANSICION') return null;
+
+  const restante = Math.max(0, Math.ceil((estado.finFaseEn - ahoraMs) / 1000));
+
+  if (restante > 0) {
+    if (restante === estado.tiempoRestante) return null;
+    return { estado: { tiempoRestante: restante }, sonido: null };
+  }
+
+  // La transición ha expirado: pasar al próximo bloque de trabajo.
+  const indice = indiceBloque(estado, clase);
+  let siguienteIndice = Math.min(indice + 1, clase.bloques.length - 1);
+  const siguiente = clase.bloques[siguienteIndice];
+
+  const tSiguiente = tiempoTrabajo(siguiente);
+  return {
+    estado: {
+      faseActual: 'TRABAJO',
+      bloqueActual: siguienteIndice,
+      ejercicioActual: siguiente.ejercicio,
+      tiempoRestante: tSiguiente,
+      finFaseEn: ahoraMs + tSiguiente * 1000,
+      repeticiones: 0,
+      combo: 0,
+      totales: estado.totales,
+      mitadCompletada: false,
+      posicion: siguiente.posicion || estado.posicion || 'de_pie',
+    },
+    sonido: 'inicio',
   };
 }
