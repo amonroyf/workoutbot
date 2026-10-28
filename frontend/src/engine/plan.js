@@ -1,4 +1,4 @@
-import { obtenerClase } from './clases';
+import { obtenerClase, duracionClase } from './clases';
 
 export const CLAVE_PLAN = 'workoutbot:plan:v1';
 
@@ -95,13 +95,25 @@ export function diaIso(fecha = new Date()) {
   return dia === 0 ? 7 : dia;
 }
 
+const DURACIONES_POR_OBJETIVO = Object.freeze({
+  equilibrio: Object.freeze([30, 20, 20]),
+  fuerza: Object.freeze([30, 30, 30]),
+  cardio: Object.freeze([20, 20, 20]),
+  suave: Object.freeze([20, 20, 30]),
+  expreso: Object.freeze([5, 10, 10]),
+  combate: Object.freeze([20, 20, 20]),
+});
+
 export function claseParaDia(plan, dia) {
   const normalizado = normalizarPlan(plan);
   const posicion = normalizado.dias.indexOf(dia);
   if (posicion === -1) return null;
 
   const { clases } = obtenerObjetivo(normalizado.objetivo);
-  return obtenerClase(clases[posicion % clases.length]);
+  const arquetipo = clases[posicion % clases.length];
+  const duraciones = DURACIONES_POR_OBJETIVO[normalizado.objetivo] || [30, 30, 30];
+  const minutos = duraciones[posicion % duraciones.length] || 30;
+  return obtenerClase(`${arquetipo}-${minutos}`);
 }
 
 export function claseParaFecha(plan, fecha = new Date()) {
@@ -131,11 +143,11 @@ export function formatearDias(dias) {
 
 export function textoHoy(plan, fecha = new Date()) {
   const clase = claseParaFecha(plan, fecha);
-  if (clase) return `Hoy toca ${clase.nombre}`;
+  if (clase) return `Hoy toca ${clase.nombre} ${Math.round(duracionClase(clase) / 60)}`;
 
   const siguiente = siguienteDiaPlan(plan, diaIso(fecha));
   if (!siguiente) return 'Hoy descansas';
-  return `Hoy descansas. El ${nombreDia(siguiente.dia)} toca ${siguiente.clase.nombre}`;
+  return `Hoy descansas. El ${nombreDia(siguiente.dia)} toca ${siguiente.clase.nombre} ${Math.round(duracionClase(siguiente.clase) / 60)}`;
 }
 
 export function cargarPlan(storage = almacenamientoPorDefecto(), uid = null) {

@@ -16,7 +16,7 @@ import { useMusica } from '../hooks/useMusica';
 import Icono from './Icono';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
-import MinijuegoTecho from './MinijuegoTecho';
+
 import MarcoEncuadre from './MarcoEncuadre';
 import MascotaVirtual from './MascotaVirtual';
 
@@ -196,13 +196,7 @@ export default function WorkoutUI() {
 
   const EJERCICIOS_ISOMETRICOS = ['WALL_SIT', 'PLANCHA', 'PLANCHA_LATERAL', 'SUPERMAN'];
 
-  // Minijuego somatosensorial: el techo virtual se sostiene con la postura
-  const mostrarTecho =
-    faseActual === 'TRABAJO' &&
-    !pausado &&
-    !demoAbierta &&
-    camaraHabilitada &&
-    EJERCICIOS_ISOMETRICOS.includes(ejercicioActual);
+  const mostrarTecho = false;
 
   return (
     <div style={estiloGel(claseActual.arquetipo)} className="absolute inset-0 z-10 text-tinta-100">
@@ -341,14 +335,7 @@ export default function WorkoutUI() {
         )}
 
         {faseActual === 'TRABAJO' ? (
-          mostrarTecho ? (
-            <div className="mt-4 w-full max-w-sm">
-              <MinijuegoTecho />
-              <p className="mt-2 text-sm font-bold uppercase tracking-widest text-tinta-300">
-                ¡Mantén la tensión!
-              </p>
-            </div>
-          ) : esTiempo ? (
+          esTiempo ? (
             <div className="mt-6 flex flex-col items-center gap-3 rounded-panel bg-tinta-950/60 p-6 backdrop-blur-xl border border-white/10 shadow-2xl">
               <p className="text-4xl font-black text-marca-300">{consigna.consigna}</p>
               <p className="text-base text-tinta-200">{consigna.consignaAyuda}</p>

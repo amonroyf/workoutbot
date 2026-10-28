@@ -89,7 +89,7 @@ const MAPA_ACTIVACION = {
   piernas: ['SENTADILLAS', 'ZANCADAS'],
   empuje: ['FLEXIONES', 'PRESS_HOMBRO'],
   tiron: ['REMO', 'PESO_MUERTO'],
-  core_frontal: ['PLANCHA', 'PUENTE_GLUTEO'],
+  core_frontal: ['BIRD_DOG', 'PLANCHA', 'PUENTE_GLUTEO'],
   core_lateral: ['ROTACION_TORSO'],
   cardio: ['JUMPING_JACKS', 'RODILLAS_ALTAS'],
   combat: ['GOLPE_DIRECTO', 'ROTACION_TORSO']
@@ -482,7 +482,8 @@ export function generarClase(arquetipoId, minutos, offset = 0) {
     ...ajustarDuracion(claseBase, objetivoSeg),
     duracionObjetivo: objetivoSeg,
   };
-  return compilarClase(claseAjustada, offset);
+  const compilada = compilarClase(claseAjustada, offset);
+  return { ...compilada, id: `${arquetipoId}-${minutos}` };
 }
 
 // Re-arma una clase ya compilada con un offset de semilla distinto: conserva
@@ -493,10 +494,11 @@ export function barajarClase(claseCompilada, offset = 0) {
   const base = CLASES_MAESTRAS.find((c) => c.arquetipo === claseCompilada.arquetipo);
   if (!base) return null;
   const objetivoSeg = claseCompilada.duracionObjetivo || duracionClase(claseCompilada);
-  return compilarClase(
+  const compilada = compilarClase(
     { ...ajustarDuracion(base, objetivoSeg), duracionObjetivo: objetivoSeg },
     offset
   );
+  return { ...compilada, id: claseCompilada.id };
 }
 
 export function obtenerClase(id, offset = 0) {
@@ -553,6 +555,12 @@ export function formatearDuracion(segundos) {
 }
 
 export function etiquetaFormato(clase) {
+  if (clase?.etiqueta && clase.etiqueta !== 'Libre') return clase.etiqueta;
+  const objetivo = clase?.duracionObjetivo;
+  const baseMin = clase?.duracionMin;
+  if (objetivo && baseMin && objetivo !== baseMin * 60) {
+    return `${Math.round(objetivo / 60)} min`;
+  }
   if (clase?.etiqueta) return clase.etiqueta;
   const arquetipo = clase?.arquetipo ? obtenerArquetipo(clase.arquetipo) : null;
   return arquetipo?.nombre || 'Clase';

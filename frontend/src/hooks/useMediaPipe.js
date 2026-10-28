@@ -64,7 +64,7 @@ function obtenerAnguloVisible(landmarks, lados) {
 
 // CONSTANTES DE DEFENSA CONTRA FALSOS POSITIVOS
 export const COOLDOWN_MINIMO_MS = 250;
-const DEBOUNCE_FASE_MS = 150; // Tiempo (ms) que debe sostener la postura para validar
+const DEBOUNCE_FASE_MS = 100; // Tiempo (ms) que debe sostener la postura para validar
 
 export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const [isLoaded, setIsLoaded] = useState(false);

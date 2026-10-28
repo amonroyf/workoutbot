@@ -11,6 +11,7 @@ export const EJERCICIOS_UNILATERALES = new Set([
   'PLANCHA_LATERAL',
   'RODILLAZO',
   'PATADA_FRONTAL',
+  'BIRD_DOG',
 ]);
 
 export function totalesVacios(clase = CLASE_POR_DEFECTO) {

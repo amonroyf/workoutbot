@@ -13,6 +13,15 @@ import {
   detectarSuperman,
   detectarWallSit,
   detectarRotacionTorso,
+  detectarCalfRaise,
+  detectarLateralLegRaise,
+  detectarLegRaise,
+  detectarShoulderTaps,
+  detectarGolpeDirecto,
+  detectarPatadaFrontal,
+  detectarPressHombro,
+  detectarRemo,
+  detectarPesoMuerto,
   crearEstadoDetector,
   DETECTORES,
 } from './detectors';
@@ -673,6 +682,155 @@ describe('detectarWallSit', () => {
   });
 });
 
+describe('detectarCalfRaise', () => {
+  it('cuenta una elevacion al subir y bajar', () => {
+    const ABAJO = { 23: { y: 0.5 }, 24: { y: 0.5 }, 27: { y: 0.8 }, 28: { y: 0.8 } };
+    const ARRIBA = { 23: { y: 0.5 }, 24: { y: 0.5 }, 27: { y: 0.4 }, 28: { y: 0.4 } };
+    let e = alimentar(detectarCalfRaise, conPuntos(ABAJO), crearEstadoDetector(), 1).estado;
+    const r = alimentar(detectarCalfRaise, conPuntos(ARRIBA), e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarLateralLegRaise', () => {
+  it('cuenta una elevacion lateral', () => {
+    const ABAJO = { 23: { y: 0.5 }, 25: { y: 0.7 }, 27: { y: 0.8 } };
+    const ARRIBA = { 23: { y: 0.5 }, 25: { y: 0.7 }, 27: { y: 0.35 } };
+    const lmsAbajo = conPuntos(ABAJO);
+    lmsAbajo[24].visibility = 0.1; lmsAbajo[26].visibility = 0.1; lmsAbajo[28].visibility = 0.1;
+    const lmsArriba = conPuntos(ARRIBA);
+    lmsArriba[24].visibility = 0.1; lmsArriba[26].visibility = 0.1; lmsArriba[28].visibility = 0.1;
+    let e = alimentar(detectarLateralLegRaise, lmsAbajo, crearEstadoDetector(), 1).estado;
+    const r = alimentar(detectarLateralLegRaise, lmsArriba, e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarLegRaise', () => {
+  it('cuenta una elevacion de piernas', () => {
+    const ABAJO = { 23: { y: 0.5 }, 24: { y: 0.5 }, 27: { y: 0.8 }, 28: { y: 0.8 } };
+    const ARRIBA = { 23: { y: 0.5 }, 24: { y: 0.5 }, 27: { y: 0.3 }, 28: { y: 0.3 } };
+    let e = alimentar(detectarLegRaise, conPuntos(ABAJO), crearEstadoDetector(), 1).estado;
+    const r = alimentar(detectarLegRaise, conPuntos(ARRIBA), e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarShoulderTaps', () => {
+  it('cuenta toques alternados', () => {
+    const BASE = {
+      11: { x: 0.4, y: 0.5 },
+      12: { x: 0.6, y: 0.5 },
+      15: { x: 0.35, y: 0.55 },
+      16: { x: 0.65, y: 0.55 },
+      23: { x: 0.45, y: 0.7 },
+      24: { x: 0.55, y: 0.7 },
+    };
+    const TAP_DER = {
+      ...BASE,
+      15: { x: 0.6, y: 0.5 },
+    };
+    const TAP_IZQ = {
+      ...BASE,
+      16: { x: 0.4, y: 0.5 },
+    };
+    let e = alimentar(detectarShoulderTaps, conPuntos(BASE), crearEstadoDetector(), 1).estado;
+    let r = alimentar(detectarShoulderTaps, conPuntos(TAP_IZQ), e, 1);
+    expect(r.repeticiones).toBe(0);
+    r = alimentar(detectarShoulderTaps, conPuntos(TAP_DER), r.estado, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarGolpeDirecto', () => {
+  it('cuenta golpes alternados', () => {
+    const BASE = {
+      11: { x: 0.4, y: 0.4 }, 12: { x: 0.6, y: 0.4 },
+      13: { x: 0.4, y: 0.5 }, 14: { x: 0.6, y: 0.5 },
+      15: { x: 0.4, y: 0.55 }, 16: { x: 0.6, y: 0.55 },
+    };
+    const GOLPE_IZQ = {
+      ...BASE,
+      13: { x: 0.3, y: 0.4 }, 15: { x: 0.2, y: 0.35 },
+    };
+    const GOLPE_DER = {
+      ...BASE,
+      14: { x: 0.7, y: 0.4 }, 16: { x: 0.8, y: 0.35 },
+    };
+    let e = alimentar(detectarGolpeDirecto, conPuntos(GOLPE_IZQ), crearEstadoDetector(), 1).estado;
+    let r = alimentar(detectarGolpeDirecto, conPuntos(GOLPE_DER), e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarPatadaFrontal', () => {
+  it('cuenta patadas alternadas', () => {
+    const BASE = {
+      23: { x: 0.45, y: 0.55 }, 24: { x: 0.55, y: 0.55 },
+      27: { x: 0.45, y: 0.8 }, 28: { x: 0.55, y: 0.8 },
+    };
+    const PATADA_IZQ = { ...BASE, 27: { x: 0.45, y: 0.45 } };
+    const PATADA_DER = { ...BASE, 28: { x: 0.55, y: 0.45 } };
+    let e = alimentar(detectarPatadaFrontal, conPuntos(PATADA_IZQ), crearEstadoDetector(), 1).estado;
+    let r = alimentar(detectarPatadaFrontal, conPuntos(PATADA_DER), e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarPressHombro', () => {
+  it('cuenta una repeticion', () => {
+    const ARRIBA = {
+      11: { x: 0.4, y: 0.7 }, 12: { x: 0.6, y: 0.7 },
+      13: { x: 0.38, y: 0.5 }, 14: { x: 0.62, y: 0.5 },
+      15: { x: 0.4, y: 0.2 }, 16: { x: 0.6, y: 0.2 },
+    };
+    const ABAJO = {
+      11: { x: 0.4, y: 0.7 }, 12: { x: 0.6, y: 0.7 },
+      13: { x: 0.35, y: 0.75 }, 14: { x: 0.65, y: 0.75 },
+      15: { x: 0.4, y: 0.8 }, 16: { x: 0.6, y: 0.8 },
+    };
+    let e = alimentar(detectarPressHombro, conPuntos(ABAJO), crearEstadoDetector(), 1).estado;
+    const r = alimentar(detectarPressHombro, conPuntos(ARRIBA), e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarRemo', () => {
+  it('cuenta una repeticion', () => {
+    const EXTENDIDO = {
+      11: { x: 0.4, y: 0.5 }, 12: { x: 0.6, y: 0.5 },
+      15: { x: 0.1, y: 0.5 }, 16: { x: 0.9, y: 0.5 },
+    };
+    const JALADO = {
+      11: { x: 0.4, y: 0.5 }, 12: { x: 0.6, y: 0.5 },
+      15: { x: 0.38, y: 0.45 }, 16: { x: 0.62, y: 0.45 },
+    };
+    let e = alimentar(detectarRemo, conPuntos(EXTENDIDO), crearEstadoDetector(), 1).estado;
+    const r = alimentar(detectarRemo, conPuntos(JALADO), e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
+describe('detectarPesoMuerto', () => {
+  it('cuenta una repeticion', () => {
+    const ARRIBA = {
+      11: { x: 0.5, y: 0.3 }, 12: { x: 0.5, y: 0.3 },
+      23: { x: 0.5, y: 0.6 }, 24: { x: 0.5, y: 0.6 },
+    };
+    const ABAJO = {
+      11: { x: 0.7, y: 0.5 }, 12: { x: 0.7, y: 0.5 },
+      23: { x: 0.5, y: 0.6 }, 24: { x: 0.5, y: 0.6 },
+    };
+    const lmsArriba = conPuntos(ARRIBA);
+    const lmsAbajo = conPuntos(ABAJO);
+    lmsArriba[25] = { ...lmsArriba[25], visibility: 0.1 };
+    lmsAbajo[25] = { ...lmsAbajo[25], visibility: 0.1 };
+    let e = alimentar(detectarPesoMuerto, lmsAbajo, crearEstadoDetector(), 1).estado;
+    const r = alimentar(detectarPesoMuerto, lmsArriba, e, 1);
+    expect(r.repeticiones).toBe(1);
+  });
+});
+
 describe('DETECTORES', () => {
   it('mapea los ejercicios del catalogo', () => {
     expect(Object.keys(DETECTORES)).toEqual([
@@ -695,6 +853,11 @@ describe('DETECTORES', () => {
       'PRESS_HOMBRO',
       'REMO',
       'PESO_MUERTO',
+      'GOOD_MORNING',
+      'CALF_RAISE',
+      'SHOULDER_TAPS',
+      'LATERAL_LEG_RAISE',
+      'LEG_RAISE',
       'ESTIRAMIENTO_CUELLO',
       'ESTIRAMIENTO_MUNECA',
       'POSTURA_SILLA',
