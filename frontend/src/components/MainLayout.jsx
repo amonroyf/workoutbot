@@ -1,12 +1,24 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import { useWorkoutStore } from '../store/workoutStore';
 import NavegacionInferior from './NavegacionInferior';
-import WorkoutUI from './WorkoutUI';
 import SummaryScreen from './SummaryScreen';
 import PantallaInicioWrapper from '../screens/PantallaInicioWrapper';
 import PantallaActividad from '../screens/PantallaActividad';
 import PantallaPerfil from '../screens/PantallaPerfil';
+import Icono from './Icono';
+
+const WorkoutUI = lazy(() => import('./WorkoutUI'));
+
+function PreparandoIA() {
+  return (
+    <div className="flex h-dvh w-full flex-col items-center justify-center bg-fondo text-tinta-100 gap-4">
+      <Icono nombre="camara" tamano={48} className="text-marca-400 animate-pulse" />
+      <h2 className="text-xl font-black">Preparando Inteligencia Artificial...</h2>
+      <p className="text-sm text-tinta-400">Descargando modelo de postura</p>
+    </div>
+  );
+}
 
 export default function MainLayout({
   user,
@@ -28,9 +40,12 @@ export default function MainLayout({
 }) {
   const faseActual = useWorkoutStore((s) => s.faseActual);
 
-  // Secuestro de pantalla (Kiosk Mode): mientras entrena, no hay pestañas.
   if (faseActual === 'TRABAJO' || faseActual === 'DESCANSO' || faseActual === 'CAMBIO_LADO') {
-    return <WorkoutUI />;
+    return (
+      <Suspense fallback={<PreparandoIA />}>
+        <WorkoutUI />
+      </Suspense>
+    );
   }
 
   return (

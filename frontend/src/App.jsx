@@ -17,7 +17,6 @@ import {
   puedeEntrarEnPantallaCompleta,
   solicitarPantallaCompleta,
 } from './engine/pantallaCompleta';
-import CameraFeed from './components/CameraFeed';
 import Onboarding from './components/Onboarding';
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
 import MainLayout from './components/MainLayout';
@@ -354,7 +353,6 @@ export default function App() {
 
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
-      <CameraFeed />
       {mostrarOnboarding && (
         <Onboarding
           plan={plan}
