@@ -46,7 +46,18 @@ function dibujarPose(ctx, pose, ancho, alto) {
 
 export default function DemoEjercicio({ ejercicio, compacto = false, esquina = false, pequena = false }) {
   const canvasRef = useRef(null);
+  const sizeRef = useRef({ width: 0, height: 0 }); // Cache de tamaño
   const demo = obtenerDemo(ejercicio);
+
+  useEffect(() => {
+    if (!canvasRef.current) return undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      sizeRef.current.width = entry.contentRect.width;
+      sizeRef.current.height = entry.contentRect.height;
+    });
+    observer.observe(canvasRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -57,8 +68,10 @@ export default function DemoEjercicio({ ejercicio, compacto = false, esquina = f
 
     const dibujar = (ahora) => {
       const dpr = window.devicePixelRatio || 1;
-      const ancho = canvas.clientWidth;
-      const alto = canvas.clientHeight;
+      // LECTURA DESDE EL CACHE (Sin Layout Thrashing)
+      const ancho = sizeRef.current.width;
+      const alto = sizeRef.current.height;
+
       if (ancho > 0 && alto > 0) {
         const anchoFisico = Math.round(ancho * dpr);
         const altoFisico = Math.round(alto * dpr);
@@ -71,7 +84,7 @@ export default function DemoEjercicio({ ejercicio, compacto = false, esquina = f
       }
       frame = requestAnimationFrame(dibujar);
     };
-
+    
     frame = requestAnimationFrame(dibujar);
     return () => cancelAnimationFrame(frame);
   }, [demo]);
@@ -90,7 +103,7 @@ export default function DemoEjercicio({ ejercicio, compacto = false, esquina = f
         ref={canvasRef}
         role="img"
         aria-label={`Demostración de ${demo.nombre}`}
-        className="h-full w-full"
+        className="h-full w-full block"
       />
     </div>
   );

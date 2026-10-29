@@ -105,38 +105,36 @@ function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], 
 }
 
 export default function WorkoutUI() {
-  const {
-    faseActual,
-    tiempoRestante,
-    repeticiones,
-    combo,
-    claseActual,
-    bloqueActual,
-    ejercicioActual,
-    mensajeForma,
-    scoreForma,
-    progresoFase,
-    subtitulo,
-    pausado,
-    pausadoPor,
-    sonidosActivos,
-    musicaActiva,
-    avisoMusica,
-    faseRepeticion,
-    flashPerfecta,
-    demoAbierta,
-    demoEjercicio,
-    togglePausa,
-    setSonidosActivos,
-    setMusicaActiva,
-    abrirDemo,
-    cerrarDemo,
-    camaraHabilitada,
-    setCamaraHabilitada,
-    ritmoAnterior,
-    advertenciaCamara,
-    detenerRutina,
-  } = useWorkoutStore();
+  const faseActual = useWorkoutStore((s) => s.faseActual);
+  const tiempoRestante = useWorkoutStore((s) => s.tiempoRestante);
+  const repeticiones = useWorkoutStore((s) => s.repeticiones);
+  const combo = useWorkoutStore((s) => s.combo);
+  const claseActual = useWorkoutStore((s) => s.claseActual);
+  const bloqueActual = useWorkoutStore((s) => s.bloqueActual);
+  const ejercicioActual = useWorkoutStore((s) => s.ejercicioActual);
+  const mensajeForma = useWorkoutStore((s) => s.mensajeForma);
+  const scoreForma = useWorkoutStore((s) => s.scoreForma);
+  const progresoFase = useWorkoutStore((s) => s.progresoFase);
+  const pausado = useWorkoutStore((s) => s.pausado);
+  const pausadoPor = useWorkoutStore((s) => s.pausadoPor);
+  const sonidosActivos = useWorkoutStore((s) => s.sonidosActivos);
+  const musicaActiva = useWorkoutStore((s) => s.musicaActiva);
+  const avisoMusica = useWorkoutStore((s) => s.avisoMusica);
+  const faseRepeticion = useWorkoutStore((s) => s.faseRepeticion);
+  const flashPerfecta = useWorkoutStore((s) => s.flashPerfecta);
+  const demoAbierta = useWorkoutStore((s) => s.demoAbierta);
+  const demoEjercicio = useWorkoutStore((s) => s.demoEjercicio);
+  const camaraHabilitada = useWorkoutStore((s) => s.camaraHabilitada);
+  const ritmoAnterior = useWorkoutStore((s) => s.ritmoAnterior);
+  const advertenciaCamara = useWorkoutStore((s) => s.advertenciaCamara);
+
+  const togglePausa = useWorkoutStore((s) => s.togglePausa);
+  const setSonidosActivos = useWorkoutStore((s) => s.setSonidosActivos);
+  const setMusicaActiva = useWorkoutStore((s) => s.setMusicaActiva);
+  const abrirDemo = useWorkoutStore((s) => s.abrirDemo);
+  const cerrarDemo = useWorkoutStore((s) => s.cerrarDemo);
+  const setCamaraHabilitada = useWorkoutStore((s) => s.setCamaraHabilitada);
+  const detenerRutina = useWorkoutStore((s) => s.detenerRutina);
 
   useMusica();
 

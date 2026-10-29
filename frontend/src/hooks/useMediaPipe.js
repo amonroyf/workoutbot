@@ -63,7 +63,7 @@ function obtenerAnguloVisible(landmarks, lados) {
 }
 
 // CONSTANTES DE DEFENSA CONTRA FALSOS POSITIVOS
-export const COOLDOWN_MINIMO_MS = 250;
+export const COOLDOWN_MINIMO_MS = 100;
 const DEBOUNCE_FASE_MS = 100; // Tiempo (ms) que debe sostener la postura para validar
 
 export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
@@ -183,7 +183,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
         const tempo = EJERCICIOS_CATALOGO[ejercicio]?.tempo || [1.5, 1];
         const tiempoRepEsperadoMs = (tempo[0] + tempo[1]) * 1000;
         // Permite ir hasta un 40% más rápido que la voz, limitando spam imposible
-        const cooldownDinamicoMs = Math.max(COOLDOWN_MINIMO_MS, tiempoRepEsperadoMs * 0.6);
+        const cooldownDinamicoMs = Math.max(COOLDOWN_MINIMO_MS, tiempoRepEsperadoMs * 0.4);
 
         if (ahoraMs - ultimaRepMs.current >= cooldownDinamicoMs) {
           ultimaRepMs.current = ahoraMs;

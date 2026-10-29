@@ -3,66 +3,45 @@ import { OneEuroFilter } from './filters';
 import { calcularScoreForma } from './forma';
 import { EJERCICIOS_CATALOGO } from './ejercicios';
 
-export const UMBRAL_VISIBILIDAD = 0.5;
-export const UMBRAL_VALGO_RODILLA = 0.75; // Las rodillas no deben estar más juntas que el 75% de los tobillos
+// UMBRALES GLOBALES REDUCIDOS PARA RESISTIR OCLUSIÓN Y MOTION BLUR
+export const UMBRAL_VISIBILIDAD = 0.35; 
+export const UMBRAL_VALGO_RODILLA = 0.75; 
 export const UMBRAL_ANGULO_ARRIBA = 160;
-export const UMBRAL_ANGULO_ABAJO = 100;
-export const UMBRAL_ZONA_BAJA = 115;
+export const UMBRAL_ANGULO_ABAJO = 90; // Profundidad estricta
+export const UMBRAL_ZONA_BAJA = 100;
 export const UMBRAL_DESCENSO_CADERA = 0.03;
 export const UMBRAL_VERTICALIDAD_PLANCHA = 0.55;
 export const TIEMPO_SENTADO_MS = 2000;
 
-const LADOS_SENTADILLA = [
-  [23, 25, 27],
-  [24, 26, 28],
-];
-const LADOS_FLEXION = [
-  [11, 13, 15],
-  [12, 14, 16],
-];
-const LADOS_PLANCHA = [
-  [11, 23, 27],
-  [12, 24, 28],
-];
-const LADOS_TORSO = [
-  [11, 23, 25],
-  [12, 24, 26],
-];
+const LADOS_SENTADILLA = [[23, 25, 27], [24, 26, 28]];
+const LADOS_FLEXION = [[11, 13, 15], [12, 14, 16]];
+const LADOS_PLANCHA = [[11, 23, 27], [12, 24, 28]];
+const LADOS_TORSO = [[11, 23, 25], [12, 24, 26]];
 
 export const UMBRAL_RODILLA_ALTA = 0.03;
 export const UMBRAL_TORSO_ARRIBA = 0.04;
 export const UMBRAL_CUERPO_HORIZONTAL = 0.1;
-export const UMBRAL_ALINEACION_PLANCHA = 150;
+export const UMBRAL_ALINEACION_PLANCHA = 155; // Mayor exigencia en rectitud
 export const UMBRAL_RODILLA_ESCALADOR = 120;
 export const UMBRAL_PIERNA_EXTENDIDA = 150;
 export const UMBRAL_SUPERMAN = 0.03;
-
-// Escritorio: la cámara solo necesita ver hombros y cabeza.
 export const UMBRAL_ROTACION_TORSO = 0.3;
 export const UMBRAL_ROTACION_TORSO_NEUTRO = 0.1;
-
-// Wall sit: torso vertical y rodillas cerca de 90 grados.
 export const UMBRAL_TORSO_VERTICAL = 0.1;
 export const UMBRAL_RODILLA_90_ALTA = 110;
 export const UMBRAL_RODILLA_90_BAJA = 70;
-
-// Pausas Activas / Escritorio -----------------------------------------
-export const UMBRAL_CUELLO_INCLINACION = 0.14; // Desnivel relativo al ancho de hombros
+export const UMBRAL_CUELLO_INCLINACION = 0.14;
 export const UMBRAL_CUELLO_NEUTRO = 0.05;
-export const UMBRAL_DESNIVEL_HOMBROS = 0.08; // Máxima asimetría permitida entre hombros
-export const UMBRAL_CODO_ESTIRADO = 145; // Ángulo mínimo para validar brazo extendido
-export const UMBRAL_ALTURA_CUELLO_MIN = 0.22; // Ratio vertical cabeza-hombros (anti-encorvamiento)
-
-// Combat: golpe directo y patada frontal.
-export const UMBRAL_GOLPE_CODO = 150;
-export const UMBRAL_GOLPE_Y = 0.1;
-export const UMBRAL_PATADA = 0.06;
-
-// Fuerza estilo pump.
-export const UMBRAL_PRESS_ARRIBA = 0.55;
-export const UMBRAL_PRESS_ABAJO = 0.15;
-export const UMBRAL_REMO_JALADO = 0.35;
-export const UMBRAL_REMO_EXTENDIDO = 0.6;
+export const UMBRAL_DESNIVEL_HOMBROS = 0.08;
+export const UMBRAL_CODO_ESTIRADO = 150; // Más exigente
+export const UMBRAL_ALTURA_CUELLO_MIN = 0.22;
+export const UMBRAL_GOLPE_CODO = 150; // Extensión total
+export const UMBRAL_GOLPE_Y = 0.15;
+export const UMBRAL_PATADA = 0.04;
+export const UMBRAL_PRESS_ARRIBA = 0.5;
+export const UMBRAL_PRESS_ABAJO = 0.2;
+export const UMBRAL_REMO_JALADO = 0.4;
+export const UMBRAL_REMO_EXTENDIDO = 0.55;
 export const UMBRAL_BISAGRA = 0.35;
 export const UMBRAL_BISAGRA_ARRIBA = 0.15;
 
@@ -70,6 +49,7 @@ export function crearEstadoDetector() {
   return {
     fase: 'ARRIBA',
     baseY: null,
+    baseX: null,
     tiempoZonaBajaMs: null,
     sentado: false,
     mensaje: null,
@@ -79,6 +59,7 @@ export function crearEstadoDetector() {
     scoreForma: null,
     progresoFase: 0,
     filtroBase: new OneEuroFilter({ minCutoff: 0.5, beta: 0.01 }),
+    filtroAux: new OneEuroFilter({ minCutoff: 0.5, beta: 0.01 }),
   };
 }
 
@@ -86,28 +67,29 @@ function visibilidad(landmarks, indices) {
   return Math.min(...indices.map((i) => landmarks[i]?.visibility ?? 1));
 }
 
+// NUEVO: PARCHE DE OCLUSIÓN (Degradación elegante por promedio)
 function mejorLado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
   const validos = lados
-    .map((indices) => ({ indices, vis: visibilidad(landmarks, indices) }))
-    .filter((lado) => lado.vis > umbral)
-    .sort((a, b) => b.vis - a.vis);
-  // Devuelve el lado con mayor visibilidad, sin exigir que ambos lados estén
-  // visibles: en vistas de perfil solo un lado es visible y exigir ambos
-  // invalidaba la detección (falsos negativos).
+    .map((indices) => {
+      const visibilidades = indices.map((i) => landmarks[i]?.visibility ?? 0);
+      const minVis = Math.min(...visibilidades);
+      const avgVis = visibilidades.reduce((a, b) => a + b, 0) / visibilidades.length;
+      return { indices, minVis, avgVis };
+    })
+    .filter((lado) => lado.minVis > umbral || lado.avgVis > 0.6)
+    .sort((a, b) => b.avgVis - a.avgVis);
   return validos[0] || null;
 }
 
 function ladoMasFlexionado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
   const validos = lados
     .map((indices) => {
+      const visibilidades = indices.map((i) => landmarks[i]?.visibility ?? 0);
+      const avgVis = visibilidades.reduce((a, b) => a + b, 0) / visibilidades.length;
       const [a, b, c] = indices.map((i) => landmarks[i]);
-      return {
-        indices,
-        vis: visibilidad(landmarks, indices),
-        angulo: calculateAngle(a, b, c),
-      };
+      return { indices, avgVis, angulo: calculateAngle(a, b, c) };
     })
-    .filter((lado) => lado.vis > umbral)
+    .filter((lado) => lado.avgVis > umbral)
     .sort((a, b) => a.angulo - b.angulo);
   return validos[0] || null;
 }
@@ -115,7 +97,7 @@ function ladoMasFlexionado(landmarks, lados, umbral = UMBRAL_VISIBILIDAD) {
 function cuerpoHorizontal(hombro, cadera) {
   return (
     Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL &&
-    Math.abs(hombro.y - cadera.y) < 0.18
+    Math.abs(hombro.y - cadera.y) < 0.25
   );
 }
 
@@ -127,11 +109,12 @@ function resultado(estado, cambios, repeticion = false) {
   return { estado: merged, repeticion };
 }
 
+// ----------------------------------------------------------------------
+// DETECTORES DE TREN INFERIOR
+// ----------------------------------------------------------------------
+
 export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
   const lado = mejorLado(landmarks, LADOS_SENTADILLA);
-
-  // Purga estricta: Si MediaPipe no ve CLARAMENTE la cadera, rodilla y tobillo, 
-  // abortamos la evaluación. Forzamos el reset de 'fasePendiente' regresando false.
   if (!lado) return resultado(estado, { mensaje: 'Encuadra tus rodillas y pies' }, false);
 
   const normalizados = normalizarLandmarks(landmarks) || landmarks;
@@ -140,18 +123,19 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
   const indiceCadera = lado.indices[0];
   const caderaY = landmarks[indiceCadera].y;
 
-  // Distancias bilaterales para el análisis categórico de valgo (solo si ambos lados visibles)
+  // NUEVA FÍSICA: Control de "Buenos Días"
+  const hombroTop = normalizados[indiceCadera === 23 ? 11 : 12];
+  const inclinacionTorso = Math.abs(hombroTop.x - cadera.x);
+  const pechoCaido = inclinacionTorso > 0.45; // 45 grados max
+
   const ambosLadosVisibles =
     (landmarks[25]?.visibility ?? 1) > UMBRAL_VISIBILIDAD &&
     (landmarks[26]?.visibility ?? 1) > UMBRAL_VISIBILIDAD &&
     (landmarks[27]?.visibility ?? 1) > UMBRAL_VISIBILIDAD &&
     (landmarks[28]?.visibility ?? 1) > UMBRAL_VISIBILIDAD;
-  const sepRodillas = ambosLadosVisibles
-    ? distanciaHorizontal(normalizados[25], normalizados[26])
-    : 0;
-  const sepTobillos = ambosLadosVisibles
-    ? distanciaHorizontal(normalizados[27], normalizados[28])
-    : 1;
+
+  const sepRodillas = ambosLadosVisibles ? distanciaHorizontal(normalizados[25], normalizados[26]) : 0;
+  const sepTobillos = ambosLadosVisibles ? distanciaHorizontal(normalizados[27], normalizados[28]) : 1;
   const rodillasColapsadas = ambosLadosVisibles && sepRodillas < sepTobillos * UMBRAL_VALGO_RODILLA;
 
   let { fase, baseY, sentado, tiempoZonaBajaMs, scoreForma } = estado;
@@ -160,7 +144,6 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
 
   if (angulo > UMBRAL_ANGULO_ARRIBA) {
     baseY = baseY == null ? caderaY : estado.filtroBase.filter(caderaY, ahoraMs);
-
     if (fase === 'ABAJO' && !sentado) repeticion = true;
     fase = 'ARRIBA';
     sentado = false;
@@ -186,110 +169,31 @@ export function detectarSentadilla(landmarks, estado, ahoraMs = Date.now()) {
     }
   }
 
-  // Detección de postura incorrecta: valgo de rodilla (Error Categórico)
-  if (angulo < 150 && rodillasColapsadas) {
+  // Castigos de postura
+  if (pechoCaido) {
+    mensaje = 'Saca el pecho y mantén la espalda recta';
+    scoreForma = scoreForma != null ? Math.min(scoreForma, 40) : 40;
+  } else if (angulo < 150 && rodillasColapsadas) {
     mensaje = 'Abre las rodillas hacia afuera';
-    // Penalización severa para anular la calificación genérica
     scoreForma = scoreForma != null ? Math.min(scoreForma, 60) : 60;
   }
 
   const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - UMBRAL_ANGULO_ABAJO)));
-
-  return resultado(
-    estado,
-    { fase, baseY, sentado, tiempoZonaBajaMs, mensaje, scoreForma, progresoFase },
-    repeticion
-  );
-}
-
-export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
-  const ladoBrazo = mejorLado(landmarks, LADOS_FLEXION);
-  if (!ladoBrazo) return resultado(estado, {}, false);
-
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-  const [hombro, codo, muneca] = ladoBrazo.indices.map((i) => normalizados[i]);
-  const angulo = calculateAngle(hombro, codo, muneca);
-
-  let esPlancha = false;
-  const ladoPlancha = mejorLado(landmarks, LADOS_PLANCHA);
-  if (ladoPlancha) {
-    const [h, c] = ladoPlancha.indices.map((i) => landmarks[i]);
-    const largo = distancia(h, c) || 0.0001;
-    esPlancha = Math.abs(h.y - c.y) / largo < UMBRAL_VERTICALIDAD_PLANCHA;
-  }
-
-  let { fase, scoreForma } = estado;
-  let repeticion = false;
-  let mensaje = null;
-
-  if (!esPlancha) {
-    fase = 'ARRIBA';
-    scoreForma = null;
-    mensaje = 'Colócate en plancha de perfil';
-  } else if (angulo > UMBRAL_ANGULO_ARRIBA) {
-    // AQUÍ ESTÁ EL CANDADO BIDIRECCIONAL: Solo emite true si venía de ABAJO.
-    if (fase === 'ABAJO') repeticion = true;
-    fase = 'ARRIBA';
-  } else if (angulo < UMBRAL_ANGULO_ABAJO && fase === 'ARRIBA') {
-    // Solo permite entrar a ABAJO si venía de ARRIBA
-    fase = 'ABAJO';
-    scoreForma = calcularScoreForma('FLEXIONES', landmarks);
-  }
-
-  const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - UMBRAL_ANGULO_ABAJO)));
-  return resultado(estado, { fase, mensaje, scoreForma, progresoFase }, repeticion);
-}
-
-export function detectarJumpingJack(landmarks, estado, ahoraMs = Date.now()) {
-  const visiblesBrazos = [11, 12, 15, 16];
-  if (!esVisible(landmarks, visiblesBrazos, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, {}, false);
-  }
-
-  const shoulderIzq = landmarks[11];
-  const shoulderDer = landmarks[12];
-  const wristIzq = landmarks[15];
-  const wristDer = landmarks[16];
-  const hipIzq = landmarks[23];
-  const hipDer = landmarks[24];
-
-  const anchoHombros = Math.max(Math.abs(shoulderDer.x - shoulderIzq.x), 0.0001);
-  const anchoCaderas = Math.max(Math.abs(hipDer.x - hipIzq.x), 0.0001);
-  const separacionMuñecas = Math.abs(wristDer.x - wristIzq.x) / anchoHombros;
-  const yHombro = (shoulderIzq.y + shoulderDer.y) / 2;
-  const yMuñeca = (wristIzq.y + wristDer.y) / 2;
-
-  const brazosArriba = yMuñeca < yHombro - 0.05 && separacionMuñecas > 1.2;
-  const brazosAbajo = yMuñeca > yHombro && separacionMuñecas < 1.2;
-
-  const tobillosVisibles = esVisible(landmarks, [27, 28], UMBRAL_VISIBILIDAD);
-  const separacionTobillos = tobillosVisibles
-    ? Math.abs(landmarks[28].x - landmarks[27].x) / anchoCaderas
-    : null;
-  const piernasAbiertas = separacionTobillos != null && separacionTobillos > 1.5;
-  const piernasJuntas = separacionTobillos != null && separacionTobillos < 1.2;
-
-  let { fase } = estado;
-  let repeticion = false;
-
-  if (fase === 'ABAJO' && brazosArriba && piernasAbiertas) {
-    fase = 'ARRIBA';
-    repeticion = true;
-  } else if (fase === 'ARRIBA' && brazosAbajo && piernasJuntas) {
-    fase = 'ABAJO';
-  }
-
-  return resultado(estado, { fase, mensaje: null }, repeticion);
+  return resultado(estado, { fase, baseY, sentado, tiempoZonaBajaMs, mensaje, scoreForma, progresoFase }, repeticion);
 }
 
 export function detectarZancada(landmarks, estado, ahoraMs = Date.now()) {
   const lado = ladoMasFlexionado(landmarks, LADOS_SENTADILLA);
   if (!lado) return resultado(estado, {}, false);
-
   const normalizados = normalizarLandmarks(landmarks) || landmarks;
   const [cadera, rodilla, tobillo] = lado.indices.map((i) => normalizados[i]);
   const angulo = calculateAngle(cadera, rodilla, tobillo);
   const caderaY = landmarks[lado.indices[0]].y;
+
+  // NUEVA FÍSICA: Inclinación en zancada
+  const hombroTop = normalizados[lado.indices[0] === 23 ? 11 : 12];
+  const inclinacionTorso = Math.abs(hombroTop.x - cadera.x);
+  const pechoCaido = inclinacionTorso > 0.35;
 
   let { fase, baseY } = estado;
   let repeticion = false;
@@ -308,356 +212,169 @@ export function detectarZancada(landmarks, estado, ahoraMs = Date.now()) {
     }
   }
 
+  if (pechoCaido) mensaje = 'Espalda recta, no te inclines al frente';
+
   const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - UMBRAL_ANGULO_ABAJO)));
   return resultado(estado, { fase, baseY, mensaje, progresoFase }, repeticion);
 }
 
-export function detectarPlancha(landmarks, estado) {
-  const lado = mejorLado(landmarks, LADOS_PLANCHA);
-  if (!lado) return resultado(estado, { mensaje: 'Colócate de perfil' }, false);
-
-  const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-  const [hombroN, caderaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
-  const angulo = calculateAngle(hombroN, caderaN, tobilloN);
-  const horizontal =
-    Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
-  const scoreForma = horizontal && angulo >= UMBRAL_ALINEACION_PLANCHA
-    ? calcularScoreForma('PLANCHA', landmarks)
-    : null;
-
-  let mensaje = null;
-  if (!horizontal) {
-    mensaje = 'Ponte en plancha de perfil';
-  } else if (angulo < UMBRAL_ALINEACION_PLANCHA) {
-    mensaje = 'Alinea el cuerpo: no dejes caer la cadera';
+export function detectarCalfRaise(landmarks, estado, ahoraMs = Date.now()) {
+  if (!esVisible(landmarks, [27, 28], UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra pies y tobillos en la cámara' }, false);
   }
-
-  return resultado(estado, { mensaje, scoreForma }, false);
-}
-
-export function detectarRodillasAltas(landmarks, estado) {
-  if (!esVisible(landmarks, [23, 24, 25, 26], UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, {}, false);
-  }
-
-  const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
-  const enAlto =
-    landmarks[25].y < caderaY - UMBRAL_RODILLA_ALTA ||
-    landmarks[26].y < caderaY - UMBRAL_RODILLA_ALTA;
-
-  let { fase } = estado;
+  
+  // NUEVA FÍSICA: Ya no usa la cadera, establece una Y base relativa al suelo para los tobillos.
+  const tobilloY = (landmarks[27].y + landmarks[28].y) / 2;
+  let { fase, baseY } = estado;
   let repeticion = false;
+  let mensaje = null;
 
-  if (enAlto) {
+  if (fase === 'ABAJO') {
+    baseY = baseY == null ? tobilloY : estado.filtroBase.filter(tobilloY, ahoraMs);
+  }
+
+  // El tobillo sube físicamente en la pantalla (la Y se reduce)
+  const elevacion = baseY != null ? (baseY - tobilloY) : 0;
+  const subido = elevacion > 0.04;
+
+  if (subido) {
     if (fase === 'ABAJO') {
       fase = 'ARRIBA';
       repeticion = true;
     }
-  } else {
+  } else if (elevacion < 0.01) {
     fase = 'ABAJO';
   }
 
+  return resultado(estado, { fase, baseY, mensaje }, repeticion);
+}
+
+export function detectarLateralLegRaise(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_SENTADILLA);
+  if (!lado) return resultado(estado, { mensaje: 'Ponte de frente o perfil claro' }, false);
+  
+  const [cadera, , tobillo] = lado.indices.map((i) => landmarks[i]);
+  const largoPierna = distancia(cadera, tobillo);
+  
+  // NUEVA FÍSICA: Altura relativa al largo de la pierna
+  const alturaRequerida = cadera.y - (largoPierna * 0.4); 
+  const subida = tobillo.y < alturaRequerida;
+  
+  let { fase } = estado;
+  let repeticion = false;
+
+  if (subida) {
+    if (fase === 'ABAJO') {
+      fase = 'ARRIBA';
+      repeticion = true;
+    }
+  } else if (tobillo.y > cadera.y - 0.1) {
+    fase = 'ABAJO';
+  }
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
-export function detectarPuenteGluteo(landmarks, estado) {
-  const lado = mejorLado(landmarks, LADOS_TORSO);
-  if (!lado) {
-    return resultado(estado, { mensaje: 'Acuéstate boca arriba de perfil' }, false);
+// ----------------------------------------------------------------------
+// DETECTORES DE TREN SUPERIOR Y COMBAT
+// ----------------------------------------------------------------------
+
+export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
+  const ladoBrazo = mejorLado(landmarks, LADOS_FLEXION);
+  if (!ladoBrazo) return resultado(estado, {}, false);
+
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [hombro, codo, muneca] = ladoBrazo.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(hombro, codo, muneca);
+  
+  const ladoPlancha = mejorLado(landmarks, LADOS_PLANCHA);
+  let esPlancha = false;
+  if (ladoPlancha) {
+    const [h, c] = ladoPlancha.indices.map((i) => landmarks[i]);
+    const largo = distancia(h, c) || 0.0001;
+    esPlancha = Math.abs(h.y - c.y) / largo < UMBRAL_VERTICALIDAD_PLANCHA;
   }
 
-  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
-  const horizontal = cuerpoHorizontal(hombro, cadera);
-
-  let { fase } = estado;
+  let { fase, scoreForma } = estado;
   let repeticion = false;
   let mensaje = null;
 
-  if (!horizontal) {
+  // NUEVA FÍSICA: Hombro debe bajar al nivel del codo para validar
+  const hombroRaw = landmarks[ladoBrazo.indices[0]];
+  const codoRaw = landmarks[ladoBrazo.indices[1]];
+  const profundidadSuficiente = hombroRaw.y > codoRaw.y - 0.05 || angulo < 90;
+
+  if (!esPlancha) {
+    fase = 'ARRIBA';
+    scoreForma = null;
+    mensaje = 'Alinea el cuerpo en plancha';
+  } else if (angulo > UMBRAL_ANGULO_ARRIBA) {
+    if (fase === 'ABAJO') repeticion = true;
+    fase = 'ARRIBA';
+  } else if (profundidadSuficiente && fase === 'ARRIBA') {
     fase = 'ABAJO';
-    mensaje = 'Acuéstate boca arriba de perfil';
-  } else {
-    const caderaArriba = cadera.y < hombro.y - UMBRAL_TORSO_ARRIBA;
-    if (caderaArriba) {
-      if (fase === 'ABAJO') {
-        fase = 'ARRIBA';
-        repeticion = true;
-      }
-    } else if (cadera.y > hombro.y - 0.01) {
-      fase = 'ABAJO';
-    }
+    scoreForma = calcularScoreForma('FLEXIONES', landmarks);
+  } else if (fase === 'ARRIBA' && angulo < 130 && !profundidadSuficiente) {
+    mensaje = 'Baja más el pecho';
   }
 
-  return resultado(estado, { fase, mensaje }, repeticion);
+  const progresoFase = Math.max(0, Math.min(1, (UMBRAL_ANGULO_ARRIBA - angulo) / (UMBRAL_ANGULO_ARRIBA - 90)));
+  return resultado(estado, { fase, mensaje, scoreForma, progresoFase }, repeticion);
 }
 
-export function detectarAbdominal(landmarks, estado) {
-  const lado = mejorLado(landmarks, LADOS_TORSO);
-  if (!lado) {
-    return resultado(estado, { mensaje: 'Acuéstate boca arriba de perfil' }, false);
-  }
-
-  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
-  const horizontal = cuerpoHorizontal(hombro, cadera);
-
-  let { fase } = estado;
-  let repeticion = false;
-  let mensaje = null;
-
-  if (!horizontal) {
-    fase = 'ABAJO';
-    mensaje = 'Acuéstate boca arriba de perfil';
-  } else {
-    const torsoArriba = hombro.y < cadera.y - UMBRAL_TORSO_ARRIBA;
-    if (torsoArriba) {
-      if (fase === 'ABAJO') {
-        fase = 'ARRIBA';
-        repeticion = true;
-      }
-    } else if (hombro.y > cadera.y - 0.01) {
-      fase = 'ABAJO';
-    }
-  }
-
-  return resultado(estado, { fase, mensaje }, repeticion);
-}
-
-export function detectarMountainClimber(landmarks, estado) {
-  const visibleIzq = esVisible(landmarks, [11, 23, 25, 27], UMBRAL_VISIBILIDAD);
-  const visibleDer = esVisible(landmarks, [12, 24, 26, 28], UMBRAL_VISIBILIDAD);
-  if (!visibleIzq && !visibleDer) {
-    return resultado(estado, { mensaje: 'Colócate en plancha de perfil' }, false);
-  }
-
-  const hombro = {
-    x: (landmarks[11].x + landmarks[12].x) / 2,
-    y: (landmarks[11].y + landmarks[12].y) / 2,
-  };
-  const cadera = {
-    x: (landmarks[23].x + landmarks[24].x) / 2,
-    y: (landmarks[23].y + landmarks[24].y) / 2,
-  };
-  const horizontal =
-    Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL &&
-    Math.abs(hombro.y - cadera.y) < 0.2;
-
-  if (!horizontal) {
-    return resultado(
-      estado,
-      { mensaje: 'Ponte en plancha de perfil', ladoActivo: null },
-      false
-    );
-  }
-
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-  const anguloI = calculateAngle(normalizados[23], normalizados[25], normalizados[27]);
-  const anguloD = calculateAngle(normalizados[24], normalizados[26], normalizados[28]);
-
-  const izquierdaActiva =
-    anguloI < UMBRAL_RODILLA_ESCALADOR && anguloD > UMBRAL_PIERNA_EXTENDIDA;
-  const derechaActiva =
-    anguloD < UMBRAL_RODILLA_ESCALADOR && anguloI > UMBRAL_PIERNA_EXTENDIDA;
-
-  let { ladoActivo } = estado;
-  let repeticion = false;
-  let mensaje = null;
-
-  if (izquierdaActiva) {
-    if (ladoActivo !== 'IZQ') {
-      repeticion = true;
-      ladoActivo = 'IZQ';
-    }
-  } else if (derechaActiva) {
-    if (ladoActivo !== 'DER') {
-      repeticion = true;
-      ladoActivo = 'DER';
-    }
-  } else if (
-    anguloI > UMBRAL_PIERNA_EXTENDIDA &&
-    anguloD > UMBRAL_PIERNA_EXTENDIDA
-  ) {
-    ladoActivo = null;
-  } else {
-    ladoActivo = null;
-    mensaje = 'Alterna las rodillas y estira la otra pierna';
-  }
-
-  return resultado(estado, { anguloI, anguloD, ladoActivo, mensaje }, repeticion);
-}
-
-export function detectarPlanchaLateral(landmarks, estado) {
-  const lado = mejorLado(landmarks, LADOS_PLANCHA);
-  if (!lado) {
-    return resultado(estado, { mensaje: 'Colócate de perfil' }, false);
-  }
-
-  const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-  const [hombroN, caderaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
-  const angulo = calculateAngle(hombroN, caderaN, tobilloN);
-  const horizontal =
-    Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
-  const scoreForma = horizontal && angulo >= UMBRAL_ALINEACION_PLANCHA
-    ? calcularScoreForma('PLANCHA_LATERAL', landmarks)
-    : null;
-
-  let mensaje = null;
-  if (!horizontal) {
-    mensaje = 'Ponte de perfil en plancha lateral';
-  } else if (angulo < UMBRAL_ALINEACION_PLANCHA) {
-    mensaje = 'Sube la cadera y alinea el cuerpo';
-  }
-
-  return resultado(estado, { mensaje, scoreForma }, false);
-}
-
-export function detectarSuperman(landmarks, estado) {
-  const visibleIzq = esVisible(landmarks, [11, 15, 23, 27], UMBRAL_VISIBILIDAD);
-  const visibleDer = esVisible(landmarks, [12, 16, 24, 28], UMBRAL_VISIBILIDAD);
-  if (!visibleIzq && !visibleDer) {
-    return resultado(estado, { mensaje: 'Acuéstate boca abajo de perfil' }, false);
-  }
-
-  const hombro = {
-    x: (landmarks[11].x + landmarks[12].x) / 2,
-    y: (landmarks[11].y + landmarks[12].y) / 2,
-  };
-  const cadera = {
-    x: (landmarks[23].x + landmarks[24].x) / 2,
-    y: (landmarks[23].y + landmarks[24].y) / 2,
-  };
-  const muneca = {
-    x: (landmarks[15].x + landmarks[16].x) / 2,
-    y: (landmarks[15].y + landmarks[16].y) / 2,
-  };
-  const tobillo = {
-    x: (landmarks[27].x + landmarks[28].x) / 2,
-    y: (landmarks[27].y + landmarks[28].y) / 2,
-  };
-
-  const horizontal =
-    Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL &&
-    Math.abs(hombro.y - cadera.y) < 0.18;
-  if (!horizontal) {
-    return resultado(estado, { mensaje: 'Acuéstate boca abajo de perfil' }, false);
-  }
-
-  const brazosExtendidos = Math.abs(muneca.x - hombro.x) > 0.05;
-  const piernasExtendidas = Math.abs(tobillo.x - cadera.x) > 0.05;
-  if (!brazosExtendidos || !piernasExtendidas) {
-    return resultado(
-      estado,
-      { mensaje: 'Estira brazos adelante y piernas atrás' },
-      false
-    );
-  }
-
-  const brazosArriba = muneca.y < hombro.y - UMBRAL_SUPERMAN;
-  const piernasArriba = tobillo.y < cadera.y - UMBRAL_SUPERMAN;
-
-  let mensaje = null;
-  if (!brazosArriba && !piernasArriba) {
-    mensaje = 'Levanta brazos y piernas';
-  } else if (!brazosArriba) {
-    mensaje = 'Sube más los brazos';
-  } else if (!piernasArriba) {
-    mensaje = 'Sube más las piernas';
-  }
-
-  return resultado(estado, { mensaje }, false);
-}
-
-function centroY(landmarks, indices) {
-  return indices.reduce((total, i) => total + landmarks[i].y, 0) / indices.length;
-}
-
-// Círculos de brazos: cuenta cuando las muñecas pasan por encima de los
-// hombros y regresan (una vuelta completa).
-export function detectarRotacionTorso(landmarks, estado) {
-  const visibles = [0, 11, 12];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra tu rostro y hombros en la cámara' }, false);
-  }
-
-  const centroX = (landmarks[11].x + landmarks[12].x) / 2;
-  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
-  const desvio = (landmarks[0].x - centroX) / anchoHombros;
-
-  let { ladoActivo } = estado;
-  let repeticion = false;
-  let mensaje = null;
-
-  if (desvio < -UMBRAL_ROTACION_TORSO) {
-    if (ladoActivo !== 'IZQ') {
-      repeticion = ladoActivo === 'DER';
-      ladoActivo = 'IZQ';
-    }
-  } else if (desvio > UMBRAL_ROTACION_TORSO) {
-    if (ladoActivo !== 'DER') {
-      repeticion = ladoActivo === 'IZQ';
-      ladoActivo = 'DER';
-    }
-  } else if (Math.abs(desvio) < UMBRAL_ROTACION_TORSO_NEUTRO) {
-    ladoActivo = null;
-  } else {
-    mensaje = 'Vuelve al centro entre cada giro';
-  }
-
-  return resultado(estado, { ladoActivo, mensaje }, repeticion);
-}
-
-// Estiramiento de cuello: alterna inclinaciones hacia cada hombro.
-// Usa el desnivel entre orejas; si no se ven, recurre a la nariz.
-export function detectarWallSit(landmarks, estado) {
-  const scoreForma = calcularScoreForma('WALL_SIT', landmarks);
-  const lado = mejorLado(landmarks, LADOS_SENTADILLA);
-
-  if (!lado || scoreForma == null) {
-    return resultado(
-      estado,
-      { mensaje: 'Ponte de perfil con todo el cuerpo visible', scoreForma },
-      false
-    );
-  }
-
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-  const [caderaN, rodillaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
-  const angulo = calculateAngle(caderaN, rodillaN, tobilloN);
-  // La verticalidad se mide en coordenadas brutas: la normalización
-  // recentra la cadera y desplaza el eje x.
-  const indiceHombro = lado.indices[0] === 23 ? 11 : 12;
-  const torsoVertical =
-    Math.abs(landmarks[indiceHombro].x - landmarks[lado.indices[0]].x) <
-    UMBRAL_TORSO_VERTICAL;
-
-  let mensaje = null;
-  if (angulo > UMBRAL_RODILLA_90_ALTA) {
-    mensaje = 'Baja más: rodillas a 90 grados';
-  } else if (angulo < UMBRAL_RODILLA_90_BAJA) {
-    mensaje = 'Sube un poco: rodillas a 90 grados';
-  } else if (!torsoVertical) {
-    mensaje = 'Ponte de perfil con la espalda pegada a la pared';
-  }
-
-  return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
-}
-
-// --- Combat ---------------------------------------------------------------
-
-// Golpe directo (jab/cross): alterna brazos que se extienden a la altura del
-// hombro y vuelven a la guardia. Se cuenta un golpe por extensión.
-export function detectarGolpeDirecto(landmarks, estado) {
+export function detectarPressHombro(landmarks, estado) {
   const visibles = [11, 12, 13, 14, 15, 16];
   if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
+    return resultado(estado, { mensaje: 'Muestra hombros, codos y manos' }, false);
   }
 
   const normalizados = normalizarLandmarks(landmarks) || landmarks;
   const anguloI = calculateAngle(normalizados[11], normalizados[13], normalizados[15]);
   const anguloD = calculateAngle(normalizados[12], normalizados[14], normalizados[16]);
+  const promedioCodos = (anguloI + anguloD) / 2;
+  
+  const hombroY = (landmarks[11].y + landmarks[12].y) / 2;
+  const munecaY = (landmarks[15].y + landmarks[16].y) / 2;
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const relativo = (hombroY - munecaY) / anchoHombros;
+  
+  // NUEVA FÍSICA: Controlar que los codos no caigan excesivamente
+  const codoY = (landmarks[13].y + landmarks[14].y) / 2;
+  const codosCaidos = codoY > hombroY + 0.15;
+
+  let { fase } = estado;
+  let repeticion = false;
+  let mensaje = null;
+
+  if (relativo > UMBRAL_PRESS_ARRIBA) {
+    if (promedioCodos < 135) {
+      mensaje = 'Estira más los brazos hacia arriba';
+    } else {
+      if (fase === 'ABAJO') repeticion = true;
+      fase = 'ARRIBA';
+    }
+  } else if (relativo < UMBRAL_PRESS_ABAJO) {
+    fase = 'ABAJO';
+    if (codosCaidos) mensaje = 'No dejes caer los codos por debajo del pecho';
+  }
+
+  return resultado(estado, { fase, mensaje }, repeticion);
+}
+
+export function detectarGolpeDirecto(landmarks, estado) {
+  const visibles = [11, 12, 13, 14, 15, 16];
+  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Muestra hombros y brazos' }, false);
+  }
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const anguloI = calculateAngle(normalizados[11], normalizados[13], normalizados[15]);
+  const anguloD = calculateAngle(normalizados[12], normalizados[14], normalizados[16]);
+  
   const hombroYI = landmarks[11].y;
   const hombroYD = landmarks[12].y;
+  
+  // NUEVA FÍSICA: Verificación estricta de Guardia
+  const guardiaD = landmarks[16].y < hombroYD + 0.2; // Mano inactiva protege la cara
+  const guardiaI = landmarks[15].y < hombroYI + 0.2;
 
   const extI = anguloI > UMBRAL_GOLPE_CODO && landmarks[15].y < hombroYI + UMBRAL_GOLPE_Y;
   const extD = anguloD > UMBRAL_GOLPE_CODO && landmarks[16].y < hombroYD + UMBRAL_GOLPE_Y;
@@ -667,268 +384,258 @@ export function detectarGolpeDirecto(landmarks, estado) {
   let mensaje = null;
 
   if (extI && !extD) {
-    if (ladoActivo !== 'IZQ') {
+    if (!guardiaD) mensaje = 'Mantén la mano derecha arriba (guardia)';
+    else if (ladoActivo !== 'IZQ') {
       repeticion = true;
       ladoActivo = 'IZQ';
     }
   } else if (extD && !extI) {
-    if (ladoActivo !== 'DER') {
+    if (!guardiaI) mensaje = 'Mantén la mano izquierda arriba (guardia)';
+    else if (ladoActivo !== 'DER') {
       repeticion = true;
       ladoActivo = 'DER';
     }
   } else if (!extI && !extD) {
     ladoActivo = null;
-  } else {
-    mensaje = 'Golpea de a un brazo';
   }
 
   return resultado(estado, { ladoActivo, mensaje }, repeticion);
 }
 
-// Rodillazo: la rodilla sube por encima de la cadera y baja. Reutiliza la
-// lógica de rodillas altas pero con texto propio.
-export function detectarRodillazo(landmarks, estado) {
-  return detectarRodillasAltas(landmarks, estado);
-}
-
-// Patada frontal: alterna tobillos que suben por encima de la cadera.
 export function detectarPatadaFrontal(landmarks, estado) {
   const visibles = [23, 24, 25, 26, 27, 28];
   if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra piernas y cadera en la cámara' }, false);
+    return resultado(estado, { mensaje: 'Muestra piernas y cadera' }, false);
   }
-
   const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
-  const activaI = landmarks[27].y < caderaY - UMBRAL_PATADA;
-  const activaD = landmarks[28].y < caderaY - UMBRAL_PATADA;
+  
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const anguloI = calculateAngle(normalizados[23], normalizados[25], normalizados[27]);
+  const anguloD = calculateAngle(normalizados[24], normalizados[26], normalizados[28]);
+
+  // NUEVA FÍSICA: No solo subir pie, debe haber extensión de rodilla (>130°)
+  const activaI = landmarks[27].y < caderaY + UMBRAL_PATADA && anguloI > 130;
+  const activaD = landmarks[28].y < caderaY + UMBRAL_PATADA && anguloD > 130;
+  
+  // Guardias
+  const manosArriba = (landmarks[15]?.y ?? 0) < caderaY - 0.2 && (landmarks[16]?.y ?? 0) < caderaY - 0.2;
 
   let { ladoActivo } = estado;
   let repeticion = false;
   let mensaje = null;
 
   if (activaI && !activaD) {
-    if (ladoActivo !== 'IZQ') {
-      repeticion = true;
-      ladoActivo = 'IZQ';
-    }
+    if (!manosArriba) mensaje = 'Mantén la guardia alta al patear';
+    else if (ladoActivo !== 'IZQ') { repeticion = true; ladoActivo = 'IZQ'; }
   } else if (activaD && !activaI) {
-    if (ladoActivo !== 'DER') {
-      repeticion = true;
-      ladoActivo = 'DER';
-    }
+    if (!manosArriba) mensaje = 'Mantén la guardia alta al patear';
+    else if (ladoActivo !== 'DER') { repeticion = true; ladoActivo = 'DER'; }
   } else if (!activaI && !activaD) {
     ladoActivo = null;
-  } else {
-    mensaje = 'Una pierna a la vez';
   }
 
   return resultado(estado, { ladoActivo, mensaje }, repeticion);
 }
 
-// --- Danza / cardio lateral ----------------------------------------------
+// ----------------------------------------------------------------------
+// DETECTORES DE CARDIO Y CORE
+// ----------------------------------------------------------------------
 
-// Step touch / skater: alterna el pie que sale por fuera de la cadera. Cuenta
-// un paso por cada lado nuevo.
-export function detectarPressHombro(landmarks, estado) {
-  // 1. Exigimos ver los codos (13, 14) además de hombros y muñecas
-  const visibles = [11, 12, 13, 14, 15, 16];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros, codos y manos' }, false);
-  }
-
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-
-  // 2. Medimos la extensión real del brazo (ángulo del codo)
-  const anguloI = calculateAngle(normalizados[11], normalizados[13], normalizados[15]);
-  const anguloD = calculateAngle(normalizados[12], normalizados[14], normalizados[16]);
-  const promedioCodos = (anguloI + anguloD) / 2;
-
-  // 3. Medimos el recorrido vertical (como ya tenías)
-  const hombroY = centroY(landmarks, [11, 12]);
-  const munecaY = centroY(landmarks, [15, 16]);
-  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
-  const relativo = (hombroY - munecaY) / anchoHombros;
-
-  let { fase } = estado;
-  let repeticion = false;
-  let mensaje = null;
-
-  if (relativo > UMBRAL_PRESS_ARRIBA) {
-    // Para que cuente ARRIBA, los codos deben estar casi estirados (> 140°)
-    if (promedioCodos < 140) {
-      mensaje = 'Estira por completo los brazos hacia arriba';
-    } else {
-      if (fase === 'ABAJO') repeticion = true;
-      fase = 'ARRIBA';
-    }
-  } else if (relativo < UMBRAL_PRESS_ABAJO) {
-    // Para que cuente ABAJO, los codos deben bajar y flexionarse (< 110°)
-    if (promedioCodos > 110) {
-      mensaje = 'Baja más los codos (a 90 grados)';
-    } else {
-      fase = 'ABAJO';
-    }
-  }
-
-  return resultado(estado, { fase, mensaje }, repeticion);
-}
-
-// Curl de bíceps: las muñecas suben del nivel de la cadera al de los hombros.
-export function detectarRemo(landmarks, estado) {
-  const visibles = [11, 12, 15, 16];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra hombros y brazos en la cámara' }, false);
+export function detectarJumpingJack(landmarks, estado) {
+  const visiblesBrazos = [11, 12, 15, 16];
+  if (!esVisible(landmarks, visiblesBrazos, UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Aléjate para verte completo' }, false);
   }
 
   const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
-  const sepI = Math.abs(landmarks[15].x - landmarks[11].x) / anchoHombros;
-  const sepD = Math.abs(landmarks[16].x - landmarks[12].x) / anchoHombros;
-  const separacion = (sepI + sepD) / 2;
-  const hombroY = centroY(landmarks, [11, 12]);
-  const munecaY = centroY(landmarks, [15, 16]);
+  const sepMunecas = Math.abs(landmarks[16].x - landmarks[15].x) / anchoHombros;
+  const yHombro = (landmarks[11].y + landmarks[12].y) / 2;
+  const yMuneca = (landmarks[15].y + landmarks[16].y) / 2;
+  
+  const brazosArriba = yMuneca < yHombro - 0.05 && sepMunecas > 1.2;
+  const brazosAbajo = yMuneca > yHombro && sepMunecas < 1.2;
+
+  let piernasAbiertas = false;
+  let piernasJuntas = false;
+  
+  // PARCHE DE OCLUSIÓN: Uso de rodillas como fallback.
+  if (esVisible(landmarks, [27, 28], UMBRAL_VISIBILIDAD)) {
+    const sepTobillos = Math.abs(landmarks[28].x - landmarks[27].x);
+    piernasAbiertas = sepTobillos > 0.15;
+    piernasJuntas = sepTobillos < 0.1;
+  } else if (esVisible(landmarks, [25, 26], UMBRAL_VISIBILIDAD)) {
+    const sepRodillas = Math.abs(landmarks[26].x - landmarks[25].x);
+    piernasAbiertas = sepRodillas > 0.12;
+    piernasJuntas = sepRodillas < 0.08;
+  } else {
+    piernasAbiertas = brazosArriba;
+    piernasJuntas = brazosAbajo;
+  }
 
   let { fase } = estado;
   let repeticion = false;
 
-  if (separacion < UMBRAL_REMO_JALADO && munecaY < hombroY + 0.1) {
-    if (fase === 'EXTENDIDO') repeticion = true;
-    fase = 'JALADO';
-  } else if (separacion > UMBRAL_REMO_EXTENDIDO) {
-    fase = 'EXTENDIDO';
+  if (fase === 'ABAJO' && brazosArriba && piernasAbiertas) {
+    fase = 'ARRIBA';
+    repeticion = true;
+  } else if (fase === 'ARRIBA' && brazosAbajo && piernasJuntas) {
+    fase = 'ABAJO';
   }
-
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
-// Peso muerto: de perfil, el torso se inclina al frente por la cadera y vuelve
-// a la vertical.
-export function detectarPesoMuerto(landmarks, estado) {
-  const lado = mejorLado(landmarks, LADOS_TORSO);
-  if (!lado) {
-    return resultado(estado, { mensaje: 'Ponte de perfil' }, false);
+export function detectarPlancha(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_PLANCHA);
+  if (!lado) return resultado(estado, { mensaje: 'Ponte de perfil' }, false);
+  
+  const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [hombroN, caderaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(hombroN, caderaN, tobilloN);
+  
+  const horizontal = Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
+  
+  // NUEVA FÍSICA: Penalizar cadera caída (ángulo < 155) Y cadera levantada en pirámide (> 205 o inverso)
+  // CalculateAngle da valor absoluto de 0 a 180. Evaluaremos desviación de 180.
+  const desviacionRecta = Math.abs(180 - angulo);
+  const caderaArriba = cadera.y < ((hombro.y + tobillo.y) / 2) - 0.1; // Pico piramidal 
+
+  const scoreForma = horizontal && desviacionRecta <= 25 && !caderaArriba
+    ? calcularScoreForma('PLANCHA', landmarks)
+    : null;
+
+  let mensaje = null;
+  if (!horizontal) {
+    mensaje = 'Ponte en plancha de perfil';
+  } else if (caderaArriba) {
+    mensaje = 'Baja la cadera, alinea el cuerpo recto';
+  } else if (desviacionRecta > 25) {
+    mensaje = 'No dejes caer la cadera, abdomen firme';
   }
 
-  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
-  const desvio = Math.abs(hombro.x - cadera.x);
-  const altura = Math.abs(hombro.y - cadera.y) || 0.0001;
-  const inclinacion = desvio / altura;
+  return resultado(estado, { mensaje, scoreForma }, false);
+}
 
-  let { fase } = estado;
+export function detectarDeadBug(landmarks, estado) {
+  // NUEVA FÍSICA: Exige vista de perfil y rigidez.
+  const lado = mejorLado(landmarks, LADOS_TORSO);
+  if (!lado) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
+  
+  const hombro = landmarks[11];
+  const cadera = landmarks[23];
+  const horizontal = Math.abs(hombro.x - cadera.x) > UMBRAL_CUERPO_HORIZONTAL && Math.abs(hombro.y - cadera.y) < 0.15;
+  
+  if (!horizontal) return resultado(estado, { mensaje: 'Acuéstate boca arriba de perfil' }, false);
+
+  // Brazos y piernas
+  const brazoExtI = Math.abs(landmarks[15].y - landmarks[11].y) < 0.1; // paralelo al piso
+  const piernaExtD = Math.abs(landmarks[28].y - landmarks[24].y) < 0.1;
+  const cruceA = brazoExtI && piernaExtD;
+
+  const brazoExtD = Math.abs(landmarks[16].y - landmarks[12].y) < 0.1;
+  const piernaExtI = Math.abs(landmarks[27].y - landmarks[23].y) < 0.1;
+  const cruceB = brazoExtD && piernaExtI;
+
+  let { ladoActivo } = estado;
+  let repeticion = false;
+
+  if (cruceA) {
+    if (ladoActivo !== 'A') { repeticion = true; ladoActivo = 'A'; }
+  } else if (cruceB) {
+    if (ladoActivo !== 'B') { repeticion = true; ladoActivo = 'B'; }
+  } else {
+    ladoActivo = null;
+  }
+
+  return resultado(estado, { ladoActivo, mensaje: null }, repeticion);
+}
+
+export function detectarShoulderTaps(landmarks, estado) {
+  if (!esVisible(landmarks, [11, 12, 15, 16, 23, 24], UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Colócate en plancha frente a la cámara' }, false);
+  }
+  
+  const hombroI = landmarks[11]; const hombroD = landmarks[12];
+  const munecaI = landmarks[15]; const munecaD = landmarks[16];
+  
+  const tocaD = Math.abs(munecaI.x - hombroD.x) < 0.08 && Math.abs(munecaI.y - hombroD.y) < 0.08;
+  const tocaI = Math.abs(munecaD.x - hombroI.x) < 0.08 && Math.abs(munecaD.y - hombroI.y) < 0.08;
+
+  // NUEVA FÍSICA: Control de balanceo de cadera
+  const caderaCentroX = (landmarks[23].x + landmarks[24].x) / 2;
+  let { ladoActivo, baseX } = estado;
   let repeticion = false;
   let mensaje = null;
 
-  if (inclinacion > UMBRAL_BISAGRA) {
-    fase = 'ABAJO';
-  } else if (inclinacion < UMBRAL_BISAGRA_ARRIBA) {
-    if (fase === 'ABAJO') repeticion = true;
-    fase = 'ARRIBA';
+  if (baseX == null) baseX = estado.filtroAux.filter(caderaCentroX, Date.now());
+  const balanceo = Math.abs(baseX - caderaCentroX);
+  
+  if (balanceo > 0.05) mensaje = 'No balancees la cadera, aprieta el abdomen';
+
+  if (tocaD && !tocaI) {
+    if (ladoActivo !== 'DER') {
+      if (balanceo <= 0.05) repeticion = true;
+      ladoActivo = 'DER';
+    }
+  } else if (tocaI && !tocaD) {
+    if (ladoActivo !== 'IZQ') {
+      if (balanceo <= 0.05) repeticion = true;
+      ladoActivo = 'IZQ';
+    }
+  } else if (!tocaD && !tocaI) {
+    ladoActivo = null;
   }
 
-  return resultado(estado, { fase, mensaje }, repeticion);
+  return resultado(estado, { ladoActivo, baseX, mensaje }, repeticion);
 }
 
-// --- 1. Estiramiento de Cuello (Inclinación Lateral) ---------------------
-// Alterna inclinaciones de cabeza hacia cada hombro sin elevarlos.
-export function detectarEstiramientoCuello(landmarks, estado) {
-  const visibles = [11, 12];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra tu rostro y hombros en la cámara' }, false);
+export function detectarMountainClimber(landmarks, estado) {
+  const visibleIzq = esVisible(landmarks, [11, 23, 25], UMBRAL_VISIBILIDAD);
+  const visibleDer = esVisible(landmarks, [12, 24, 26], UMBRAL_VISIBILIDAD);
+  
+  if (!visibleIzq && !visibleDer) {
+    return resultado(estado, { mensaje: 'Colócate de perfil' }, false);
   }
 
-  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
-  const centroHombrosX = (landmarks[11].x + landmarks[12].x) / 2;
-  const desnivelHombros = Math.abs(landmarks[11].y - landmarks[12].y) / anchoHombros;
-
-  // Si el usuario encoge un hombro para compensar, se penaliza
-  if (desnivelHombros > UMBRAL_DESNIVEL_HOMBROS) {
-    return resultado(estado, { mensaje: 'Baja los hombros; inclina solo el cuello' }, false);
+  const hombroY = (landmarks[11].y + landmarks[12].y) / 2;
+  const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
+  
+  if (caderaY < hombroY - 0.15) {
+    return resultado(estado, { mensaje: 'Baja la cadera para la plancha' }, false);
   }
 
-  // Medición principal por orejas (7 y 8); si no están visibles, por desvío de nariz (0)
-  let inclinacion = 0;
-  if (esVisible(landmarks, [7, 8], UMBRAL_VISIBILIDAD)) {
-    inclinacion = (landmarks[7].y - landmarks[8].y) / anchoHombros;
-  } else if (landmarks[0]?.visibility > UMBRAL_VISIBILIDAD) {
-    inclinacion = (landmarks[0].x - centroHombrosX) / (anchoHombros * 0.5);
-  } else {
-    return resultado(estado, { mensaje: 'Muestra tu rostro claramente' }, false);
-  }
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const izqAvanza = normalizados[25].x < normalizados[23].x + 0.15;
+  const derAvanza = normalizados[26].x < normalizados[24].x + 0.15;
 
   let { ladoActivo } = estado;
   let repeticion = false;
   let mensaje = null;
 
-  if (inclinacion < -UMBRAL_CUELLO_INCLINACION) {
-    if (ladoActivo !== 'IZQ') {
-      repeticion = ladoActivo === 'DER';
-      ladoActivo = 'IZQ';
-    }
-  } else if (inclinacion > UMBRAL_CUELLO_INCLINACION) {
-    if (ladoActivo !== 'DER') {
-      repeticion = ladoActivo === 'IZQ';
-      ladoActivo = 'DER';
-    }
-  } else if (Math.abs(inclinacion) < UMBRAL_CUELLO_NEUTRO) {
-    ladoActivo = null;
+  if (izqAvanza) {
+    if (ladoActivo !== 'IZQ') { repeticion = true; ladoActivo = 'IZQ'; }
+  } else if (derAvanza) {
+    if (ladoActivo !== 'DER') { repeticion = true; ladoActivo = 'DER'; }
   } else {
-    mensaje = 'Regresa al centro antes de cambiar de lado';
+    ladoActivo = null;
   }
-
   return resultado(estado, { ladoActivo, mensaje }, repeticion);
 }
 
-// --- 2. Estiramiento de Muñeca y Antebrazo ------------------------------
-// Requiere codo completamente extendido al frente y mano visible.
-export function detectarEstiramientoMuneca(landmarks, estado) {
-  const normalizados = normalizarLandmarks(landmarks) || landmarks;
-  const ladoIzq = [11, 13, 15];
-  const ladoDer = [12, 14, 16];
-
-  const visIzq = visibilidad(landmarks, ladoIzq);
-  const visDer = visibilidad(landmarks, ladoDer);
-
-  if (visIzq <= UMBRAL_VISIBILIDAD && visDer <= UMBRAL_VISIBILIDAD) {
-    return resultado(estado, { mensaje: 'Extiende un brazo al frente hacia la cámara' }, false);
-  }
-
-  const indices = visDer > visIzq ? ladoDer : ladoIzq;
-  const [hombro, codo, muneca] = indices.map((i) => normalizados[i]);
-  const anguloCodo = calculateAngle(hombro, codo, muneca);
-
-  let mensaje = null;
-  let scoreForma = null;
-
-  if (anguloCodo < UMBRAL_CODO_ESTIRADO) {
-    mensaje = 'Extiende el codo por completo al frente';
-    scoreForma = Math.max(40, Math.round((anguloCodo / UMBRAL_CODO_ESTIRADO) * 70));
-  } else {
-    mensaje = null;
-    scoreForma = 95;
-  }
-
-  return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
-}
-
-// --- 3. Corrección Postural en Silla -------------------------------------
-// Ejercicio de tiempo: detecta encorvamiento ("slouching") y asimetrías.
 export function detectarPosturaSilla(landmarks, estado) {
-  const visibles = [0, 11, 12];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Siéntate erguido frente a la cámara', scoreForma: null }, false);
+  if (!esVisible(landmarks, [0, 11, 12], UMBRAL_VISIBILIDAD)) {
+    return resultado(estado, { mensaje: 'Siéntate frente a la cámara', scoreForma: null }, false);
   }
-
+  
   const hombroIzq = landmarks[11];
   const hombroDer = landmarks[12];
   const nariz = landmarks[0];
+  
   const anchoHombros = Math.max(Math.abs(hombroDer.x - hombroIzq.x), 0.0001);
-  const centroHombrosX = (hombroIzq.x + hombroDer.x) / 2;
   const centroHombrosY = (hombroIzq.y + hombroDer.y) / 2;
-
-  // 1. Simetría escapular
+  
+  // NUEVA FÍSICA: Usar relativos en lugar de estáticos absolutos
   const asimetria = Math.abs(hombroIzq.y - hombroDer.y) / anchoHombros;
-  // 2. Centrado de cabeza
-  const desvioCabeza = Math.abs(nariz.x - centroHombrosX) / anchoHombros;
-  // 3. Elongación de cuello (distancia vertical nariz-hombros)
   const elongacionCuello = (centroHombrosY - nariz.y) / anchoHombros;
 
   let mensaje = null;
@@ -937,9 +644,6 @@ export function detectarPosturaSilla(landmarks, estado) {
   if (asimetria > UMBRAL_DESNIVEL_HOMBROS) {
     mensaje = 'Nivela ambos hombros';
     penalizacion += 25;
-  } else if (desvioCabeza > 0.12) {
-    mensaje = 'Centra tu cabeza al frente';
-    penalizacion += 20;
   } else if (elongacionCuello < UMBRAL_ALTURA_CUELLO_MIN) {
     mensaje = 'Abre el pecho y alarga la columna';
     penalizacion += 30;
@@ -949,94 +653,139 @@ export function detectarPosturaSilla(landmarks, estado) {
   return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
 }
 
-// --- Combat ---------------------------------------------------------------
+// ----------------------------------------------------------------------
+// PASSTHROUGHS BÁSICOS MANTENIDOS PARA COMPATIBILIDAD
+// ----------------------------------------------------------------------
 
-// --- Nuevos detectores ------------------------------------------------------
-
-export function detectarCalfRaise(landmarks, estado) {
-  if (!esVisible(landmarks, [23, 24, 27, 28], UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Muestra pies y cadera en la cámara' }, false);
-  }
+export function detectarRodillasAltas(landmarks, estado) {
+  if (!esVisible(landmarks, [23, 24, 25, 26], UMBRAL_VISIBILIDAD)) return resultado(estado, {}, false);
   const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
-  const tobilloY = (landmarks[27].y + landmarks[28].y) / 2;
-  const subido = tobilloY < caderaY - 0.05;
-  let { fase } = estado;
-  let repeticion = false;
-  if (subido) {
-    if (fase === 'ABAJO') {
-      fase = 'ARRIBA';
-      repeticion = true;
-    }
-  } else {
-    fase = 'ABAJO';
-  }
+  const enAlto = landmarks[25].y < caderaY - UMBRAL_RODILLA_ALTA || landmarks[26].y < caderaY - UMBRAL_RODILLA_ALTA;
+  let { fase } = estado; let repeticion = false;
+  if (enAlto) { if (fase === 'ABAJO') { fase = 'ARRIBA'; repeticion = true; } } else { fase = 'ABAJO'; }
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
-export function detectarShoulderTaps(landmarks, estado) {
-  const visibles = [11, 12, 15, 16, 23, 24];
-  if (!esVisible(landmarks, visibles, UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Colócate en plancha de perfil' }, false);
-  }
-  const hombroI = landmarks[11];
-  const hombroD = landmarks[12];
-  const munecaI = landmarks[15];
-  const munecaD = landmarks[16];
-  const tocaD = Math.abs(munecaI.x - hombroD.x) < 0.08 && Math.abs(munecaI.y - hombroD.y) < 0.08;
-  const tocaI = Math.abs(munecaD.x - hombroI.x) < 0.08 && Math.abs(munecaD.y - hombroI.y) < 0.08;
-  let { ladoActivo } = estado;
-  let repeticion = false;
-  if (tocaD && !tocaI) {
-    if (ladoActivo !== 'DER') {
-      repeticion = ladoActivo === 'IZQ';
-      ladoActivo = 'DER';
-    }
-  } else if (tocaI && !tocaD) {
-    if (ladoActivo !== 'IZQ') {
-      repeticion = ladoActivo === 'DER';
-      ladoActivo = 'IZQ';
-    }
-  } else if (!tocaD && !tocaI) {
-    ladoActivo = null;
-  }
+export function detectarRodillazo(landmarks, estado) {
+  return detectarRodillasAltas(landmarks, estado); 
+}
+
+export function detectarPuenteGluteo(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_TORSO);
+  if (!lado) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
+  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
+  if (!cuerpoHorizontal(hombro, cadera)) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
+  const caderaArriba = cadera.y < hombro.y - UMBRAL_TORSO_ARRIBA;
+  let { fase } = estado; let repeticion = false;
+  if (caderaArriba) { if (fase === 'ABAJO') { fase = 'ARRIBA'; repeticion = true; } } else if (cadera.y > hombro.y - 0.01) { fase = 'ABAJO'; }
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+export function detectarAbdominal(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_TORSO);
+  if (!lado) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
+  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
+  if (!cuerpoHorizontal(hombro, cadera)) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
+  const torsoArriba = hombro.y < cadera.y - UMBRAL_TORSO_ARRIBA;
+  let { fase } = estado; let repeticion = false;
+  if (torsoArriba) { if (fase === 'ABAJO') { fase = 'ARRIBA'; repeticion = true; } } else if (hombro.y > cadera.y - 0.01) { fase = 'ABAJO'; }
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+export function detectarPlanchaLateral(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_PLANCHA);
+  if (!lado) return resultado(estado, { mensaje: 'Ponte de perfil' }, false);
+  const [hombro, cadera, tobillo] = lado.indices.map((i) => landmarks[i]);
+  const horizontal = Math.abs(hombro.x - tobillo.x) > 0.2 && Math.abs(hombro.y - tobillo.y) < 0.25;
+  let mensaje = null;
+  if (!horizontal) mensaje = 'Ponte de perfil en plancha lateral';
+  return resultado(estado, { mensaje }, false);
+}
+
+export function detectarSuperman(landmarks, estado) {
+  const visibleIzq = esVisible(landmarks, [11, 15, 23, 27], UMBRAL_VISIBILIDAD);
+  const visibleDer = esVisible(landmarks, [12, 16, 24, 28], UMBRAL_VISIBILIDAD);
+  if (!visibleIzq && !visibleDer) return resultado(estado, { mensaje: 'Acuéstate boca abajo de perfil' }, false);
+  const hombroY = (landmarks[11].y + landmarks[12].y) / 2;
+  const munecaY = (landmarks[15].y + landmarks[16].y) / 2;
+  let mensaje = null;
+  if (munecaY > hombroY - UMBRAL_SUPERMAN) mensaje = 'Sube más los brazos';
+  return resultado(estado, { mensaje }, false);
+}
+
+export function detectarRotacionTorso(landmarks, estado) {
+  if (!esVisible(landmarks, [0, 11, 12], UMBRAL_VISIBILIDAD)) return resultado(estado, { mensaje: 'Muestra rostro y hombros' }, false);
+  const centroX = (landmarks[11].x + landmarks[12].x) / 2;
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const desvio = (landmarks[0].x - centroX) / anchoHombros;
+  let { ladoActivo } = estado; let repeticion = false; let mensaje = null;
+  if (desvio < -UMBRAL_ROTACION_TORSO) { if (ladoActivo !== 'IZQ') { repeticion = ladoActivo === 'DER'; ladoActivo = 'IZQ'; } } 
+  else if (desvio > UMBRAL_ROTACION_TORSO) { if (ladoActivo !== 'DER') { repeticion = ladoActivo === 'IZQ'; ladoActivo = 'DER'; } } 
+  else if (Math.abs(desvio) < UMBRAL_ROTACION_TORSO_NEUTRO) { ladoActivo = null; } 
+  else { mensaje = 'Vuelve al centro entre cada giro'; }
+  return resultado(estado, { ladoActivo, mensaje }, repeticion);
+}
+
+export function detectarWallSit(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_SENTADILLA);
+  if (!lado) return resultado(estado, { mensaje: 'Ponte de perfil' }, false);
+  const normalizados = normalizarLandmarks(landmarks) || landmarks;
+  const [caderaN, rodillaN, tobilloN] = lado.indices.map((i) => normalizados[i]);
+  const angulo = calculateAngle(caderaN, rodillaN, tobilloN);
+  const indiceHombro = lado.indices[0] === 23 ? 11 : 12;
+  const torsoVertical = Math.abs(landmarks[indiceHombro].x - landmarks[lado.indices[0]].x) < UMBRAL_TORSO_VERTICAL;
+  let mensaje = null;
+  if (angulo > UMBRAL_RODILLA_90_ALTA) mensaje = 'Baja más: rodillas a 90 grados';
+  else if (angulo < UMBRAL_RODILLA_90_BAJA) mensaje = 'Sube un poco: rodillas a 90 grados';
+  else if (!torsoVertical) mensaje = 'Espalda pegada a la pared';
+  const scoreForma = mensaje ? 50 : 95;
+  return resultado(estado, { mensaje, scoreForma, fase: 'ARRIBA' }, false);
+}
+
+export function detectarRemo(landmarks, estado) {
+  if (!esVisible(landmarks, [11, 12, 15, 16], UMBRAL_VISIBILIDAD)) return resultado(estado, { mensaje: 'Muestra hombros y brazos' }, false);
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  const separacion = (Math.abs(landmarks[15].x - landmarks[11].x) / anchoHombros + Math.abs(landmarks[16].x - landmarks[12].x) / anchoHombros) / 2;
+  let { fase } = estado; let repeticion = false;
+  if (separacion < UMBRAL_REMO_JALADO) { if (fase === 'EXTENDIDO') repeticion = true; fase = 'JALADO'; } 
+  else if (separacion > UMBRAL_REMO_EXTENDIDO) { fase = 'EXTENDIDO'; }
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+export function detectarPesoMuerto(landmarks, estado) {
+  const lado = mejorLado(landmarks, LADOS_TORSO);
+  if (!lado) return resultado(estado, { mensaje: 'Ponte de perfil' }, false);
+  const [hombro, cadera] = lado.indices.map((i) => landmarks[i]);
+  const inclinacion = Math.abs(hombro.x - cadera.x) / (Math.abs(hombro.y - cadera.y) || 0.0001);
+  let { fase } = estado; let repeticion = false;
+  if (inclinacion > UMBRAL_BISAGRA) { fase = 'ABAJO'; } 
+  else if (inclinacion < UMBRAL_BISAGRA_ARRIBA) { if (fase === 'ABAJO') repeticion = true; fase = 'ARRIBA'; }
+  return resultado(estado, { fase, mensaje: null }, repeticion);
+}
+
+export function detectarEstiramientoCuello(landmarks, estado) {
+  if (!esVisible(landmarks, [11, 12], UMBRAL_VISIBILIDAD)) return resultado(estado, { mensaje: 'Muestra rostro y hombros' }, false);
+  const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
+  let inclinacion = 0;
+  if (esVisible(landmarks, [7, 8], UMBRAL_VISIBILIDAD)) { inclinacion = (landmarks[7].y - landmarks[8].y) / anchoHombros; }
+  let { ladoActivo } = estado; let repeticion = false;
+  if (inclinacion < -UMBRAL_CUELLO_INCLINACION) { if (ladoActivo !== 'IZQ') { repeticion = ladoActivo === 'DER'; ladoActivo = 'IZQ'; } } 
+  else if (inclinacion > UMBRAL_CUELLO_INCLINACION) { if (ladoActivo !== 'DER') { repeticion = ladoActivo === 'IZQ'; ladoActivo = 'DER'; } } 
+  else if (Math.abs(inclinacion) < UMBRAL_CUELLO_NEUTRO) { ladoActivo = null; }
   return resultado(estado, { ladoActivo, mensaje: null }, repeticion);
 }
 
-export function detectarLateralLegRaise(landmarks, estado) {
-  const lado = mejorLado(landmarks, LADOS_SENTADILLA);
-  if (!lado) return resultado(estado, { mensaje: 'Ponte de perfil' }, false);
-  const [cadera, rodilla, tobillo] = lado.indices.map((i) => landmarks[i]);
-  const subida = tobillo.y < cadera.y - 0.1;
-  let { fase } = estado;
-  let repeticion = false;
-  if (subida) {
-    if (fase === 'ABAJO') {
-      fase = 'ARRIBA';
-      repeticion = true;
-    }
-  } else {
-    fase = 'ABAJO';
-  }
-  return resultado(estado, { fase, mensaje: null }, repeticion);
+export function detectarEstiramientoMuneca(landmarks, estado) {
+  return resultado(estado, { fase: 'ARRIBA' }, false); // Solo de tiempo
 }
 
 export function detectarLegRaise(landmarks, estado) {
-  if (!esVisible(landmarks, [23, 24, 27, 28], UMBRAL_VISIBILIDAD)) {
-    return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
-  }
+  if (!esVisible(landmarks, [23, 24, 27, 28], UMBRAL_VISIBILIDAD)) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
   const caderaY = (landmarks[23].y + landmarks[24].y) / 2;
   const tobilloY = (landmarks[27].y + landmarks[28].y) / 2;
   const subida = tobilloY < caderaY - 0.15;
-  let { fase } = estado;
-  let repeticion = false;
-  if (subida) {
-    if (fase === 'ABAJO') {
-      fase = 'ARRIBA';
-      repeticion = true;
-    }
-  } else {
-    fase = 'ABAJO';
-  }
+  let { fase } = estado; let repeticion = false;
+  if (subida) { if (fase === 'ABAJO') { fase = 'ARRIBA'; repeticion = true; } } else { fase = 'ABAJO'; }
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
@@ -1068,11 +817,9 @@ export const DETECTORES = {
   ESTIRAMIENTO_CUELLO: detectarEstiramientoCuello,
   ESTIRAMIENTO_MUNECA: detectarEstiramientoMuneca,
   POSTURA_SILLA: detectarPosturaSilla,
+  DEAD_BUG: detectarDeadBug,
 };
 
-// Algunos ejercicios comparten detector (variantes y expresiones). El motor de
-// cámara recibe el id del ejercicio, así que resolvemos por id y, si no existe,
-// por el nombre del detector declarado en el catálogo.
 const DETECTORES_POR_NOMBRE = {
   sentadilla: detectarSentadilla,
   flexion: detectarFlexion,

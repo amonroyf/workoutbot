@@ -472,11 +472,74 @@ const MUNECA_ESTIRADA = ajustar(SILLA_PERFIL_BASE, {
   munecaD: { x: 0.67, y: 0.29 },
 });
 
+// --- NUEVAS POSTURAS MATEMÁTICAS ---
+const DE_PIE_FRONTAL = pose(
+  p(0.5, 0.2), p(0.5, 0.28), p(0.4, 0.3), p(0.6, 0.3),
+  p(0.35, 0.45), p(0.65, 0.45), p(0.35, 0.6), p(0.65, 0.6),
+  p(0.45, 0.55), p(0.55, 0.55), p(0.45, 0.75), p(0.55, 0.75),
+  p(0.45, 0.95), p(0.55, 0.95)
+);
+
+const PRESS_HOMBRO_ABAJO = ajustar(DE_PIE_FRONTAL, {
+  codoI: { x: 0.3, y: 0.3 }, codoD: { x: 0.7, y: 0.3 },
+  munecaI: { x: 0.3, y: 0.15 }, munecaD: { x: 0.7, y: 0.15 },
+});
+const PRESS_HOMBRO_ARRIBA = ajustar(DE_PIE_FRONTAL, {
+  codoI: { x: 0.4, y: 0.15 }, codoD: { x: 0.6, y: 0.15 },
+  munecaI: { x: 0.4, y: 0.05 }, munecaD: { x: 0.6, y: 0.05 },
+});
+
+const REMO_EXTENDIDO = ajustar(DE_PIE_FRONTAL, {
+  codoI: { x: 0.45, y: 0.45 }, codoD: { x: 0.55, y: 0.45 },
+  munecaI: { x: 0.48, y: 0.5 }, munecaD: { x: 0.52, y: 0.5 },
+});
+const REMO_JALADO = ajustar(DE_PIE_FRONTAL, {
+  codoI: { x: 0.25, y: 0.45 }, codoD: { x: 0.75, y: 0.45 },
+  munecaI: { x: 0.35, y: 0.45 }, munecaD: { x: 0.65, y: 0.45 },
+});
+
+const DE_PIE_PERFIL = pose(
+  p(0.5, 0.2), p(0.5, 0.28), p(0.5, 0.3), p(0.5, 0.32),
+  p(0.45, 0.45), p(0.55, 0.45), p(0.45, 0.6), p(0.55, 0.6),
+  p(0.5, 0.55), p(0.5, 0.57), p(0.5, 0.75), p(0.5, 0.77),
+  p(0.5, 0.95), p(0.5, 0.97)
+);
+
+const PESO_MUERTO_ABAJO = ajustar(DE_PIE_PERFIL, {
+  cabeza: { x: 0.75, y: 0.4 }, cuello: { x: 0.7, y: 0.45 },
+  hombroI: { x: 0.65, y: 0.45 }, hombroD: { x: 0.65, y: 0.47 },
+  caderaI: { x: 0.3, y: 0.55 }, caderaD: { x: 0.3, y: 0.57 },
+  codoI: { x: 0.6, y: 0.6 }, codoD: { x: 0.6, y: 0.62 },
+  munecaI: { x: 0.55, y: 0.75 }, munecaD: { x: 0.55, y: 0.77 },
+  rodillaI: { x: 0.4, y: 0.75 }, rodillaD: { x: 0.4, y: 0.77 },
+});
+
+const GUARDIA_PERFIL = ajustar(DE_PIE_PERFIL, {
+  codoI: { x: 0.35, y: 0.4 }, codoD: { x: 0.45, y: 0.42 },
+  munecaI: { x: 0.65, y: 0.25 }, munecaD: { x: 0.55, y: 0.28 },
+});
+
+const GOLPE_DIRECTO_EXTENDIDO = ajustar(GUARDIA_PERFIL, {
+  codoI: { x: 0.75, y: 0.3 }, munecaI: { x: 0.95, y: 0.3 },
+  hombroI: { x: 0.55, y: 0.3 }, caderaI: { x: 0.45, y: 0.55 },
+});
+
+const PATADA_FRONTAL_EXTENDIDA = ajustar(GUARDIA_PERFIL, {
+  caderaI: { x: 0.4, y: 0.55 },
+  rodillaI: { x: 0.8, y: 0.55 },
+  tobilloI: { x: 0.95, y: 0.45 },
+});
+
+const RODILLAZO_IMPACTO = ajustar(GUARDIA_PERFIL, {
+  rodillaI: { x: 0.85, y: 0.45 }, tobilloI: { x: 0.75, y: 0.65 },
+  codoI: { x: 0.65, y: 0.45 }, munecaI: { x: 0.75, y: 0.45 },
+});
+
 // --- DEMOS BASE CON POSTURAS ACTUALIZADAS ---
 const DEMOS_BASE = Object.freeze({
   SENTADILLAS: Object.freeze({
     nombre: 'Sentadilla',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2600,
     pistas: ['Pies al ancho de hombros', 'Cadera atrás, pecho arriba', 'Rodillas hacia afuera'],
     keyframes: Object.freeze([
@@ -489,7 +552,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   FLEXIONES: Object.freeze({
     nombre: 'Flexión',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2400,
     pistas: ['Cuerpo en plancha', 'Codos a 45 grados', 'Baja el pecho con control'],
     keyframes: Object.freeze([
@@ -515,7 +578,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   ZANCADAS: Object.freeze({
     nombre: 'Zancada',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2600,
     pistas: ['Da un paso largo', 'Baja la rodilla de atrás', 'Pecho arriba'],
     keyframes: Object.freeze([
@@ -528,7 +591,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   PLANCHA: Object.freeze({
     nombre: 'Plancha',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 1800,
     pistas: ['Cuerpo en línea recta', 'Aprieta el abdomen', 'No dejes caer la cadera'],
     keyframes: Object.freeze([
@@ -577,7 +640,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   PUENTE_GLUTEO: Object.freeze({
     nombre: 'Puente de glúteo',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2400,
     pistas: ['Acuéstate boca arriba', 'Empuja con los talones', 'Aprieta los glúteos arriba'],
     keyframes: Object.freeze([
@@ -590,7 +653,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   ABDOMINALES: Object.freeze({
     nombre: 'Abdominal',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2600,
     pistas: ['Manos detrás de la cabeza', 'Sube con el abdomen', 'Baja con control'],
     keyframes: Object.freeze([
@@ -616,7 +679,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   FLEXION_DIAMANTE: Object.freeze({
     nombre: 'Flexión diamante',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2400,
     pistas: ['Manos juntas bajo el pecho', 'Codos cerca del torso', 'Baja y empuja fuerte'],
     keyframes: Object.freeze([
@@ -629,7 +692,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   MOUNTAIN_CLIMBER: Object.freeze({
     nombre: 'Mountain climber',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 1000,
     pistas: ['Manos bajo los hombros', 'Rodillas al pecho', 'Mantén la cadera baja'],
     keyframes: Object.freeze([
@@ -642,7 +705,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   PLANCHA_LATERAL: Object.freeze({
     nombre: 'Plancha lateral',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2200,
     pistas: ['Codo debajo del hombro', 'Cadera bien arriba', 'Cuerpo en línea recta'],
     keyframes: Object.freeze([
@@ -653,7 +716,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   SUPERMAN: Object.freeze({
     nombre: 'Superman',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2200,
     pistas: ['Acuéstate boca abajo', 'Estira brazos y piernas', 'Levanta sin forzar el cuello'],
     keyframes: Object.freeze([
@@ -665,7 +728,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   DEAD_BUG: Object.freeze({
     nombre: 'Dead bug',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2600,
     pistas: ['Espalda pegada al piso', 'Brazos hacia el techo', 'Estira brazo y pierna opuestos'],
     keyframes: Object.freeze([
@@ -677,7 +740,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   HOLLOW_HOLD: Object.freeze({
     nombre: 'Hollow hold',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2200,
     pistas: ['Baja la espalda al piso', 'Brazos y piernas estirados', 'Sostén sin perder la lumbar'],
     keyframes: Object.freeze([
@@ -688,7 +751,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   WALL_SIT: Object.freeze({
     nombre: 'Sentadilla en pared',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2200,
     pistas: ['Espalda contra la pared', 'Muslos paralelos al piso', 'Rodillas sobre los tobillos'],
     keyframes: Object.freeze([
@@ -699,7 +762,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   BIRD_DOG: Object.freeze({
     nombre: 'Bird dog',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 2600,
     pistas: ['Manos y rodillas en el piso', 'Estira brazo y pierna opuestos', 'No gire la cadera'],
     keyframes: Object.freeze([
@@ -743,7 +806,7 @@ const DEMOS_BASE = Object.freeze({
   }),
   ESTIRAMIENTO_MUNECA: Object.freeze({
     nombre: 'Estiramiento de muñeca',
-    vista: 'perfil',
+    vista: 'frontal',
     cicloMs: 3000,
     pistas: [
       'Extiende el brazo al frente',
@@ -771,6 +834,78 @@ const DEMOS_BASE = Object.freeze({
       { t: 0.35, pose: POSTURA_SILLA_ERGUIDO },
       { t: 0.75, pose: POSTURA_SILLA_ERGUIDO },
       { t: 1, pose: POSTURA_SILLA_ENCORVADO },
+    ]),
+  }),
+  PRESS_HOMBRO: Object.freeze({
+    nombre: 'Press de hombro',
+    vista: 'frontal',
+    cicloMs: 2400,
+    pistas: ['Manos a la altura de los hombros', 'Empuja hacia arriba', 'Baja con control'],
+    keyframes: Object.freeze([
+      { t: 0, pose: PRESS_HOMBRO_ABAJO },
+      { t: 0.4, pose: PRESS_HOMBRO_ARRIBA },
+      { t: 0.6, pose: PRESS_HOMBRO_ARRIBA },
+      { t: 1, pose: PRESS_HOMBRO_ABAJO },
+    ]),
+  }),
+  REMO: Object.freeze({
+    nombre: 'Remo',
+    vista: 'frontal',
+    cicloMs: 2400,
+    pistas: ['Codos cerca del torso', 'Lleva los codos atrás', 'Aprieta la espalda'],
+    keyframes: Object.freeze([
+      { t: 0, pose: REMO_EXTENDIDO },
+      { t: 0.4, pose: REMO_JALADO },
+      { t: 0.6, pose: REMO_JALADO },
+      { t: 1, pose: REMO_EXTENDIDO },
+    ]),
+  }),
+  PESO_MUERTO: Object.freeze({
+    nombre: 'Peso muerto',
+    vista: 'frontal',
+    cicloMs: 2800,
+    pistas: ['Cadera atrás, espalda recta', 'Baja hasta media pierna', 'Sube apretando glúteos'],
+    keyframes: Object.freeze([
+      { t: 0, pose: DE_PIE_PERFIL },
+      { t: 0.4, pose: PESO_MUERTO_ABAJO },
+      { t: 0.6, pose: PESO_MUERTO_ABAJO },
+      { t: 1, pose: DE_PIE_PERFIL },
+    ]),
+  }),
+  GOLPE_DIRECTO: Object.freeze({
+    nombre: 'Golpe directo',
+    vista: 'frontal',
+    cicloMs: 1200,
+    pistas: ['Guardia alta', 'Gira la cadera', 'Extiende el brazo'],
+    keyframes: Object.freeze([
+      { t: 0, pose: GUARDIA_PERFIL },
+      { t: 0.3, pose: GOLPE_DIRECTO_EXTENDIDO },
+      { t: 0.6, pose: GOLPE_DIRECTO_EXTENDIDO },
+      { t: 1, pose: GUARDIA_PERFIL },
+    ]),
+  }),
+  PATADA_FRONTAL: Object.freeze({
+    nombre: 'Patada frontal',
+    vista: 'frontal',
+    cicloMs: 1800,
+    pistas: ['Sube la rodilla', 'Extiende la pierna al frente', 'Baja suave'],
+    keyframes: Object.freeze([
+      { t: 0, pose: GUARDIA_PERFIL },
+      { t: 0.4, pose: PATADA_FRONTAL_EXTENDIDA },
+      { t: 0.6, pose: PATADA_FRONTAL_EXTENDIDA },
+      { t: 1, pose: GUARDIA_PERFIL },
+    ]),
+  }),
+  RODILLAZO: Object.freeze({
+    nombre: 'Rodillazo',
+    vista: 'frontal',
+    cicloMs: 1400,
+    pistas: ['Lleva la rodilla al frente', 'Torso erguido', 'Baja con control'],
+    keyframes: Object.freeze([
+      { t: 0, pose: GUARDIA_PERFIL },
+      { t: 0.3, pose: RODILLAZO_IMPACTO },
+      { t: 0.6, pose: RODILLAZO_IMPACTO },
+      { t: 1, pose: GUARDIA_PERFIL },
     ]),
   }),
 });
@@ -818,7 +953,7 @@ export function guionDemo(ejercicio) {
 }
 
 function suavizar(t) {
-  return t * t * (3 - 2 * t);
+  return (1 - Math.cos(t * Math.PI)) / 2;
 }
 
 export function interpolarPose(a, b, t) {

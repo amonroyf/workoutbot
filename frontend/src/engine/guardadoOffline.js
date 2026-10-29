@@ -91,21 +91,27 @@ export async function sincronizarPendientes({ listar, eliminar, enviar }) {
 
   for (const registro of lista) {
     let bien = true;
+    let errorEnvio = null;
     try {
       await enviar(registro);
-    } catch {
+    } catch (error) {
       bien = false;
+      errorEnvio = error;
     }
     if (bien) {
       try {
         await eliminar(registro.id);
       } catch {
-        // Si el POST salió pero no se pudo borrar localmente, se marca pendiente
-        // para no perder el registro (puede reenviarse: el servidor deduplica).
         bien = false;
       }
     }
     if (!bien) {
+      if (errorEnvio && String(errorEnvio.message).includes('HTTP 4')) {
+        try {
+          await eliminar(registro.id);
+        } catch (e) {}
+        continue;
+      }
       fallo = true;
       return { enviados, pendientes: lista.length - enviados, fallo };
     }
