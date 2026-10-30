@@ -17,7 +17,7 @@ import { useMusica } from '../hooks/useMusica';
 import Icono from './Icono';
 import MapaCircuito from './MapaCircuito';
 import DemoEjercicio from './DemoEjercicio';
-import MascotaVirtual from './MascotaVirtual';
+
 
 function AnilloRep({ fase, progresoFase = 0, color = '#4ade80', tempo = [2, 1], ritmoFantasma = 0, repsActuales = 0 }) {
   const radio = 36;
@@ -317,10 +317,6 @@ export default function WorkoutUI() {
               </div>
 
               <div className="flex flex-col items-center gap-2 shrink-0 relative">
-                <div className="absolute -top-[clamp(4.5rem,15vmin,5.5rem)] z-50">
-                  <MascotaVirtual racha={3} />
-                </div>
-
                 <AnilloRep fase={faseRepeticion} progresoFase={progresoFase} color={colorAnillo} tempo={ejercicioTempo} ritmoFantasma={ritmoAnterior} repsActuales={repeticiones} />
 
                 {combo >= 3 && (
