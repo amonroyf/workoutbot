@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://mirutinahoy.web.app/sitemap.xml
