@@ -15,7 +15,7 @@ export function cargarResumenLocal() {
       fecha: String(i), 
       etiqueta: ['L','M','X','J','V','S','D'][i], 
       hecha: false, 
-      hoy: i === new Date().getDay() - 1
+      hoy: i === (new Date().getDay() + 6) % 7
     })), 
     ultima: null, 
     anterior: null 
@@ -35,7 +35,7 @@ export function guardarEntrenamientoLocal(nuevoEntrenamiento) {
      resumen.ultimaFecha = hoy;
   }
   
-  const diaIndice = new Date().getDay() - 1;
+  const diaIndice = (new Date().getDay() + 6) % 7;
   if (resumen.semana[diaIndice]) {
     resumen.semana[diaIndice].hecha = true;
   }

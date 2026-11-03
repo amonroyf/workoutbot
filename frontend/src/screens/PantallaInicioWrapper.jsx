@@ -15,6 +15,7 @@ import { Esqueleto } from '../components/Esqueleto';
 import { useInstalarApp } from '../hooks/useInstalarApp';
 import { useLocation } from 'wouter';
 import FeedbackForm from '../components/FeedbackForm';
+import GuiaPrimeraVez from '../components/GuiaPrimeraVez';
 import FeedbackList from '../components/FeedbackList';
 
 const NIVELES = {
@@ -78,7 +79,7 @@ export default function PantallaInicioWrapper({
   onGuardarPlan,
   onSalida,
   mostrarGuia,
-  onvertedGuia,
+  onCerrarGuia,
   soportaPantallaCompleta,
 }) {
   const [, navigate] = useLocation();
@@ -278,6 +279,7 @@ export default function PantallaInicioWrapper({
           </section>
         )}
 
+        {mostrarGuia && <GuiaPrimeraVez onCerrar={onCerrarGuia} />}
         <FeedbackForm />
         <FeedbackList />
         <footer className="mt-6 flex flex-col items-center gap-2 text-[11px] text-tinta-500">

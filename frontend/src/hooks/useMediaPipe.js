@@ -210,7 +210,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
     const inicializar = async () => {
       try {
         const vision = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.12/wasm'
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/wasm'
         );
         const modelos = modelosParaIntentar(modeloPose).map((id) => MODELOS_POSE[id].url);
 

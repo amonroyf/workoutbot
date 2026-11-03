@@ -37,6 +37,8 @@ export default function MainLayout({
   camaraHabilitada,
   soportaPantallaCompleta,
   claseActual,
+  mostrarGuia,
+  onCerrarGuia,
 }) {
   const faseActual = useWorkoutStore((s) => s.faseActual);
 
@@ -70,6 +72,8 @@ export default function MainLayout({
               onSalida={onSalida}
               soportaPantallaCompleta={soportaPantallaCompleta}
               claseActual={claseActual}
+              mostrarGuia={mostrarGuia}
+              onCerrarGuia={onCerrarGuia}
             />
           </Route>
           <Route path="/actividad">

@@ -41,6 +41,16 @@ export default function App() {
 
   useEffect(() => { track('app_open', { pantalla: 'inicio' }); }, []);
 
+  useEffect(() => {
+    const sincronizar = () => {
+      if (document.visibilityState === 'visible') {
+        useWorkoutStore.getState().sincronizarReloj?.();
+      }
+    };
+    document.addEventListener('visibilitychange', sincronizar);
+    return () => document.removeEventListener('visibilitychange', sincronizar);
+  }, []);
+
   const guardarPlanSemanal = useCallback((nuevo) => {
     const normalizado = persistirPlan(nuevo);
     setPlan(normalizado);
@@ -62,7 +72,14 @@ export default function App() {
   const handleSalir = useCallback(() => {
     track('data_reset');
     useWorkoutStore.getState().detenerRutina();
-    localStorage.clear();
+    try {
+      const claves = [];
+      for (let i = 0; i < localStorage.length; i += 1) {
+        const clave = localStorage.key(i);
+        if (clave?.startsWith('workoutbot:')) claves.push(clave);
+      }
+      claves.forEach((clave) => localStorage.removeItem(clave));
+    } catch {}
     window.location.reload();
   }, []);
 

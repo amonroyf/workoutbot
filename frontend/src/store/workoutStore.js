@@ -7,7 +7,7 @@ import {
   playCountdownPip,
   playSideSwitch,
 } from '../engine/sounds';
-import { estadoInicialCircuito, avanzarCircuito, totalesVacios } from '../engine/circuito';
+import { estadoInicialCircuito, avanzarCircuito, avanzarTransicion, totalesVacios } from '../engine/circuito';
 import { CLASE_INICIAL, obtenerClase, barajarClase } from '../engine/clases';
 import { guardarCamaraHabilitada, leerCamaraHabilitada } from '../engine/camara';
 
@@ -157,7 +157,10 @@ export const useWorkoutStore = create((set, get) => ({
     const interval = setInterval(() => {
       const actual = get();
       if (actual.pausado) return;
-      const resultado = avanzarCircuito(actual, Date.now(), actual.claseActual);
+      const resultado =
+        actual.faseActual === 'TRANSICION'
+          ? avanzarTransicion(actual, Date.now(), actual.claseActual)
+          : avanzarCircuito(actual, Date.now(), actual.claseActual);
 
       if (
         actual.sonidosActivos &&
@@ -261,7 +264,8 @@ export const useWorkoutStore = create((set, get) => ({
     if (
       faseActual !== 'TRABAJO' &&
       faseActual !== 'DESCANSO' &&
-      faseActual !== 'CAMBIO_LADO'
+      faseActual !== 'CAMBIO_LADO' &&
+      faseActual !== 'TRANSICION'
     )
       return;
 
@@ -284,7 +288,10 @@ export const useWorkoutStore = create((set, get) => ({
       // avanzó mientras el navegador no ejecutaba ticks. Sin esto, cada
       // transición reiniciaría su duración desde ahora y el tiempo robado
       // se perdería.
-      const resultado = avanzarCircuito(actual, actual.finFaseEn, actual.claseActual);
+      const resultado =
+        actual.faseActual === 'TRANSICION'
+          ? avanzarTransicion(actual, actual.finFaseEn, actual.claseActual)
+          : avanzarCircuito(actual, actual.finFaseEn, actual.claseActual);
       if (!resultado) break;
       set({ ...resultado.estado, faseRepeticion: 'ARRIBA' });
       if (resultado.sonido) sonidos.push(resultado.sonido);
