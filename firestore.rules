@@ -5,5 +5,8 @@ service cloud.firestore {
     match /workout_logs/{logId} {
       allow read, write: if false;
     }
+    match /comentarios/{docId} {
+      allow create: if request.auth != null;
+    }
   }
 }
