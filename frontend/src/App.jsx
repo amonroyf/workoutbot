@@ -125,6 +125,7 @@ export default function App() {
         </Suspense>
       )}
       <MainLayout
+        user={{ displayName: 'Atleta' }}
         resumen={resumen}
         resumenActual={resumenActual}
         cargandoResumen={false}
