@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { useWorkoutStore } from './store/workoutStore';
 import { calcularTotal } from './engine/score';
 import { duracionClase } from './engine/clases';
 import { cargarPlan, claseParaFecha, guardarPlan as persistirPlan } from './engine/plan';
 import { esPrimeraVez, guiaVista, marcarGuiaVista, marcarOnboardingVisto, onboardingVisto } from './engine/primeraVez';
 import { esIos, puedeEntrarEnPantallaCompleta, solicitarPantallaCompleta } from './engine/pantallaCompleta';
-import Onboarding from './components/Onboarding';
+const Onboarding = React.lazy(() => import('./components/Onboarding'));
 import ConsentimientoAnalitica from './components/ConsentimientoAnalitica';
 import MainLayout from './components/MainLayout';
-import SummaryScreen from './components/SummaryScreen';
+const SummaryScreen = React.lazy(() => import('./components/SummaryScreen'));
 import { track } from './engine/analytics';
 import { cargarResumenLocal, guardarEntrenamientoLocal } from './engine/progresoLocal';
 
@@ -103,7 +103,9 @@ export default function App() {
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-fondo">
       {mostrarOnboarding && (
-        <Onboarding plan={plan} onGuardarPlan={guardarPlanSemanal} onTerminar={completarOnboarding} onSaltar={() => setOnboardingVisible(false)} onSinCamara={() => setCamaraHabilitada(false)} />
+        <Suspense fallback={null}>
+          <Onboarding plan={plan} onGuardarPlan={guardarPlanSemanal} onTerminar={completarOnboarding} onSaltar={() => setOnboardingVisible(false)} onSinCamara={() => setCamaraHabilitada(false)} />
+        </Suspense>
       )}
       <MainLayout
         resumen={resumen}
@@ -126,7 +128,9 @@ export default function App() {
         onCerrarGuia={() => { marcarGuiaVista(); setGuiaVisible(false); }}
       />
       {estadoGuardado === 'exito' && (
-        <SummaryScreen resumen={resumenActual} cargando={false} pendienteSync={0} />
+        <Suspense fallback={null}>
+          <SummaryScreen resumen={resumenActual} cargando={false} pendienteSync={0} />
+        </Suspense>
       )}
       <ConsentimientoAnalitica onAceptar={() => track('analytics_accepted')} />
     </div>
