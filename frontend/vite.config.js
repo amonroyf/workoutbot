@@ -18,8 +18,8 @@ export default defineConfig({
       ],
       manifest: {
         id: '/',
-        name: 'WorkoutBot — Entrena en casa',
-        short_name: 'WorkoutBot',
+        name: 'MiRutinaHoy',
+        short_name: 'MiRutinaHoy',
         description:
           'Clases cortas de ejercicio en casa con cámara y voz. Sin equipo, sin gimnasio.',
         lang: 'es-CO',

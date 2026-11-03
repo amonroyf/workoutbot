@@ -86,7 +86,7 @@ export default function Onboarding({
       className="fixed inset-0 z-[80] overflow-y-auto bg-fondo text-tinta-100"
       role="dialog"
       aria-modal="true"
-      aria-label="Primeros pasos en WorkoutBot"
+      aria-label="Primeros pasos en MiRutinaHoy"
     >
       <div className="pointer-events-none fixed inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_50%_0%,rgba(34,197,94,0.16),transparent_70%)]" />
 
@@ -123,7 +123,7 @@ export default function Onboarding({
                 <span className="text-marca-400">en minutos.</span>
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-tinta-300">
-                WorkoutBot te guía con voz, cuenta tus repeticiones y te corrige
+                MiRutinaHoy te guía con voz, cuenta tus repeticiones y te corrige
                 la postura. Sin equipo y sin gimnasio.
               </p>
               <ul className="mt-5 space-y-2.5 text-sm text-tinta-200">

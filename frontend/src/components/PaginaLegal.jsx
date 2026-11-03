@@ -46,7 +46,7 @@ function PreferenciasAnalitica() {
     setEstado(permitido ? 'si' : 'no');
     setMensaje(
       permitido
-        ? 'Analítica activada. Gracias por ayudar a mejorar WorkoutBot.'
+        ? 'Analítica activada. Gracias por ayudar a mejorar MiRutinaHoy.'
         : 'Analítica desactivada y cookies de medición eliminadas.'
     );
   };
@@ -86,8 +86,8 @@ export default function PaginaLegal({ ruta }) {
 
   useEffect(() => {
     document.title = esPrivacidad
-      ? 'Privacidad — WorkoutBot'
-      : 'Términos — WorkoutBot';
+      ? 'Privacidad — MiRutinaHoy'
+      : 'Términos — MiRutinaHoy';
     window.scrollTo(0, 0);
   }, [esPrivacidad]);
 
@@ -144,7 +144,7 @@ export default function PaginaLegal({ ruta }) {
           <>
             <Bloque titulo="Quién trata tus datos">
               <p>
-                WorkoutBot es un proyecto personal operado desde Colombia. Para
+                MiRutinaHoy es un proyecto personal operado desde Colombia. Para
                 cualquier duda, solicitud o reclamo puedes abrir un caso en{' '}
                 <Enlace href={CONTACTO}>el repositorio del proyecto</Enlace>.
               </p>
@@ -182,7 +182,7 @@ export default function PaginaLegal({ ruta }) {
               <p>
                 La cámara se activa únicamente cuando entrenas. Las imágenes se
                 analizan localmente con MediaPipe y se descartan en el mismo
-                dispositivo. WorkoutBot no almacena video ni audio.
+                dispositivo. MiRutinaHoy no almacena video ni audio.
               </p>
             </Bloque>
 
@@ -208,7 +208,7 @@ export default function PaginaLegal({ ruta }) {
               <p>
                 Usamos Google Firebase para autenticación, base de datos y
                 hosting, y Google Cloud para el backend. Estos proveedores
-                tratan datos por cuenta de WorkoutBot. No compartimos datos con
+                tratan datos por cuenta de MiRutinaHoy. No compartimos datos con
                 terceros para publicidad.
               </p>
             </Bloque>
@@ -250,9 +250,9 @@ export default function PaginaLegal({ ruta }) {
           </>
         ) : (
           <>
-            <Bloque titulo="Qué es WorkoutBot">
+            <Bloque titulo="Qué es MiRutinaHoy">
               <p>
-                WorkoutBot es una aplicación web de entrenamiento en casa que
+                MiRutinaHoy es una aplicación web de entrenamiento en casa que
                 ofrece clases guiadas por voz y, cuando la cámara está
                 disponible, correcciones de postura y conteo de repeticiones.
               </p>
@@ -260,7 +260,7 @@ export default function PaginaLegal({ ruta }) {
 
             <Bloque titulo="No es consejo médico">
               <p>
-                WorkoutBot no sustituye la valoración de un profesional de la
+                MiRutinaHoy no sustituye la valoración de un profesional de la
                 salud o del ejercicio. Consulta a un médico antes de empezar si
                 tienes lesiones, embarazo, condiciones cardíacas o cualquier
                 duda sobre tu salud.
@@ -288,7 +288,7 @@ export default function PaginaLegal({ ruta }) {
               <p>
                 Debes usar una cuenta propia y no compartir el acceso. No está
                 permitido intentar vulnerar la seguridad, extraer datos de otros
-                usuarios, revender el servicio ni usar WorkoutBot para fines
+                usuarios, revender el servicio ni usar MiRutinaHoy para fines
                 ilícitos.
               </p>
             </Bloque>
@@ -303,7 +303,7 @@ export default function PaginaLegal({ ruta }) {
 
             <Bloque titulo="Propiedad intelectual">
               <p>
-                El nombre, la marca, el diseño y el contenido de WorkoutBot
+                El nombre, la marca, el diseño y el contenido de MiRutinaHoy
                 pertenecen a su autor. No puedes copiarlos ni distribuirlos sin
                 permiso.
               </p>
@@ -311,7 +311,7 @@ export default function PaginaLegal({ ruta }) {
 
             <Bloque titulo="Limitación de responsabilidad">
               <p>
-                En la medida permitida por la ley, WorkoutBot no responde por
+                En la medida permitida por la ley, MiRutinaHoy no responde por
                 lesiones, daños o pérdidas derivadas del uso del servicio o de la
                 inobservancia de estas condiciones. Nada aquí limita derechos
                 irrenunciables del consumidor.
@@ -340,7 +340,7 @@ export default function PaginaLegal({ ruta }) {
             </a>
           </div>
           <p className="mt-3">
-            WorkoutBot se procesa en tu dispositivo. Tu video no se sube.
+            MiRutinaHoy se procesa en tu dispositivo. Tu video no se sube.
           </p>
         </footer>
       </main>

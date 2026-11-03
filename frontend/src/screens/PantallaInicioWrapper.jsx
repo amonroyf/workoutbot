@@ -258,7 +258,7 @@ export default function PantallaInicioWrapper({
             <div className="min-w-0 flex-1">
               <p className="text-sm font-black text-tinta-100">Llévala en tu pantalla de inicio</p>
               <p className="mt-0.5 text-[11px] leading-snug text-tinta-300">
-                Abre WorkoutBot como una app, incluso con mala señal.
+                Abre MiRutinaHoy como una app, incluso con mala señal.
               </p>
               <button
                 type="button"

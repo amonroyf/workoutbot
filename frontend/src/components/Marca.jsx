@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Marca({ compacta = false, className = '' }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`} aria-label="WorkoutBot">
+    <span className={`inline-flex items-center gap-2 ${className}`} aria-label="MiRutinaHoy">
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-marca-500 text-tinta-950">
         <svg
           viewBox="0 0 24 24"
@@ -22,7 +22,7 @@ export default function Marca({ compacta = false, className = '' }) {
       </span>
       {!compacta && (
         <span className="text-lg font-black tracking-tight text-tinta-100">
-          WorkoutBot
+          MiRutinaHoy
         </span>
       )}
     </span>

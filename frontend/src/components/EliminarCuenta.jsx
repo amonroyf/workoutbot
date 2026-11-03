@@ -135,7 +135,7 @@ export default function EliminarCuenta({ onCerrar }) {
           <ul className="space-y-1 text-xs">
             <li className="flex gap-2">
               <Icono nombre="check" tamano={14} className="mt-0.5 shrink-0 text-error-400" />
-              Tu cuenta de WorkoutBot y el acceso con Google.
+              Tu cuenta de MiRutinaHoy y el acceso con Google.
             </li>
             <li className="flex gap-2">
               <Icono nombre="check" tamano={14} className="mt-0.5 shrink-0 text-error-400" />
