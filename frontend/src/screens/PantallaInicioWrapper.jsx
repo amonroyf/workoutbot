@@ -14,6 +14,7 @@ import Icono from '../components/Icono';
 import { Esqueleto } from '../components/Esqueleto';
 import { useInstalarApp } from '../hooks/useInstalarApp';
 import { useLocation } from 'wouter';
+import FeedbackForm from '../components/FeedbackForm';
 
 const NIVELES = {
   principiante: 'Principiante',
@@ -276,6 +277,7 @@ export default function PantallaInicioWrapper({
           </section>
         )}
 
+        <FeedbackForm />
         <footer className="mt-6 flex flex-col items-center gap-2 text-[11px] text-tinta-500">
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <a className="hover:text-tinta-200" href="/privacidad">
