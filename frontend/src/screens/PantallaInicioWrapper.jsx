@@ -43,7 +43,7 @@ function Chip({ children, tono = 'neutro', gel = null }) {
     return (
       <span
         style={estiloGel(gel)}
-        className="rounded-chip border border-white/10 fondo-gel px-2.5 py-1 text-[10px] font-bold texto-gel"
+        className="rounded-chip border border-white/10 fondo-gel px-2.5 py-1 text-[11px] font-bold texto-gel"
       >
         {children}
       </span>
@@ -56,7 +56,7 @@ function Chip({ children, tono = 'neutro', gel = null }) {
         ? 'border-racha-400/40 bg-racha-500/15 text-racha-300'
         : 'border-linea bg-tinta-900/70 text-tinta-300';
   return (
-    <span className={`rounded-chip border px-2.5 py-1 text-[10px] font-bold ${clases}`}>
+    <span className={`rounded-chip border px-2.5 py-1 text-[11px] font-bold ${clases}`}>
       {children}
     </span>
   );
@@ -133,7 +133,7 @@ export default function PantallaInicioWrapper({
             <button
               type="button"
               onClick={onActivarCamara}
-              className="min-h-9 shrink-0 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
+              className="min-h-11 shrink-0 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
             >
               Activar
             </button>
@@ -148,7 +148,7 @@ export default function PantallaInicioWrapper({
                   <button
                     type="button"
                     onClick={onReintentarCamara}
-                    className="flex min-h-9 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
+                    className="flex min-h-11 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
                   >
                     <Icono nombre="reproducir" tamano={14} />
                     Reintentar
@@ -156,7 +156,7 @@ export default function PantallaInicioWrapper({
                   <button
                     type="button"
                     onClick={onDesactivarCamara}
-                    className="min-h-8 rounded-boton border border-linea px-2 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800"
+                    className="min-h-11 rounded-boton border border-linea px-2 text-[11px] font-bold text-tinta-300 transition hover:bg-tinta-800"
                   >
                     Sin cámara
                   </button>
@@ -172,7 +172,7 @@ export default function PantallaInicioWrapper({
                 <button
                   type="button"
                   onClick={onDesactivarCamara}
-                  className="ml-auto min-h-7 rounded-boton px-1.5 text-[10px] font-bold text-tinta-400 hover:text-tinta-200"
+                  className="ml-auto min-h-7 rounded-boton px-1.5 text-[11px] font-bold text-tinta-400 hover:text-tinta-200"
                 >
                   Sin cámara
                 </button>
@@ -196,7 +196,7 @@ export default function PantallaInicioWrapper({
               )}
             </div>
 
-            <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] texto-gel">
+            <p className="mt-3 text-[11px] font-black uppercase tracking-[0.18em] texto-gel">
               {claseActual.arquetipo ? obtenerArquetipo(claseActual.arquetipo)?.nombre : null} ·{' '}
               {obtenerArquetipo(claseActual.arquetipo)?.descripcion}
             </p>
@@ -226,7 +226,7 @@ export default function PantallaInicioWrapper({
               <Icono nombre="reproducir" tamano={22} />
               {esClaseDelPlan || !hoyClase ? 'Empezar clase' : 'Hacer esta clase'}
             </button>
-            <p className="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-tinta-500">
+            <p className="mt-1.5 flex items-center justify-center gap-1 text-[11px] text-tinta-500">
               <Icono nombre="expandir" tamano={12} />
               {soportaPantallaCompleta
                 ? 'Se abre en pantalla completa'
@@ -242,7 +242,7 @@ export default function PantallaInicioWrapper({
               <Icono nombre="calendario" tamano={14} />
               Ver plan y clases
             </button>
-              <span className="text-right text-[10px] text-tinta-500">
+              <span className="text-right text-[11px] text-tinta-500">
                 La cámara no sube tu video
               </span>
             </div>
@@ -262,7 +262,7 @@ export default function PantallaInicioWrapper({
               <button
                 type="button"
                 onClick={abrirInstalacion}
-                className="mt-2 min-h-9 rounded-boton bg-marca-500 px-3 text-xs font-black text-black transition hover:bg-marca-400"
+                className="mt-2 min-h-11 rounded-boton bg-marca-500 px-3 text-xs font-black text-black transition hover:bg-marca-400"
               >
                 {puedeInstalar ? 'Instalar app' : 'Cómo instalar en iPhone'}
               </button>
@@ -293,7 +293,7 @@ export default function PantallaInicioWrapper({
             <button
               type="button"
               onClick={onSalida}
-              className="min-h-8 font-bold hover:text-tinta-200"
+              className="min-h-11 font-bold hover:text-tinta-200"
             >
               Cerrar sesión
             </button>

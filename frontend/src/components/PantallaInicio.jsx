@@ -55,7 +55,7 @@ function Chip({ children, tono = 'neutro', gel = null }) {
     return (
       <span
         style={estiloGel(gel)}
-        className="rounded-chip border border-white/10 fondo-gel px-2.5 py-1 text-[10px] font-bold texto-gel"
+        className="rounded-chip border border-white/10 fondo-gel px-2.5 py-1 text-[11px] font-bold texto-gel"
       >
         {children}
       </span>
@@ -68,7 +68,7 @@ function Chip({ children, tono = 'neutro', gel = null }) {
         ? 'border-racha-400/40 bg-racha-500/15 text-racha-300'
         : 'border-linea bg-tinta-900/70 text-tinta-300';
   return (
-    <span className={`rounded-chip border px-2.5 py-1 text-[10px] font-bold ${clases}`}>
+    <span className={`rounded-chip border px-2.5 py-1 text-[11px] font-bold ${clases}`}>
       {children}
     </span>
   );
@@ -90,10 +90,10 @@ function TarjetaClase({ clase, activa, onClick }) {
     >
       <span className="gel-lateral absolute inset-x-0 top-0 h-1" />
       <span className="flex items-center justify-between gap-2">
-        <span className="text-[10px] font-black uppercase tracking-[0.12em] texto-gel">
+        <span className="text-[11px] font-black uppercase tracking-[0.12em] texto-gel">
           {arquetipo?.nombre || etiquetaFormato(clase)}
         </span>
-        <span className="flex items-center gap-1 text-[10px] font-bold text-tinta-400">
+        <span className="flex items-center gap-1 text-[11px] font-bold text-tinta-400">
           <Icono nombre="reloj" tamano={12} />
           {formatearDuracion(duracionClase(clase))}
         </span>
@@ -104,7 +104,7 @@ function TarjetaClase({ clase, activa, onClick }) {
       <span className="mt-1 line-clamp-2 block text-[11px] leading-snug text-tinta-400">
         {clase.descripcion}
       </span>
-      <span className="mt-2 block text-[10px] font-bold text-tinta-500">
+      <span className="mt-2 block text-[11px] font-bold text-tinta-500">
         {NIVELES[clase.nivel] || clase.nivel}
       </span>
     </button>
@@ -226,7 +226,7 @@ export default function PantallaInicio({
             <button
               type="button"
               onClick={onActivarCamara}
-              className="min-h-9 shrink-0 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
+              className="min-h-11 shrink-0 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
             >
               Activar
             </button>
@@ -241,7 +241,7 @@ export default function PantallaInicio({
                   <button
                     type="button"
                     onClick={onReintentarCamara}
-                    className="flex min-h-9 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
+                    className="flex min-h-11 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400"
                   >
                     <Icono nombre="reproducir" tamano={14} />
                     Reintentar
@@ -249,7 +249,7 @@ export default function PantallaInicio({
                   <button
                     type="button"
                     onClick={onDesactivarCamara}
-                    className="min-h-8 rounded-boton border border-linea px-2 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800"
+                    className="min-h-11 rounded-boton border border-linea px-2 text-[11px] font-bold text-tinta-300 transition hover:bg-tinta-800"
                   >
                     Sin cámara
                   </button>
@@ -265,7 +265,7 @@ export default function PantallaInicio({
                 <button
                   type="button"
                   onClick={onDesactivarCamara}
-                  className="ml-auto min-h-7 rounded-boton px-1.5 text-[10px] font-bold text-tinta-400 hover:text-tinta-200"
+                  className="ml-auto min-h-7 rounded-boton px-1.5 text-[11px] font-bold text-tinta-400 hover:text-tinta-200"
                 >
                   Sin cámara
                 </button>
@@ -303,7 +303,7 @@ export default function PantallaInicio({
               )}
             </div>
 
-            <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] texto-gel">
+            <p className="mt-3 text-[11px] font-black uppercase tracking-[0.18em] texto-gel">
               {arquetipoActual?.nombre} · {arquetipoActual?.descripcion}
             </p>
             <h1 className="fuente-display mt-1 text-3xl font-black leading-[1.05] text-tinta-100">
@@ -341,7 +341,7 @@ export default function PantallaInicio({
               <Icono nombre="reproducir" tamano={22} />
               {esClaseDelPlan || !hoyClase ? 'Empezar clase' : 'Hacer esta clase'}
             </button>
-            <p className="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-tinta-500">
+            <p className="mt-1.5 flex items-center justify-center gap-1 text-[11px] text-tinta-500">
               <Icono nombre="expandir" tamano={12} />
               {soportaPantallaCompleta
                 ? 'Se abre en pantalla completa'
@@ -357,7 +357,7 @@ export default function PantallaInicio({
                 <Icono nombre="calendario" tamano={14} />
                 Ver plan y clases
               </button>
-              <span className="text-right text-[10px] text-tinta-500">
+              <span className="text-right text-[11px] text-tinta-500">
                 La cámara no sube tu video
               </span>
             </div>
@@ -383,14 +383,14 @@ export default function PantallaInicio({
                     <p className="text-sm font-black text-tinta-100">
                       {resumen.racha} {resumen.racha === 1 ? 'día' : 'días'} de racha
                     </p>
-                    <p className="text-[10px] text-tinta-400">Sigue así, se nota.</p>
+                    <p className="text-[11px] text-tinta-400">Sigue así, se nota.</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-marca-300">
                     {resumen.dias_semana}/{resumen.meta_semanal}
                   </p>
-                  <p className="text-[10px] text-tinta-400">esta semana</p>
+                  <p className="text-[11px] text-tinta-400">esta semana</p>
                 </div>
               </div>
               <div className="mt-2.5 flex justify-between gap-1">
@@ -419,7 +419,7 @@ export default function PantallaInicio({
               </span>
               <div>
                 <p className="text-sm font-black text-tinta-100">Tu primera clase te espera</p>
-                <p className="text-[10px] text-tinta-400">
+                <p className="text-[11px] text-tinta-400">
                   La racha empieza con un solo día. Hoy es buen momento.
                 </p>
               </div>
@@ -440,7 +440,7 @@ export default function PantallaInicio({
             <button
               type="button"
               onClick={() => setHojaAbierta(true)}
-              className="flex min-h-9 shrink-0 items-center gap-1 text-xs font-bold text-marca-300"
+              className="flex min-h-11 shrink-0 items-center gap-1 text-xs font-bold text-marca-300"
             >
               Ver todas
               <Icono nombre="chevronDerecha" tamano={13} />
@@ -471,7 +471,7 @@ export default function PantallaInicio({
               <button
                 type="button"
                 onClick={abrirInstalacion}
-                className="mt-2 min-h-9 rounded-boton bg-marca-500 px-3 text-xs font-black text-black transition hover:bg-marca-400"
+                className="mt-2 min-h-11 rounded-boton bg-marca-500 px-3 text-xs font-black text-black transition hover:bg-marca-400"
               >
                 {puedeInstalar ? 'Instalar app' : 'Cómo instalar en iPhone'}
               </button>
@@ -501,7 +501,7 @@ export default function PantallaInicio({
             <button
               type="button"
               onClick={onSalir}
-              className="min-h-8 font-bold hover:text-tinta-200"
+              className="min-h-11 font-bold hover:text-tinta-200"
             >
               Cerrar sesión
             </button>
@@ -509,7 +509,7 @@ export default function PantallaInicio({
             <button
               type="button"
               onClick={() => setEliminarCuentaAbierto(true)}
-              className="min-h-8 font-bold text-error-400 hover:text-error-300"
+              className="min-h-11 font-bold text-error-400 hover:text-error-300"
             >
               Eliminar cuenta
             </button>
@@ -617,7 +617,7 @@ export default function PantallaInicio({
               <div className="mt-3 space-y-4">
                 {clasesAgrupadas.map(({ arquetipo, clases }) => (
                   <div key={arquetipo.id} style={estiloGel(arquetipo.id)}>
-                    <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] texto-gel">
+                    <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] texto-gel">
                       <span className="h-1.5 w-1.5 rounded-full fondo-gel borde-gel border" />
                       {arquetipo.nombre}
                     </p>
@@ -642,11 +642,11 @@ export default function PantallaInicio({
                             <span className="block text-xs font-black leading-tight text-tinta-100">
                               {clase.nombre}
                             </span>
-                            <span className="mt-1 block text-[10px] text-tinta-400">
+                            <span className="mt-1 block text-[11px] text-tinta-400">
                               {formatearDuracion(duracionClase(clase))} ·{' '}
                               {NIVELES[clase.nivel] || clase.nivel}
                             </span>
-                            <span className="block text-[10px] text-tinta-500">
+                            <span className="block text-[11px] text-tinta-500">
                               {textoEquipo(clase)}
                             </span>
                           </button>
@@ -660,13 +660,13 @@ export default function PantallaInicio({
 
             <div className="mt-4 rounded-panel border border-linea bg-panel p-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-marca-400">
+                <p className="text-[11px] font-black uppercase tracking-[0.14em] text-marca-400">
                   Detalle de la clase
                 </p>
                 <button
                   type="button"
                   onClick={aleatorizarClaseActual}
-                  className="flex shrink-0 items-center gap-1 rounded-chip border border-linea bg-tinta-900 px-2 py-1 text-[10px] font-bold text-tinta-200 transition hover:bg-tinta-800"
+                  className="flex shrink-0 items-center gap-1 rounded-chip border border-linea bg-tinta-900 px-2 py-1 text-[11px] font-bold text-tinta-200 transition hover:bg-tinta-800"
                   aria-label="Generar otra combinación de ejercicios"
                 >
                   <Icono nombre="barajar" tamano={12} />
@@ -706,7 +706,7 @@ export default function PantallaInicio({
                           </p>
                         </div>
                       ))}
-                      <p className="text-[10px] text-tinta-500">
+                      <p className="text-[11px] text-tinta-500">
                         {claseActual.bloques.length} ejercicios en {claseActual.secciones.length}{' '}
                         secciones
                       </p>
@@ -722,7 +722,7 @@ export default function PantallaInicio({
               )}
             </div>
 
-            <p className="mt-3 text-[10px] leading-relaxed text-tinta-500">
+            <p className="mt-3 text-[11px] leading-relaxed text-tinta-500">
               Si te cuesta: apóyate en una silla o pared, o haz menos
               repeticiones. Detente si sientes dolor.
             </p>

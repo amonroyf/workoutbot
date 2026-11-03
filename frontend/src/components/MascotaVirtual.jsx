@@ -25,12 +25,12 @@ export default function MascotaVirtual({ racha = 0 }) {
     <div className="relative flex flex-col items-center justify-center">
       {/* Textos flotantes */}
       {estadoAnimo === 'feliz' && (
-        <span className="absolute -top-6 text-[10px] font-black text-racha-400 animate-bounce drop-shadow-md">
+        <span className="absolute -top-6 text-[11px] font-black text-racha-400 animate-bounce drop-shadow-md">
           ¡Fuego! 🔥
         </span>
       )}
       {estadoAnimo === 'descansando' && (
-        <span className="absolute -top-6 text-[10px] font-bold text-tinta-400 animate-pulse">
+        <span className="absolute -top-6 text-[11px] font-bold text-tinta-400 animate-pulse">
           Zzz...
         </span>
       )}

@@ -76,14 +76,14 @@ export default function PantallaActividad({
                     <p className="text-sm font-black text-tinta-100">
                       {resumen.racha} {resumen.racha === 1 ? 'día' : 'días'} de racha
                     </p>
-                    <p className="text-[10px] text-tinta-400">Sigue así, se nota.</p>
+                    <p className="text-[11px] text-tinta-400">Sigue así, se nota.</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-black text-marca-300">
                     {resumen.dias_semana}/{resumen.meta_semanal}
                   </p>
-                  <p className="text-[10px] text-tinta-400">esta semana</p>
+                  <p className="text-[11px] text-tinta-400">esta semana</p>
                 </div>
               </div>
               <div className="mt-2.5 flex justify-between gap-1">
@@ -110,7 +110,7 @@ export default function PantallaActividad({
               </span>
               <div>
                 <p className="text-sm font-black text-tinta-100">Tu primera clase te espera</p>
-                <p className="text-[10px] text-tinta-400">
+                <p className="text-[11px] text-tinta-400">
                   La racha empieza con un solo día. Hoy es buen momento.
                 </p>
               </div>
@@ -119,7 +119,7 @@ export default function PantallaActividad({
         </section>
 
         <section className="mt-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-marca-400">
+          <p className="text-[11px] font-black uppercase tracking-[0.14em] text-marca-400">
             Tu plan semanal
           </p>
           <PlanSemanal plan={plan} resumen={resumen} onGuardar={onGuardarPlan} />
@@ -135,7 +135,7 @@ export default function PantallaActividad({
           <div className="mt-3 space-y-4">
             {clasesAgrupadas.map(({ arquetipo, clases }) => (
               <div key={arquetipo.id} style={estiloGel(arquetipo.id)}>
-                <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] texto-gel">
+                <p className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] texto-gel">
                   <span className="h-1.5 w-1.5 rounded-full fondo-gel borde-gel border" />
                   {arquetipo.nombre}
                 </p>
@@ -158,11 +158,11 @@ export default function PantallaActividad({
                         <span className="block text-xs font-black leading-tight text-tinta-100">
                           {clase.nombre}
                         </span>
-                        <span className="mt-1 block text-[10px] text-tinta-400">
+                        <span className="mt-1 block text-[11px] text-tinta-400">
                           {formatearDuracion(duracionClase(clase))} ·{' '}
                           {NIVELES[clase.nivel] || clase.nivel} · {etiquetaFormato(clase)}
                         </span>
-                        <span className="block text-[10px] text-tinta-500">
+                        <span className="block text-[11px] text-tinta-500">
                           {textoEquipo(clase)}
                         </span>
                       </button>

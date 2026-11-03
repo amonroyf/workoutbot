@@ -49,7 +49,7 @@ export default function ConsentimientoAnalitica({ onAceptar }) {
 
         <a
           href="/privacidad"
-          className="mt-2 inline-flex min-h-8 items-center text-[11px] font-bold text-tinta-400 underline underline-offset-2 hover:text-tinta-200"
+          className="mt-2 inline-flex min-h-11 items-center text-[11px] font-bold text-tinta-400 underline underline-offset-2 hover:text-tinta-200"
         >
           Leer la política de privacidad
         </a>

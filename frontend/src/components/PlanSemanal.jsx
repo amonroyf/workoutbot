@@ -72,7 +72,7 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
             <p className="mt-0.5 truncate text-sm font-black text-tinta-100">
               {hoyClase ? `Hoy toca ${hoyClase.nombre}` : 'Hoy descansas'}
             </p>
-            <p className="mt-0.5 truncate text-[10px] text-tinta-400">
+            <p className="mt-0.5 truncate text-[11px] text-tinta-400">
               {proximo
                 ? `El ${nombreDia(proximo.dia)} toca ${proximo.clase.nombre}`
                 : `${objetivo.nombre} · ${formatearDias(plan.dias)}`}
@@ -81,7 +81,7 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
           <button
             type="button"
             onClick={abrirEditor}
-            className="shrink-0 rounded-md border border-linea px-2.5 py-1 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800/60"
+            className="shrink-0 rounded-md border border-linea px-2.5 py-1 text-[11px] font-bold text-tinta-300 transition hover:bg-tinta-800/60"
           >
             Editar
           </button>
@@ -170,7 +170,7 @@ export default function PlanSemanal({ plan, resumen, onGuardar }) {
                     }`}
                   >
                     <span className="block text-xs font-black text-tinta-100">{item.nombre}</span>
-                    <span className="block text-[10px] text-tinta-400">{item.descripcion}</span>
+                    <span className="block text-[11px] text-tinta-400">{item.descripcion}</span>
                   </button>
                 );
               })}

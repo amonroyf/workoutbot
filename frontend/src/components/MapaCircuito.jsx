@@ -39,7 +39,7 @@ export default function MapaCircuito() {
               </div>
               <span
                 title={seccion.nombre}
-                className={`w-full truncate text-center text-[10px] font-semibold ${
+                className={`w-full truncate text-center text-[11px] font-semibold ${
                   seccion.estado === 'pendiente' ? 'text-tinta-500' : 'text-tinta-200'
                 }`}
               >
@@ -80,7 +80,7 @@ export default function MapaCircuito() {
             </div>
             <span
               title={nombreEjercicio(estacion.ejercicio)}
-              className={`w-full truncate text-center text-[10px] font-semibold ${
+              className={`w-full truncate text-center text-[11px] font-semibold ${
                 estacion.estado === 'pendiente' ? 'text-tinta-500' : 'text-tinta-200'
               }`}
             >

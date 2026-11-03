@@ -213,7 +213,7 @@ export default function SummaryScreen({ resumen, cargando = false, pendienteSync
       className="absolute inset-0 z-10 flex flex-col items-center justify-center overflow-y-auto overscroll-contain bg-fondo/80 px-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-[calc(1.5rem+env(safe-area-inset-top))] text-center text-tinta-100"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-56 gel" />
-      <p className="relative text-[10px] font-black uppercase tracking-[0.18em] texto-gel">
+      <p className="relative text-[11px] font-black uppercase tracking-[0.18em] texto-gel">
         {arquetipo?.nombre}
       </p>
       <p className="relative fuente-display text-sm font-semibold text-tinta-200">{claseActual.nombre}</p>
@@ -265,7 +265,7 @@ export default function SummaryScreen({ resumen, cargando = false, pendienteSync
                   } ${dia.hoy ? 'ring-2 ring-tinta-100/70' : ''}`}
                 />
                 <span
-                  className={`text-[10px] font-bold ${
+                  className={`text-[11px] font-bold ${
                     dia.hoy ? 'text-tinta-100' : 'text-tinta-500'
                   }`}
                 >

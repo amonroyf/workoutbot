@@ -335,7 +335,7 @@ export default function WorkoutUI() {
         className="absolute bottom-[calc(7rem+env(safe-area-inset-bottom))] right-4 z-30 flex flex-col items-center rounded-ficha border border-white/20 bg-tinta-950/70 p-2 backdrop-blur-xl transition hover:bg-tinta-900 shadow-flotante"
       >
         <DemoEjercicio ejercicio={ejercicioDemo} pequena />
-        <span className="mt-1 text-[10px] font-bold text-tinta-300 uppercase tracking-wider">
+        <span className="mt-1 text-[11px] font-bold text-tinta-300 uppercase tracking-wider">
           Técnica
         </span>
       </button>

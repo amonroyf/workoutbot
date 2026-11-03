@@ -33,7 +33,7 @@ export default function NavegacionInferior() {
                 tamano={22}
                 className={activa ? 'drop-shadow-[0_0_8px_rgba(251,146,60,0.5)]' : ''}
               />
-              <span className="text-[10px] font-bold tracking-wide">{pestaña.nombre}</span>
+              <span className="text-[11px] font-bold tracking-wide">{pestaña.nombre}</span>
             </button>
           );
         })}

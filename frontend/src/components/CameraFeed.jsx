@@ -139,14 +139,14 @@ export default function CameraFeed() {
           <div className="flex shrink-0 flex-col gap-1">
             <button
               onClick={() => setReintento(reintento + 1)}
-              className="flex min-h-9 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
+              className="flex min-h-11 items-center justify-center gap-1 rounded-boton bg-marca-500 px-3 text-xs font-bold text-black transition hover:bg-marca-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-tinta-100"
             >
               <Icono nombre="reproducir" tamano={14} />
               Reintentar
             </button>
             <button
               onClick={() => setCamaraHabilitada(false)}
-              className="min-h-8 rounded-boton border border-linea px-2 text-[10px] font-bold text-tinta-300 transition hover:bg-tinta-800"
+              className="min-h-11 rounded-boton border border-linea px-2 text-[11px] font-bold text-tinta-300 transition hover:bg-tinta-800"
             >
               Sin cámara
             </button>

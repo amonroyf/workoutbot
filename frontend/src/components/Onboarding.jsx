@@ -96,7 +96,7 @@ export default function Onboarding({
           <button
             type="button"
             onClick={saltar}
-            className="min-h-9 rounded-boton px-2 text-xs font-bold text-tinta-400 hover:text-tinta-100"
+            className="min-h-11 rounded-boton px-2 text-xs font-bold text-tinta-400 hover:text-tinta-100"
           >
             Saltar
           </button>
@@ -107,7 +107,7 @@ export default function Onboarding({
             <Punto key={i} activo={paso === i + 1} completado={paso > i + 1} />
           ))}
         </div>
-        <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-tinta-500">
+        <p className="mt-2 text-[11px] font-black uppercase tracking-[0.16em] text-tinta-500">
           Paso {paso} de {TOTAL_PASOS}
         </p>
 
@@ -246,7 +246,7 @@ export default function Onboarding({
                       }`}
                     >
                       <span className="block text-xs font-black text-tinta-100">{item.nombre}</span>
-                      <span className="block text-[10px] text-tinta-400">{item.descripcion}</span>
+                      <span className="block text-[11px] text-tinta-400">{item.descripcion}</span>
                     </button>
                   );
                 })}
@@ -297,7 +297,7 @@ export default function Onboarding({
           ) : (
             <span />
           )}
-          <p className="text-[10px] text-tinta-500">Tu video nunca se sube.</p>
+          <p className="text-[11px] text-tinta-500">Tu video nunca se sube.</p>
         </div>
       </main>
     </div>
