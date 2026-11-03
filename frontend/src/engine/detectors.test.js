@@ -861,6 +861,7 @@ describe('DETECTORES', () => {
       'ESTIRAMIENTO_CUELLO',
       'ESTIRAMIENTO_MUNECA',
       'POSTURA_SILLA',
+      'DEAD_BUG',
     ]);
   });
 });

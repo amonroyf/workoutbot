@@ -844,6 +844,7 @@ const DETECTORES_POR_NOMBRE = {
   estiramiento_cuello: detectarEstiramientoCuello,
   estiramiento_muneca: detectarEstiramientoMuneca,
   postura_silla: detectarPosturaSilla,
+  dead_bug: detectarDeadBug,
 };
 
 export function obtenerDetector(ejercicioId) {
