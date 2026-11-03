@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import {
   ARQUETIPOS,
   CLASES,
@@ -14,9 +14,9 @@ import Icono from '../components/Icono';
 import { Esqueleto } from '../components/Esqueleto';
 import { useInstalarApp } from '../hooks/useInstalarApp';
 import { useLocation } from 'wouter';
-import FeedbackForm from '../components/FeedbackForm';
+const FeedbackForm = lazy(() => import('../components/FeedbackForm'));
+const FeedbackList = lazy(() => import('../components/FeedbackList'));
 import GuiaPrimeraVez from '../components/GuiaPrimeraVez';
-import FeedbackList from '../components/FeedbackList';
 
 const NIVELES = {
   principiante: 'Principiante',
@@ -280,8 +280,10 @@ export default function PantallaInicioWrapper({
         )}
 
         {mostrarGuia && <GuiaPrimeraVez onCerrar={onCerrarGuia} />}
-        <FeedbackForm />
-        <FeedbackList />
+        <Suspense fallback={null}>
+          <FeedbackForm />
+          <FeedbackList />
+        </Suspense>
         <footer className="mt-6 flex flex-col items-center gap-2 text-[11px] text-tinta-500">
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <a className="hover:text-tinta-200" href="/privacidad">
