@@ -97,6 +97,18 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react';
+          if (id.includes('node_modules/firebase')) return 'firebase';
+          if (id.includes('node_modules/@mediapipe')) return 'mediapipe';
+          if (id.includes('node_modules/zustand') || id.includes('node_modules/wouter')) return 'state';
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {
