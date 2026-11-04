@@ -304,7 +304,6 @@ export function detectarFlexion(landmarks, estado, ahoraMs = Date.now()) {
   const profundidadSuficiente = hombroRaw.y > codoRaw.y - 0.05 || angulo < 90;
 
   if (!esPlancha) {
-    fase = 'ARRIBA';
     scoreForma = null;
     mensaje = 'Alinea el cuerpo en plancha';
   } else if (angulo > UMBRAL_ANGULO_ARRIBA) {
@@ -677,7 +676,7 @@ export function detectarPuenteGluteo(landmarks, estado) {
   if (!cuerpoHorizontal(hombro, cadera)) return resultado(estado, { mensaje: 'Acuéstate de perfil' }, false);
   const caderaArriba = cadera.y < hombro.y - UMBRAL_TORSO_ARRIBA;
   let { fase } = estado; let repeticion = false;
-  if (caderaArriba) { if (fase === 'ABAJO') { fase = 'ARRIBA'; repeticion = true; } } else if (cadera.y > hombro.y - 0.01) { fase = 'ABAJO'; }
+  if (caderaArriba) { if (fase === 'ABAJO' || fase === 'ARRIBA') { if (fase === 'ABAJO') repeticion = true; fase = 'ARRIBA'; } } else if (cadera.y > hombro.y - 0.06) { fase = 'ABAJO'; }
   return resultado(estado, { fase, mensaje: null }, repeticion);
 }
 
@@ -718,9 +717,10 @@ export function detectarRotacionTorso(landmarks, estado) {
   const centroX = (landmarks[11].x + landmarks[12].x) / 2;
   const anchoHombros = Math.max(Math.abs(landmarks[12].x - landmarks[11].x), 0.0001);
   const desvio = (landmarks[0].x - centroX) / anchoHombros;
+  if (Math.abs(desvio) > 5) return resultado(estado, { mensaje: 'Muestra rostro y hombros', ladoActivo: estado.ladoActivo }, false);
   let { ladoActivo } = estado; let repeticion = false; let mensaje = null;
-  if (desvio < -UMBRAL_ROTACION_TORSO) { if (ladoActivo !== 'IZQ') { repeticion = ladoActivo === 'DER'; ladoActivo = 'IZQ'; } } 
-  else if (desvio > UMBRAL_ROTACION_TORSO) { if (ladoActivo !== 'DER') { repeticion = ladoActivo === 'IZQ'; ladoActivo = 'DER'; } } 
+  if (desvio < -UMBRAL_ROTACION_TORSO) { if (ladoActivo !== 'IZQ') { repeticion = (ladoActivo === 'DER' || ladoActivo === null); ladoActivo = 'IZQ'; } } 
+  else if (desvio > UMBRAL_ROTACION_TORSO) { if (ladoActivo !== 'DER') { repeticion = (ladoActivo === 'IZQ' || ladoActivo === null); ladoActivo = 'DER'; } } 
   else if (Math.abs(desvio) < UMBRAL_ROTACION_TORSO_NEUTRO) { ladoActivo = null; } 
   else { mensaje = 'Vuelve al centro entre cada giro'; }
   return resultado(estado, { ladoActivo, mensaje }, repeticion);

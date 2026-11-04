@@ -19,7 +19,7 @@ FRONTEND_DIR="$DIR/frontend"
 PROJECT="${GCP_PROJECT_ID:-workoutbot-fit}"
 REGION="us-central1"
 SERVICE="workoutbot"
-SITE="workoutbot-web"
+SITE="${SITE:-workoutbot-web}"
 
 ENV_FILE="${ENV_FILE:-/tmp/opencode/env_workoutbot.yaml}"
 MODE="${1:-both}"
