@@ -90,7 +90,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
   const setProgresoFase = useWorkoutStore((state) => state.setProgresoFase);
   const setAdvertenciaCamara = useWorkoutStore((state) => state.setAdvertenciaCamara);
 
-  const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio, mensaje = null, scoreForma = null) => {
+  const drawSkeleton = useCallback((ctx, landmarks, width, height, ejercicio) => {
     ctx.clearRect(0, 0, width, height);
     ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
     ctx.shadowBlur = 8;
@@ -136,18 +136,6 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
         ctx.lineWidth = 2;
         ctx.strokeStyle = '#ffffff';
          ctx.stroke();
-       }
-     }
-     // Indicador de postura para isométricos y correcciones
-     if (mensaje !== null || scoreForma !== null) {
-       ctx.shadowBlur = 0;
-       ctx.font = '900 18px system-ui';
-       ctx.fillStyle = mensaje ? '#f87171' : '#4ade80';
-       ctx.fillText(mensaje || 'OK', 20, height - 30);
-       if (scoreForma !== null) {
-         ctx.font = '700 14px system-ui';
-         ctx.fillStyle = '#ffffff';
-         ctx.fillText(`Score: ${scoreForma}`, 20, height - 10);
        }
      }
    }, []);
@@ -310,8 +298,7 @@ export function useMediaPipe(videoRef, canvasRef, habilitada = true) {
            if (ctx) {
              if (estado.faseActual === 'TRABAJO' && !estado.pausado) {
                procesarEjercicio(landmarksFiltrados, estado.ejercicioActual, ahora);
-               const est = useWorkoutStore.getState();
-               drawSkeleton(ctx, landmarksFiltrados, canvasRef.current.width, canvasRef.current.height, estado.ejercicioActual, est.mensajeForma, est.scoreForma);
+               drawSkeleton(ctx, landmarksFiltrados, canvasRef.current.width, canvasRef.current.height, estado.ejercicioActual);
              } else {
                drawSkeleton(ctx, landmarksFiltrados, canvasRef.current.width, canvasRef.current.height, null);
              }

@@ -118,6 +118,8 @@ export default function WorkoutUI() {
   const progresoFase = useWorkoutStore((s) => s.progresoFase);
   const pausado = useWorkoutStore((s) => s.pausado);
   const pausadoPor = useWorkoutStore((s) => s.pausadoPor);
+  const toggleFacingMode = useWorkoutStore((s) => s.toggleFacingMode);
+  const facingMode = useWorkoutStore((s) => s.facingMode);
   const sonidosActivos = useWorkoutStore((s) => s.sonidosActivos);
   const musicaActiva = useWorkoutStore((s) => s.musicaActiva);
   const avisoMusica = useWorkoutStore((s) => s.avisoMusica);
@@ -297,11 +299,11 @@ export default function WorkoutUI() {
             </div>
         )}
 
-        {/* FEEDBACK DE POSTURA ESTRICTO (El "Espejo" en Rojo) */}
-        {mensajeForma && (
+        {/* FEEDBACK DE POSTURA (unificado: rojo si hay corrección, verde si OK) */}
+        {(mensajeForma || scoreForma != null) && (
           <div className="absolute top-[35dvh] left-1/2 -translate-x-1/2 w-11/12 max-w-md z-40 animate-pulse pointer-events-none">
-            <p className="rounded-panel px-6 py-4 text-center text-lg md:text-xl font-black text-white border-2 border-error-500 bg-error-600/95 shadow-resplandor-error backdrop-blur-md">
-              {mensajeForma.toUpperCase()}
+            <p className={`rounded-panel px-6 py-4 text-center text-lg md:text-xl font-black text-white border-2 backdrop-blur-md ${mensajeForma ? 'border-error-500 bg-error-600/95 shadow-resplandor-error' : 'border-green-500 bg-green-600/95 shadow-lg'}`}>
+              {mensajeForma ? mensajeForma.toUpperCase() : `OK · ${scoreForma ?? 100}`}
             </p>
           </div>
         )}
@@ -385,14 +387,21 @@ export default function WorkoutUI() {
             Seguir
           </button>
           
-          {pausadoPor === 'faltaPose' && (
-            <button
-              onClick={() => setCamaraHabilitada(false)}
-              className="mt-4 text-sm font-bold text-aviso-400 hover:text-aviso-300 underline underline-offset-4 transition"
-            >
-              Continuar sin cámara
-            </button>
-          )}
+           {pausadoPor === 'faltaPose' && (
+             <button
+               onClick={() => setCamaraHabilitada(false)}
+               className="mt-4 text-sm font-bold text-aviso-400 hover:text-aviso-300 underline underline-offset-4 transition"
+             >
+               Continuar sin cámara
+             </button>
+           )}
+
+           <button
+             onClick={toggleFacingMode}
+             className="mt-2 text-sm font-bold text-tinta-300 hover:text-white underline underline-offset-4 transition"
+           >
+             Cambiar a cámara {facingMode === 'user' ? 'trasera' : 'frontal'}
+           </button>
 
           <button
             onClick={detenerRutina}
